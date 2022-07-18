@@ -1,0 +1,54 @@
+package commands.make
+
+import botName
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.messages.reply_
+import discoart.Client
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+
+suspend fun upscale(
+    client: Client,
+    buttonInteractionEvent: ButtonInteractionEvent,
+    imageIndex: Int,
+    params: CreateArtParameters
+) {
+    try {
+        coroutineScope {
+            val replyText = "**Upscaling image #${imageIndex + 1}**\n> *${params.prompts.joinToString("|")}*"
+            val replyMessage = buttonInteractionEvent.reply(replyText).submit().await()
+            var finalImage: ByteArray? = null
+            val artCreator = async {
+                finalImage = client.upscaleArt(params, imageIndex)
+            }
+            val imageProgress = async {
+                while (artCreator.isActive) {
+                    val images = client.retrieveArt(params.artID)
+                    if (images.isEmpty()) {
+                        delay(1000 * 5)
+                    } else {
+                        replyMessage.editOriginal(replyText).retainFiles(listOf())
+                            .addFile(images[0], "${botName}_upscale_progress.jpg").queue()
+                        delay(1000 * 20)
+                    }
+                }
+            }
+            artCreator.await()
+            if (finalImage != null) {
+                buttonInteractionEvent.message.reply_(
+                    "${buttonInteractionEvent.member!!.asMention}, we finished upscaling your image!\n> *${
+                        params.prompts.joinToString(
+                            "|"
+                        )
+                    }*"
+                )
+                    .addFile(finalImage!!, "${botName}_up_${imageIndex + 1}.png").queue()
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
