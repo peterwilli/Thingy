@@ -2,16 +2,21 @@ package discoart
 
 import alphanumericCharPool
 import com.google.protobuf.*
+import com.google.protobuf.Struct.Builder
 import com.google.protobuf.kotlin.DslMap
 import commands.make.CreateArtParameters
+import commands.make.DiffusionConfig
+//import commands.make.DiffusionConfig
 import io.grpc.ManagedChannel
 import jina.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import randomString
+import utils.camelToSnakeCase
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.full.memberProperties
 
 private suspend fun reqsToByteArrayList(ongoingRequest: Flow<Jina.DataRequestProto>): List<ByteArray> {
     var returnedImages = mutableListOf<ByteArray>()
@@ -108,7 +113,7 @@ class Client (
             stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done.png"
         })
         builder.putFields("skip_steps", value {
-            numberValue = 15.0
+            numberValue = 30.0
         })
         builder.putFields("width_height", value {
             listValue = listValue {
@@ -129,12 +134,24 @@ class Client (
         val reqs = listOf(dataReq).asFlow()
         return reqsToByteArrayList(stub.withCompression("gzip").call(reqs)).first()
     }
+    
+    fun injectDiffusionConfig(config: DiffusionConfig) {
+        for (p in config::class.memberProperties) {
+            val discoArtName = p.name!!.camelToSnakeCase()
+            println(discoArtName)
+        }
+    }
 
     suspend fun createArt(params: CreateArtParameters): List<ByteArray> {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
-        // Is this even doing anything?
-        builder.putFields("sat_scale", value { numberValue = 1.0 })
+        builder.putFields("skip_augs", value { boolValue = true })
+        builder.putFields("cut_overview", value { stringValue = "[4]*1000" })
+        builder.putFields("cutn_batches", value { numberValue = 1.0 })
+        builder.putFields("tv_scale", value { numberValue = 10.0 })
+        builder.putFields("range_scale", value { numberValue = 200.0 })
+        //builder.putFields("sat_scale", value { numberValue = 1000.0 })
+//        builder.putFields("cut_innercut", value { stringValue = "[0]*1000" })
 
         val dataReq = dataRequestProto {
             parameters = builder.build()

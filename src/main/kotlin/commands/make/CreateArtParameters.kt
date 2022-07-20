@@ -14,7 +14,8 @@ data class CreateArtParameters(
     val seed: Int,
     val prompts: List<String>,
     var initImage: URL? = null,
-    var ratio: Ratio = Ratio()
+    var ratio: Ratio = Ratio(),
+//    var config: DiffusionConfig? = null
 )
 
 fun optionsToParams(event: GenericCommandInteractionEvent): CreateArtParameters? {

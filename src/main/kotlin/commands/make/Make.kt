@@ -29,14 +29,12 @@ fun makeCommand(jda: JDA, channel: ManagedChannel) {
                 val imageProgress = async {
                     while (artCreator.isActive) {
                         val images = client.retrieveArt(params.artID)
-                        if (images.isEmpty()) {
-                            delay(1000 * 5)
-                        } else {
+                        if (images.isNotEmpty()) {
                             val quilt = makeQuiltFromByteArrayList(images)
                             event.hook.editOriginal(replyText).retainFiles(listOf())
                                 .addFile(quilt, "${botName}_progress.jpg").queue()
-                            delay(1000 * 20)
                         }
+                        delay(1000 * 5)
                     }
                 }
                 artCreator.await()

@@ -1,0 +1,43 @@
+package commands.make.diffusion_configs
+
+import commands.make.DiffusionConfig
+
+val standardSmall = DiffusionConfig(
+    cutIcPow = 0.7869633314795302,
+    skipAugs = true,
+    fuzzyPrompt = false,
+    randomizeClass = true,
+    clipGuidanceScale = 2241,
+    widthHeight = listOf(512, 512),
+    clipDenoised = false,
+    perlinMode = "mixed",
+    seed = 10,
+    cutInnercut = 6,
+    steps = 150,
+    cutIcgrayP = "[0.2]*400+[0]*600",
+    eta = 0.8268482288343075,
+    initScale = 1000,
+    diffusionSamplingMode = "plms",
+    rangeScale = 189,
+    useSecondaryModel = true,
+    perlinInit = false,
+    randMag = 0.05,
+    cutnBatches = 9,
+    tvScale = 4.212639948995278,
+    nBatches = 1,
+    clipSequentialEvaluate = false,
+    textPrompts = listOf("A beautiful painting of a singular lighthouse", "yellow color scheme"),
+    displayRate = 50,
+    cutOverview = 2,
+    clipModels = listOf("RN101::openai"),
+    skipSteps = 0,
+    diffusionModel = "512x512_diffusion_uncond_finetune_008100",
+    batchSize = 1,
+    transformationPercent = listOf(0.09),
+    clampGrad = true,
+    onMisspelledToken = "ignore",
+    clampMax = 0.05,
+    useHorizontalSymmetry = false,
+    useVerticalSymmetry = false,
+    satScale = 3.5508168773059534
+)

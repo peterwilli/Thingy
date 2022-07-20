@@ -1,3 +1,6 @@
+import com.google.protobuf.Struct
+import commands.make.DiffusionConfig
+import commands.make.diffusion_configs.standardSmall
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
 import dev.minn.jda.ktx.interactions.commands.updateCommands
@@ -14,7 +17,11 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import org.apache.commons.text.CaseUtils
+import utils.camelToSnakeCase
+import kotlin.reflect.full.memberProperties
 import kotlin.time.Duration
+
 
 fun main(args: Array<String>) {
     val builder: JDABuilder = JDABuilder.createDefault(args[0])
