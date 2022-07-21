@@ -7,8 +7,8 @@ import discoart.Client
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import utils.byteArrayImageTo
 
 suspend fun upscale(
     client: Client,
@@ -26,12 +26,12 @@ suspend fun upscale(
                 while (true) {
                     val (images, completed) = client.retrieveArt(params.artID)
                     if (images.isNotEmpty()) {
-                        if(completed) {
+                        if (completed) {
                             finalImage = images.first()
                             break
                         }
                         replyMessage.editOriginal(replyText).retainFiles(listOf())
-                            .addFile(images[0], "${botName}_upscale_progress.jpg").queue()
+                            .addFile(byteArrayImageTo(images[0], "jpeg"), "${botName}_upscale_progress.jpg").queue()
                     }
                     delay(1000 * 20)
                 }
@@ -44,8 +44,7 @@ suspend fun upscale(
                             "|"
                         )
                     }*"
-                )
-                    .addFile(finalImage!!, "${botName}_up_${imageIndex + 1}.png").queue()
+                ).addFile(finalImage!!, "${botName}_up_${imageIndex + 1}.png").queue()
             }
         }
     } catch (e: Exception) {

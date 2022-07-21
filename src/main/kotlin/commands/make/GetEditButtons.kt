@@ -8,9 +8,9 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 
-fun getEditButtons(client: Client, jda: JDA, user: User, params: CreateArtParameters): Pair<ActionRow, ActionRow> {
+fun getEditButtons(client: Client, jda: JDA, user: User, paramsList: List<CreateArtParameters>): Pair<ActionRow, ActionRow> {
     val upscaleButtons = mutableListOf<Button>()
-    for (upscaleNumber in 0 until 4) {
+    for ((upscaleNumber, params) in paramsList.withIndex()) {
         val button = jda.button(
             label = "U${upscaleNumber + 1}",
             style = ButtonStyle.PRIMARY,
@@ -22,7 +22,7 @@ fun getEditButtons(client: Client, jda: JDA, user: User, params: CreateArtParame
         upscaleButtons.add(button)
     }
     val variateButtons = mutableListOf<Button>()
-    for (variateNumber in 0 until 4) {
+    for ((variateNumber, params) in paramsList.withIndex()) {
         val button = jda.button(
             label = "V${variateNumber + 1}",
             style = ButtonStyle.PRIMARY,

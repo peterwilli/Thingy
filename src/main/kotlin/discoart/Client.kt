@@ -1,18 +1,17 @@
 package discoart
 
+//import commands.make.DiffusionConfig
 import alphanumericCharPool
 import com.google.protobuf.*
 import com.google.protobuf.Struct.Builder
-import com.google.protobuf.kotlin.DslMap
 import commands.make.CreateArtParameters
 import commands.make.DiffusionConfig
-import commands.make.diffusion_configs.standardSmall
-//import commands.make.DiffusionConfig
 import io.grpc.ManagedChannel
-import jina.*
-import kotlinx.coroutines.flow.Flow
+import jina.Jina
+import jina.JinaRPCGrpcKt
+import jina.dataRequestProto
+import jina.headerProto
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
 import randomString
 import utils.camelToSnakeCase
 import java.io.Closeable
@@ -168,7 +167,7 @@ class Client (
         builder.putFields("n_batches", value { numberValue = 1.0 })
         builder.putFields("batch_size", value { numberValue = 1.0 })
         builder.putFields("init_image", value {
-            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done-0.png"
+            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/0-done-0.png"
         })
         builder.putFields("skip_steps", value {
             numberValue = 30.0

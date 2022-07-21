@@ -6,8 +6,6 @@ import com.beust.klaxon.Parser
 import utils.snakeToLowerCamelCase
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.Math.round
-import kotlin.text.StringBuilder
 
 data class DiffusionConfig(
     val cutIcPow: Double,
@@ -30,7 +28,6 @@ data class DiffusionConfig(
     val cutnBatches: Int,
     val tvScale: Double,
     val nBatches: Int,
-    val clipSequentialEvaluate: Boolean,
     val cutOverview: Int,
     val clipModels: List<String>,
     val skipSteps: Int,

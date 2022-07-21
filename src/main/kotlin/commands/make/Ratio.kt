@@ -1,8 +1,8 @@
 package commands.make
 
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.floor
 
 data class Ratio(
     val w: Int = 1,

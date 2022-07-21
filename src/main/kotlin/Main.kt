@@ -1,24 +1,14 @@
-import com.google.protobuf.Struct
-import commands.make.DiffusionConfig
-import commands.make.diffusion_configs.standardSmall
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
 import dev.minn.jda.ktx.interactions.commands.updateCommands
 import dev.minn.jda.ktx.jdabuilder.injectKTX
-import dev.minn.jda.ktx.messages.reply_
-import discoart.Client
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
-import utils.camelToSnakeCase
-import kotlin.reflect.full.memberProperties
 import kotlin.time.Duration
 
 
