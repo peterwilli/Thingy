@@ -32,8 +32,8 @@ suspend fun upscale(
                         }
                         replyMessage.editOriginal(replyText).retainFiles(listOf())
                             .addFile(images[0], "${botName}_upscale_progress.jpg").queue()
-                        delay(1000 * 20)
                     }
+                    delay(1000 * 20)
                 }
             }
             imageProgress.await()

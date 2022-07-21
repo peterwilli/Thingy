@@ -96,10 +96,7 @@ class Client (
                     listValue = listValue {
                         for (v in value) {
                             val convertedValue = convertAnyToValue(v!!)
-                            if (convertedValue == null) {
-                                println("Warning: $p cannot be found!")
-                            }
-                            else {
+                            if (convertedValue != null) {
                                 this.values.add(convertedValue)
                             }
                         }
@@ -108,10 +105,7 @@ class Client (
             }
             else {
                 val convertedValue = convertAnyToValue(value!!)
-                if (convertedValue == null) {
-                    println("Warning: $p cannot be found!")
-                }
-                else {
+                if (convertedValue != null) {
                     builder.putFields(discoArtName, convertAnyToValue(value!!))
                 }
             }
@@ -147,11 +141,11 @@ class Client (
         })
     }
 
-    suspend fun variateArt(params: CreateArtParameters, imageIndex: Int): List<ByteArray> {
+    suspend fun variateArt(params: CreateArtParameters, imageIndex: Int) {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
         builder.putFields("init_image", value {
-            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done.png"
+            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done-0.png"
         })
         builder.putFields("skip_steps", value {
             numberValue = 75.0
@@ -164,20 +158,17 @@ class Client (
             }
         }
         val reqs = listOf(dataReq).asFlow()
-        var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {
-            result = reqToByteArrayList(it)
         }
-        return result!!
     }
 
-    suspend fun upscaleArt(params: CreateArtParameters, imageIndex: Int): ByteArray {
+    suspend fun upscaleArt(params: CreateArtParameters, imageIndex: Int) {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
         builder.putFields("n_batches", value { numberValue = 1.0 })
         builder.putFields("batch_size", value { numberValue = 1.0 })
         builder.putFields("init_image", value {
-            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done.png"
+            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done-0.png"
         })
         builder.putFields("skip_steps", value {
             numberValue = 30.0
@@ -201,12 +192,10 @@ class Client (
         val reqs = listOf(dataReq).asFlow()
         var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {
-            result = reqToByteArrayList(it)
         }
-        return result!!.first()
     }
 
-    suspend fun createArt(params: CreateArtParameters): List<ByteArray> {
+    suspend fun createArt(params: CreateArtParameters) {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
         addDiffusionConfig(params.preset, builder)
@@ -220,11 +209,8 @@ class Client (
         }
 
         val reqs = listOf(dataReq).asFlow()
-        var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {
-            result = reqToByteArrayList(it)
         }
-        return result!!
     }
 
     override fun close() {
