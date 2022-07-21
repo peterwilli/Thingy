@@ -23,13 +23,15 @@ fun makeCommand(jda: JDA, channel: ManagedChannel) {
             event.reply_(replyText).queue()
             coroutineScope {
                 var finalImages: List<ByteArray>? = null
-                val artCreator = async {
-                    finalImages = client.createArt(params)
-                }
+                client.createArt(params)
                 val imageProgress = async {
-                    while (artCreator.isActive) {
-                        val images = client.retrieveArt(params.artID)
+                    while (true) {
+                        val (images, completed) = client.retrieveArt(params.artID)
                         if (images.isNotEmpty()) {
+                            if(completed) {
+                                finalImages = images
+                                break
+                            }
                             val quilt = makeQuiltFromByteArrayList(images)
                             event.hook.editOriginal(replyText).retainFiles(listOf())
                                 .addFile(quilt, "${botName}_progress.jpg").queue()
@@ -37,7 +39,7 @@ fun makeCommand(jda: JDA, channel: ManagedChannel) {
                         delay(1000 * 5)
                     }
                 }
-                artCreator.await()
+                imageProgress.await()
                 event.hook.deleteOriginal().queue()
                 if (finalImages != null) {
                     val quilt = makeQuiltFromByteArrayList(finalImages!!)

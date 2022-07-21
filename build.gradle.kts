@@ -25,7 +25,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("io.grpc:grpc-netty:1.47.0")
     implementation("com.beust:klaxon:5.5")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.10")
+    implementation(kotlin("reflect"))
 }
 
 tasks.test {

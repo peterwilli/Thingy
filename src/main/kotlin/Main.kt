@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
-import org.apache.commons.text.CaseUtils
 import utils.camelToSnakeCase
 import kotlin.reflect.full.memberProperties
 import kotlin.time.Duration

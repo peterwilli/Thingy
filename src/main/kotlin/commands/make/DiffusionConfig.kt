@@ -3,7 +3,6 @@ package commands.make
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
-import org.apache.commons.text.CaseUtils
 import utils.snakeToLowerCamelCase
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -16,10 +15,8 @@ data class DiffusionConfig(
     val fuzzyPrompt: Boolean,
     val randomizeClass: Boolean,
     val clipGuidanceScale: Int,
-    val widthHeight: List<Int>,
     val clipDenoised: Boolean,
     val perlinMode: String,
-    val seed: Int,
     val cutInnercut: Int,
     val steps: Int,
     val cutIcgrayP: String,
@@ -34,8 +31,6 @@ data class DiffusionConfig(
     val tvScale: Double,
     val nBatches: Int,
     val clipSequentialEvaluate: Boolean,
-    val textPrompts: List<String>,
-    val displayRate: Int,
     val cutOverview: Int,
     val clipModels: List<String>,
     val skipSteps: Int,
@@ -99,12 +94,14 @@ fun main() {
     val configJSON = Parser.default().parse(StringBuilder(reader.readLine())) as JsonObject
     val classVars = StringBuilder()
     val initVars = StringBuilder()
-    val denylist = listOf("seed", "textPrompts", "")
-    for ((idx, k) in configJSON.keys.withIndex()) {
+    // These are properties not related to tuning the quality of the image
+    val denylist = listOf("seed", "text_prompts", "width_height", "display_rate")
+    val configJSONFiltered = configJSON.keys.filter { !denylist.contains(it) }
+    for ((idx, k) in configJSONFiltered.withIndex()) {
         val camelK = k.snakeToLowerCamelCase()
         initVars.append("val $camelK: ${getStringType(configJSON[k]!!)}")
         classVars.append("$camelK = ${formatJsonObj(configJSON[k]!!)}")
-        if(idx < configJSON.keys.size - 1) {
+        if(idx < configJSONFiltered.size - 1) {
             initVars.append(",\n")
             classVars.append(", ")
         }

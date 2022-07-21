@@ -21,22 +21,22 @@ suspend fun upscale(
             val replyText = "**Upscaling image #${imageIndex + 1}**\n> *${params.prompts.joinToString("|")}*"
             val replyMessage = buttonInteractionEvent.reply(replyText).submit().await()
             var finalImage: ByteArray? = null
-            val artCreator = async {
-                finalImage = client.upscaleArt(params, imageIndex)
-            }
+            client.upscaleArt(params, imageIndex)
             val imageProgress = async {
-                while (artCreator.isActive) {
-                    val images = client.retrieveArt(params.artID)
-                    if (images.isEmpty()) {
-                        delay(1000 * 5)
-                    } else {
+                while (true) {
+                    val (images, completed) = client.retrieveArt(params.artID)
+                    if (images.isNotEmpty()) {
+                        if(completed) {
+                            finalImage = images.first()
+                            break
+                        }
                         replyMessage.editOriginal(replyText).retainFiles(listOf())
                             .addFile(images[0], "${botName}_upscale_progress.jpg").queue()
                         delay(1000 * 20)
                     }
                 }
             }
-            artCreator.await()
+            imageProgress.await()
             if (finalImage != null) {
                 buttonInteractionEvent.message.reply_(
                     "${buttonInteractionEvent.member!!.asMention}, we finished upscaling your image!\n> *${

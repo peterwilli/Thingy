@@ -2,6 +2,7 @@ package commands.make
 
 import alphanumericCharPool
 import botName
+import commands.make.diffusion_configs.standardSmall
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import randomString
@@ -15,11 +16,23 @@ data class CreateArtParameters(
     val prompts: List<String>,
     var initImage: URL? = null,
     var ratio: Ratio = Ratio(),
-//    var config: DiffusionConfig? = null
+    var preset: DiffusionConfig
 )
 
 fun optionsToParams(event: GenericCommandInteractionEvent): CreateArtParameters? {
     val prompts = event.getOption("prompts")!!.asString
+    val preset = if (event.getOption("preset") == null) {
+        standardSmall
+    }
+    else {
+        val presetStr = event.getOption("preset")!!.asString
+        if (presetStr == "Standard Small") {
+            standardSmall
+        }
+        else {
+            standardSmall
+        }
+    }
     val seed = if (event.getOption("seed") == null) {
         Random.nextInt(0, 2.toDouble().pow(32).toInt())
     }
@@ -30,7 +43,8 @@ fun optionsToParams(event: GenericCommandInteractionEvent): CreateArtParameters?
     val params = CreateArtParameters(
         seed = seed,
         artID = "$botName-${randomString(alphanumericCharPool, 32)}",
-        prompts = prompts.split("|")
+        prompts = prompts.split("|"),
+        preset = preset
     )
 
     val arOption = event.getOption("ar")

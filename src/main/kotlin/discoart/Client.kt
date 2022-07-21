@@ -6,11 +6,13 @@ import com.google.protobuf.Struct.Builder
 import com.google.protobuf.kotlin.DslMap
 import commands.make.CreateArtParameters
 import commands.make.DiffusionConfig
+import commands.make.diffusion_configs.standardSmall
 //import commands.make.DiffusionConfig
 import io.grpc.ManagedChannel
 import jina.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
 import randomString
 import utils.camelToSnakeCase
 import java.io.Closeable
@@ -18,13 +20,11 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.full.memberProperties
 
-private suspend fun reqsToByteArrayList(ongoingRequest: Flow<Jina.DataRequestProto>): List<ByteArray> {
+private fun reqToByteArrayList(req: Jina.DataRequestProto): List<ByteArray> {
     var returnedImages = mutableListOf<ByteArray>()
-    ongoingRequest.collect {
-        if(it.data.docs.docsCount > 0) {
-            for (doc in it.data.docs.docsList) {
-                returnedImages.add(Base64.getDecoder().decode(doc.uri.substring("data:image/png;base64,".length)))
-            }
+    if(req.data.docs.docsCount > 0) {
+        for (doc in req.data.docs.docsList) {
+            returnedImages.add(Base64.getDecoder().decode(doc.uri.substring("data:image/png;base64,".length)))
         }
     }
     return returnedImages
@@ -35,7 +35,7 @@ class Client (
 ) : Closeable {
     private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)!!
 
-    suspend fun retrieveArt(artID: String): List<ByteArray> {
+    suspend fun retrieveArt(artID: String): Pair<List<ByteArray>, Boolean> {
         val dataReq = dataRequestProto {
             parameters = struct {
                 fields.put("name_docarray", value { stringValue = artID })
@@ -46,7 +46,76 @@ class Client (
             }
         }
         val reqs = listOf(dataReq).asFlow()
-        return reqsToByteArrayList(stub.withCompression("gzip").call(reqs))
+        var result: List<ByteArray>? = null
+        var completed = false
+        stub.withCompression("gzip").call(reqs).collect {
+            result = reqToByteArrayList(it)
+            if (it.data.docs.docsCount > 0) {
+                val doc = it.data.docs.getDocs(0)
+                val fieldsMap = doc.tags.fieldsMap
+                if(fieldsMap["_status"] != null) {
+                    val statusFieldMap = fieldsMap["_status"]!!.structValue.fieldsMap
+                    if (statusFieldMap["completed"] != null) {
+                        completed = statusFieldMap["completed"]!!.boolValue
+                    }
+                }
+            }
+        }
+        return result!! to completed
+    }
+
+    private fun convertAnyToValue(value: Any): Value? {
+        return when (value) {
+            is Int -> {
+                value {
+                    numberValue = value.toDouble()
+                }
+            }
+            is Boolean -> {
+                value {
+                    boolValue = value
+                }
+            }
+            is String -> {
+                value {
+                    stringValue = value
+                }
+            }
+            else -> {
+                return null
+            }
+        }
+    }
+
+    private fun addDiffusionConfig(config: DiffusionConfig, builder: Builder) {
+        for (p in config::class.memberProperties) {
+            val discoArtName = p.name!!.camelToSnakeCase()
+            val value = p.getter.call(config)
+            if(value is List<*>) {
+                builder.putFields(discoArtName, value {
+                    listValue = listValue {
+                        for (v in value) {
+                            val convertedValue = convertAnyToValue(v!!)
+                            if (convertedValue == null) {
+                                println("Warning: $p cannot be found!")
+                            }
+                            else {
+                                this.values.add(convertedValue)
+                            }
+                        }
+                    }
+                })
+            }
+            else {
+                val convertedValue = convertAnyToValue(value!!)
+                if (convertedValue == null) {
+                    println("Warning: $p cannot be found!")
+                }
+                else {
+                    builder.putFields(discoArtName, convertAnyToValue(value!!))
+                }
+            }
+        }
     }
 
     private fun addDefaultCreateParameters(params: CreateArtParameters, builder: Struct.Builder) {
@@ -63,12 +132,6 @@ class Client (
             builder.putFields("init_image", value { stringValue = params.initImage.toString() })
         }
         builder.putFields("name_docarray", value { stringValue = params.artID })
-        builder.putFields("diffusion_sampling_mode", value { stringValue = "plms" })
-        builder.putFields("clip_models",  value {
-            listValue = listValue {
-                values.add(value { stringValue = "ViT-B-32::laion2b_e16" })
-            }
-        })
         builder.putFields("n_batches", value { numberValue = 1.0 })
         builder.putFields("seed", value { numberValue = params.seed.toDouble() })
         builder.putFields("display_rate", value { numberValue = 15.0 })
@@ -101,7 +164,11 @@ class Client (
             }
         }
         val reqs = listOf(dataReq).asFlow()
-        return reqsToByteArrayList(stub.withCompression("gzip").call(reqs))
+        var result: List<ByteArray>? = null
+        stub.withCompression("gzip").call(reqs).collect {
+            result = reqToByteArrayList(it)
+        }
+        return result!!
     }
 
     suspend fun upscaleArt(params: CreateArtParameters, imageIndex: Int): ByteArray {
@@ -132,26 +199,17 @@ class Client (
             }
         }
         val reqs = listOf(dataReq).asFlow()
-        return reqsToByteArrayList(stub.withCompression("gzip").call(reqs)).first()
-    }
-    
-    fun injectDiffusionConfig(config: DiffusionConfig) {
-        for (p in config::class.memberProperties) {
-            val discoArtName = p.name!!.camelToSnakeCase()
-            println(discoArtName)
+        var result: List<ByteArray>? = null
+        stub.withCompression("gzip").call(reqs).collect {
+            result = reqToByteArrayList(it)
         }
+        return result!!.first()
     }
 
     suspend fun createArt(params: CreateArtParameters): List<ByteArray> {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
-        builder.putFields("skip_augs", value { boolValue = true })
-        builder.putFields("cut_overview", value { stringValue = "[4]*1000" })
-        builder.putFields("cutn_batches", value { numberValue = 1.0 })
-        builder.putFields("tv_scale", value { numberValue = 10.0 })
-        builder.putFields("range_scale", value { numberValue = 200.0 })
-        //builder.putFields("sat_scale", value { numberValue = 1000.0 })
-//        builder.putFields("cut_innercut", value { stringValue = "[0]*1000" })
+        addDiffusionConfig(params.preset, builder)
 
         val dataReq = dataRequestProto {
             parameters = builder.build()
@@ -162,7 +220,11 @@ class Client (
         }
 
         val reqs = listOf(dataReq).asFlow()
-        return reqsToByteArrayList(stub.withCompression("gzip").call(reqs))
+        var result: List<ByteArray>? = null
+        stub.withCompression("gzip").call(reqs).collect {
+            result = reqToByteArrayList(it)
+        }
+        return result!!
     }
 
     override fun close() {

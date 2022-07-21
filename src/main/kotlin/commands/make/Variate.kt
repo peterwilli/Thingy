@@ -20,23 +20,23 @@ suspend fun variate(
             val replyText = "**Making variation for image #${imageIndex + 1}**\n> *${params.prompts.joinToString("|")}*"
             val replyMessage = buttonInteractionEvent.reply(replyText).submit().await()
             var finalImages: List<ByteArray>? = null
-            val artCreator = async {
-                finalImages = client.variateArt(params, imageIndex)
-            }
+            client.variateArt(params, imageIndex)
             val imageProgress = async {
-                while (artCreator.isActive) {
-                    val images = client.retrieveArt(params.artID)
-                    if (images.isEmpty()) {
-                        delay(1000 * 5)
-                    } else {
+                while (true) {
+                    val (images, completed) = client.retrieveArt(params.artID)
+                    if (images.isNotEmpty()) {
+                        if(completed) {
+                            finalImages = images
+                            break
+                        }
                         val quilt = makeQuiltFromByteArrayList(images)
                         replyMessage.editOriginal(replyText).retainFiles(listOf())
                             .addFile(quilt, "${botName}_variate_${imageIndex}_progress.jpg").queue()
-                        delay(1000 * 20)
                     }
+                    delay(1000 * 5)
                 }
             }
-            artCreator.await()
+            imageProgress.await()
             if (finalImages != null) {
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
                 val (upscaleRow, variateRow) = getEditButtons(client, buttonInteractionEvent.jda, buttonInteractionEvent.user, params)
