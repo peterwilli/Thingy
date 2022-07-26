@@ -1,10 +1,29 @@
 package commands.make
 
 import config
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.interactions.InteractionHook
 
 class MemberLimitExceededException(message: String): Exception(message)
 
-data class FairQueueEntry(val owner: String, val parameters: CreateArtParameters)
+data class FairQueueEntry(val what: String, val owner: String, val parameters: List<CreateArtParameters>, val progressHook: InteractionHook) {
+    fun progressUpdate(message: String) {
+        progressHook.editOriginal(message).queue()
+    }
+    fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String) {
+        progressHook.editOriginal(message).retainFiles(listOf()).addFile(fileBytes, fileName).queue()
+    }
+    fun progressDelete() {
+        progressHook.deleteOriginal().queue()
+    }
+    fun getChannel(): TextChannel {
+        return progressHook.interaction.textChannel
+    }
+    fun getMember(): Member {
+        return progressHook.interaction.member!!
+    }
+}
 
 class FairQueue(maxEntriesPerOwner: Int) {
     private val queue = mutableListOf<FairQueueEntry>()

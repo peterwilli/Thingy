@@ -5,6 +5,8 @@ import dev.minn.jda.ktx.interactions.commands.updateCommands
 import dev.minn.jda.ktx.jdabuilder.injectKTX
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
@@ -13,8 +15,9 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag
 import kotlin.time.Duration
 
 lateinit var config: Config
+lateinit var queueDispatcher: QueueDispatcher
 
-fun main(args: Array<String>) {
+suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
         "./config.yml"
     })
@@ -26,13 +29,18 @@ fun main(args: Array<String>) {
     builder.setBulkDeleteSplittingEnabled(false)
     builder.setCompression(Compression.ZLIB)
     builder.setActivity(Activity.competing("Your prompts suck!"))
-    val channel = ManagedChannelBuilder.forAddress("localhost", 51001).maxInboundMessageSize(1024 * 1024 * 1024).usePlaintext().build()
-    val jda = builder.build()
-    initCommands(jda, channel)
+    coroutineScope {
+        val jda = builder.build()
+        queueDispatcher = QueueDispatcher(jda)
+        async {
+            queueDispatcher.startQueueDispatcher()
+        }
+        initCommands(jda)
+    }
 }
 
-fun initCommands(jda: JDA, channel: ManagedChannel) {
-    makeCommand(jda, channel)
+fun initCommands(jda: JDA) {
+    makeCommand(jda)
 
     jda.updateCommands {
         slash("make", "I make you a thing!") {
