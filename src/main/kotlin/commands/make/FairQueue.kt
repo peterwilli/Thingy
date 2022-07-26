@@ -7,7 +7,11 @@ import net.dv8tion.jda.api.interactions.InteractionHook
 
 class MemberLimitExceededException(message: String): Exception(message)
 
-data class FairQueueEntry(val what: String, val owner: String, val parameters: List<CreateArtParameters>, val progressHook: InteractionHook) {
+enum class FairQueueType {
+    Create, Variate, Upscale
+}
+
+data class FairQueueEntry(val description: String, val type: FairQueueType, val owner: String, val parameters: List<CreateArtParameters>, val progressHook: InteractionHook) {
     fun progressUpdate(message: String) {
         progressHook.editOriginal(message).queue()
     }
@@ -22,6 +26,9 @@ data class FairQueueEntry(val what: String, val owner: String, val parameters: L
     }
     fun getMember(): Member {
         return progressHook.interaction.member!!
+    }
+    fun getHumanReadablePrompts(): String {
+        return parameters.first().prompts.joinToString("|")
     }
 }
 

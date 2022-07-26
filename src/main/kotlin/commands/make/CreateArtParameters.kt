@@ -14,7 +14,7 @@ data class CreateArtParameters(
     val artID: String,
     val seed: Int,
     val prompts: List<String>,
-    var initImage: URL? = null,
+    var initImage: String? = null,
     var ratio: Ratio = Ratio(),
     var preset: DiffusionConfig
 )
@@ -63,7 +63,7 @@ fun optionsToParams(event: GenericCommandInteractionEvent): CreateArtParameters?
     if(initImageOption != null) {
         try {
             val imageURL = URL(initImageOption.asString)
-            params.initImage = imageURL
+            params.initImage = imageURL.toString()
         } catch (e: Exception) {
             event.reply_("Image URL is invalid! Make sure init_image is set to a valid link!")
                 .queue()

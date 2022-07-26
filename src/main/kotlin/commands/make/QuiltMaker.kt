@@ -17,7 +17,15 @@ fun makeQuiltFromByteArrayList(images: List<ByteArray>, formatName: String = "jp
 }
 
 fun makeQuilt(images: List<BufferedImage>): BufferedImage {
-    val pic = BufferedImage(images[0].width * 2, images[0].height * 2, BufferedImage.TYPE_INT_RGB)
+    if (images.size == 1) {
+        return images.first()
+    }
+    val pic = if (images.size == 2) {
+        BufferedImage(images[0].width * 2, images[0].height, BufferedImage.TYPE_INT_RGB)
+    }
+    else {
+        BufferedImage(images[0].width * 2, images[0].height * 2, BufferedImage.TYPE_INT_RGB)
+    }
     val g = pic.graphics
     for(y in 0 until 2) {
         for(x in 0 until 2) {

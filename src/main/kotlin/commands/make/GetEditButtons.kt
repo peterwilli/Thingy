@@ -17,7 +17,7 @@ fun getEditButtons(client: Client, jda: JDA, user: User, paramsList: List<Create
             user = user
         ) {
             var upscaleParams = params.copy(artID = params.artID + "_U${upscaleNumber + 1}")
-            upscale(client, it, upscaleNumber, upscaleParams)
+            upscale(it, upscaleNumber, upscaleParams)
         }
         upscaleButtons.add(button)
     }
@@ -29,7 +29,7 @@ fun getEditButtons(client: Client, jda: JDA, user: User, paramsList: List<Create
             user = user
         ) {
             var variationParams = params.copy(artID = params.artID + "_V${variateNumber + 1}")
-            variate(client, it, variateNumber, variationParams)
+            variate(it, variateNumber, variationParams)
         }
         variateButtons.add(button)
     }

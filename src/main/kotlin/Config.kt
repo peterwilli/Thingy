@@ -13,5 +13,6 @@ data class Config(
     val botToken: String,
     val maxEntriesPerOwner: Int,
     val hostConstraints: HostConstraints,
-    val grpcServer: GRPCServer
+    val grpcServer: GRPCServer,
+    val imagesFolder: String
 )

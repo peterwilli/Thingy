@@ -127,7 +127,7 @@ class Client (
             }
         })
         if(params.initImage != null) {
-            builder.putFields("init_image", value { stringValue = params.initImage.toString() })
+            builder.putFields("init_image", value { stringValue = params.initImage!! })
         }
         builder.putFields("name_docarray", value { stringValue = params.artID })
         builder.putFields("n_batches", value { numberValue = 1.0 })
@@ -146,11 +146,11 @@ class Client (
         })
     }
 
-    suspend fun variateArt(params: CreateArtParameters, imageIndex: Int) {
+    suspend fun variateArt(params: CreateArtParameters) {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
         builder.putFields("init_image", value {
-            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done-0.png"
+            stringValue = params.initImage.toString()
         })
         builder.putFields("skip_steps", value {
             numberValue = 75.0
@@ -167,14 +167,11 @@ class Client (
         }
     }
 
-    suspend fun upscaleArt(params: CreateArtParameters, imageIndex: Int) {
+    suspend fun upscaleArt(params: CreateArtParameters) {
         val builder = com.google.protobuf.Struct.newBuilder()
         addDefaultCreateParameters(params, builder)
         builder.putFields("n_batches", value { numberValue = 1.0 })
         builder.putFields("batch_size", value { numberValue = 1.0 })
-        builder.putFields("init_image", value {
-            stringValue = "/app/${params.artID.substring(0..params.artID.length - 4)}/0-done-0.png"
-        })
         builder.putFields("skip_steps", value {
             numberValue = 30.0
         })
