@@ -1,18 +1,13 @@
 package commands.make
 
 import config
-import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
-import discoart.Client
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import queueDispatcher
 import kotlin.math.pow
 import kotlin.random.Random
 
-suspend fun variate(
+fun variate(
     buttonInteractionEvent: ButtonInteractionEvent,
     imageIndex: Int,
     params: CreateArtParameters
@@ -21,11 +16,11 @@ suspend fun variate(
         var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
             params.copy(
                 seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
-                initImage = "${config.imagesFolder}/${params.artID.substring(0..params.artID.length - 4)}/${imageIndex}-done-0.png"
+                initImage = "${config.imagesFolder}/${params.artID.substring(0..params.artID.length - 4)}/0-done-0.png"
             )
         }
         val entry = FairQueueEntry(
-            "Making variation of ${imageIndex + 1}",
+            "Making variation of #${imageIndex + 1}",
             FairQueueType.Variate,
             buttonInteractionEvent.member!!.id,
             batch,
