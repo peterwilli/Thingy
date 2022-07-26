@@ -25,6 +25,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("io.grpc:grpc-netty:1.47.0")
     implementation("com.beust:klaxon:5.5")
+    implementation("com.sksamuel.hoplite:hoplite-core:2.4.0")
+    implementation("com.sksamuel.hoplite:hoplite-yaml:2.4.0")
     implementation(kotlin("reflect"))
 }
 
@@ -33,7 +35,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 application {

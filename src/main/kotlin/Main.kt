@@ -1,3 +1,4 @@
+import com.sksamuel.hoplite.ConfigLoader
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
 import dev.minn.jda.ktx.interactions.commands.updateCommands
@@ -11,9 +12,13 @@ import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import kotlin.time.Duration
 
+lateinit var config: Config
 
 fun main(args: Array<String>) {
-    val builder: JDABuilder = JDABuilder.createDefault(args[0])
+    config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
+        "./config.yml"
+    })
+    val builder: JDABuilder = JDABuilder.createDefault(config.botToken)
     builder.apply {
         injectKTX(timeout = Duration.INFINITE)
     }

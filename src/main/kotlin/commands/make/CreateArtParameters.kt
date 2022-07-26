@@ -1,8 +1,8 @@
 package commands.make
 
 import alphanumericCharPool
-import botName
 import commands.make.diffusion_configs.standardSmall
+import config
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import randomString
@@ -42,7 +42,7 @@ fun optionsToParams(event: GenericCommandInteractionEvent): CreateArtParameters?
 
     val params = CreateArtParameters(
         seed = seed,
-        artID = "$botName-${randomString(alphanumericCharPool, 32)}",
+        artID = "${config.botName}-${randomString(alphanumericCharPool, 32)}",
         prompts = prompts.split("|"),
         preset = preset
     )

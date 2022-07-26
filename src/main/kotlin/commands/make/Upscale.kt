@@ -1,6 +1,6 @@
 package commands.make
 
-import botName
+import config
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
@@ -31,7 +31,7 @@ suspend fun upscale(
                             break
                         }
                         replyMessage.editOriginal(replyText).retainFiles(listOf())
-                            .addFile(byteArrayImageTo(images[0], "jpeg"), "${botName}_upscale_progress.jpg").queue()
+                            .addFile(byteArrayImageTo(images[0], "jpeg"), "${config.botName}_upscale_progress.jpg").queue()
                     }
                     delay(1000 * 20)
                 }
@@ -44,7 +44,7 @@ suspend fun upscale(
                             "|"
                         )
                     }*"
-                ).addFile(finalImage!!, "${botName}_up_${imageIndex + 1}.png").queue()
+                ).addFile(finalImage!!, "${config.botName}_up_${imageIndex + 1}.png").queue()
             }
         }
     } catch (e: Exception) {

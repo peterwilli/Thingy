@@ -1,10 +1,9 @@
 package commands.make
 
-import botName
+import config
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
-import hostConstraints
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -25,7 +24,7 @@ suspend fun variate(
             var finalImages: List<ByteArray>? = null
 
             var batch: MutableList<CreateArtParameters> = mutableListOf()
-            for (i in 0 until hostConstraints.maxSimultaneousMakeRequests) {
+            for (i in 0 until config.hostConstraints.maxSimultaneousMakeRequests) {
                 val newParams = params.copy(seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()))
                 batch.add(newParams)
             }
@@ -55,7 +54,7 @@ suspend fun variate(
                     if(newImages.isNotEmpty()) {
                         val quilt = makeQuiltFromByteArrayList(newImages)
                         replyMessage.editOriginal(replyText).retainFiles(listOf())
-                            .addFile(quilt, "${botName}_variate_progress.jpg").queue()
+                            .addFile(quilt, "${config.botName}_variate_progress.jpg").queue()
                     }
                     delay(1000 * 5)
                 }
@@ -70,7 +69,7 @@ suspend fun variate(
                             "|"
                         )
                     }*"
-                ).addFile(quilt!!, "${botName}_variate.png").setActionRows(upscaleRow, variateRow).queue()
+                ).addFile(quilt!!, "${config.botName}_variate.png").setActionRows(upscaleRow, variateRow).queue()
             }
         }
     } catch (e: Exception) {

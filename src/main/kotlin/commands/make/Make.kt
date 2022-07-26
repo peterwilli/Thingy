@@ -1,7 +1,4 @@
-import commands.make.CreateArtParameters
-import commands.make.getEditButtons
-import commands.make.makeQuiltFromByteArrayList
-import commands.make.optionsToParams
+import commands.make.*
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
@@ -12,11 +9,13 @@ import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 
 fun makeCommand(jda: JDA, channel: ManagedChannel) {
+    val queue = FairQueue(1)
     jda.onCommand("make") { event ->
         try {
             val client = Client(channel)
             var batch: MutableList<CreateArtParameters> = mutableListOf()
-            for (i in 0 until hostConstraints.maxSimultaneousMakeRequests) {
+            var inProgress: MutableList<CreateArtParameters> = mutableListOf()
+            for (i in 0 until config.hostConstraints.totalImagesInMakeCommand) {
                 val params = optionsToParams(event) ?: return@onCommand
                 batch.add(params)
             }
@@ -25,9 +24,16 @@ fun makeCommand(jda: JDA, channel: ManagedChannel) {
             event.reply_(replyText).queue()
             coroutineScope {
                 var finalImages: List<ByteArray>? = null
-                for(params in batch) {
-                    client.createArt(params)
-                    delay(100)
+                async {
+                    for(params in batch) {
+                        client.createArt(params)
+                        inProgress.add(params)
+                        while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
+                            delay(1000)
+                        }
+                        // Make sure GPU is cleaned up
+                        delay(1000 * 5)
+                    }
                 }
                 val imageProgress = async {
                     while (true) {
@@ -37,6 +43,7 @@ fun makeCommand(jda: JDA, channel: ManagedChannel) {
                             val (images, completed) = client.retrieveArt(params.artID)
                             if (completed) {
                                 completedCount++
+                                inProgress.remove(params)
                             }
                             if (images.isNotEmpty()) {
                                 // For now, we use one image per batch to make sure we can let users experiment with different variables simultaneously
@@ -50,18 +57,19 @@ fun makeCommand(jda: JDA, channel: ManagedChannel) {
                         if(newImages.isNotEmpty()) {
                             val quilt = makeQuiltFromByteArrayList(newImages)
                             event.hook.editOriginal(replyText).retainFiles(listOf())
-                                .addFile(quilt, "${botName}_progress.jpg").queue()
+                                .addFile(quilt, "${config.botName}_progress.jpg").queue()
                         }
                         delay(1000 * 5)
                     }
                 }
+
                 imageProgress.await()
                 event.hook.deleteOriginal().queue()
                 if (finalImages != null) {
                     val quilt = makeQuiltFromByteArrayList(finalImages!!)
                     val (upscaleRow, variateRow) = getEditButtons(client, jda, event.user, batch)
                     event.textChannel!!.sendMessage("${event.member!!.asMention}, we finished your image!\n> *${prompts}*")
-                        .addFile(quilt, "${botName}_final.jpg").setActionRows(upscaleRow, variateRow).queue()
+                        .addFile(quilt, "${config.botName}_final.jpg").setActionRows(upscaleRow, variateRow).queue()
                 }
             }
         } catch (e: Exception) {

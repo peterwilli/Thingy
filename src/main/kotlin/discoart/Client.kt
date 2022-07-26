@@ -70,6 +70,11 @@ class Client (
                     numberValue = value.toDouble()
                 }
             }
+            is Double -> {
+                value {
+                    numberValue = value.toDouble()
+                }
+            }
             is Boolean -> {
                 value {
                     boolValue = value
@@ -129,9 +134,10 @@ class Client (
         builder.putFields("seed", value { numberValue = params.seed.toDouble() })
         builder.putFields("display_rate", value { numberValue = 15.0 })
         builder.putFields("steps", value { numberValue = 150.0 })
+        builder.putFields("truncate_overlength_prompt", value { boolValue = true })
         builder.putFields("width_height", value {
             listValue = listValue {
-                val (w, h) = params.ratio.calculateSize(256)
+                val (w, h) = params.ratio.calculateSize(512)
                 values.addAll(listOf(
                     value { numberValue = w.toDouble() },
                     value { numberValue = h.toDouble() }
@@ -206,7 +212,6 @@ class Client (
                 requestId = randomString(alphanumericCharPool, 32)
             }
         }
-
         val reqs = listOf(dataReq).asFlow()
         stub.withCompression("gzip").call(reqs).collect {
         }

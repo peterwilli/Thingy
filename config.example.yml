@@ -1,0 +1,6 @@
+botName: "My AI bot!"
+botToken: "my_bot_token_keep_secret"
+maxEntriesPerOwner: 1
+hostConstraints:
+  maxSimultaneousMakeRequests: 1
+  totalImagesInMakeCommand: 4
