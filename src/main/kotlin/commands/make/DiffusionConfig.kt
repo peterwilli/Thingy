@@ -8,6 +8,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 data class DiffusionConfig(
+    val baseSize: Int,
     val cutIcPow: Double,
     val skipAugs: Boolean,
     val fuzzyPrompt: Boolean,

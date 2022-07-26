@@ -2,12 +2,12 @@ package commands.make.diffusion_configs
 
 import commands.make.DiffusionConfig
 
-val standardSmall = DiffusionConfig(
-    baseSize = 512,
+val pixelArtSoft = DiffusionConfig(
+    baseSize = 256,
     initScale = 1000,
     skipAugs = true,
     satScale = 1.0,
-    diffusionModel = "512x512_diffusion_uncond_finetune_008100",
+    diffusionModel = "pixel_art_diffusion_soft_256",
     steps = 150,
     clipModels = listOf("ViT-B-32::laion2b_e16"),
     clipGuidanceScale = 5000,

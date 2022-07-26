@@ -29,12 +29,18 @@ private fun reqToByteArrayList(req: Jina.DataRequestProto): List<ByteArray> {
     return returnedImages
 }
 
+data class RetrieveArtResult(
+    val images: List<ByteArray>,
+    val completed: Boolean,
+    val statusPercent: Double
+)
+
 class Client (
     private val channel: ManagedChannel
 ) : Closeable {
     private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)!!
 
-    suspend fun retrieveArt(artID: String): Pair<List<ByteArray>, Boolean> {
+    suspend fun retrieveArt(artID: String): RetrieveArtResult {
         val dataReq = dataRequestProto {
             parameters = struct {
                 fields.put("name_docarray", value { stringValue = artID })
@@ -47,6 +53,7 @@ class Client (
         val reqs = listOf(dataReq).asFlow()
         var result: List<ByteArray>? = null
         var completed = false
+        var curT = 0
         stub.withCompression("gzip").call(reqs).collect {
             result = reqToByteArrayList(it)
             if (it.data.docs.docsCount > 0) {
@@ -57,10 +64,17 @@ class Client (
                     if (statusFieldMap["completed"] != null) {
                         completed = statusFieldMap["completed"]!!.boolValue
                     }
+                    if (statusFieldMap["cur_t"] != null) {
+                        curT = statusFieldMap["cur_t"]!!.numberValue.toInt()
+                    }
                 }
             }
         }
-        return result!! to completed
+        return RetrieveArtResult(
+            images = result!!,
+            statusPercent = 1 - (curT / 150.0), // For now all our presets use 150 steps, so this is fine
+            completed = completed
+        )
     }
 
     private fun convertAnyToValue(value: Any): Value? {
@@ -92,7 +106,12 @@ class Client (
     }
 
     private fun addDiffusionConfig(config: DiffusionConfig, builder: Builder) {
+        // Block our own settings
+        val denyList = listOf("baseSize")
         for (p in config::class.memberProperties) {
+            if (p.name in denyList) {
+                continue
+            }
             val discoArtName = p.name!!.camelToSnakeCase()
             val value = p.getter.call(config)
             if(value is List<*>) {
@@ -137,7 +156,7 @@ class Client (
         builder.putFields("truncate_overlength_prompt", value { boolValue = true })
         builder.putFields("width_height", value {
             listValue = listValue {
-                val (w, h) = params.ratio.calculateSize(512)
+                val (w, h) = params.ratio.calculateSize(params.preset.baseSize)
                 values.addAll(listOf(
                     value { numberValue = w.toDouble() },
                     value { numberValue = h.toDouble() }

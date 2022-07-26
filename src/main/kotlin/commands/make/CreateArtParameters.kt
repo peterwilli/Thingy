@@ -1,6 +1,7 @@
 package commands.make
 
 import alphanumericCharPool
+import commands.make.diffusion_configs.diffusionConfigs
 import commands.make.diffusion_configs.standardSmall
 import config
 import dev.minn.jda.ktx.messages.reply_
@@ -26,12 +27,7 @@ fun optionsToParams(event: GenericCommandInteractionEvent): CreateArtParameters?
     }
     else {
         val presetStr = event.getOption("preset")!!.asString
-        if (presetStr == "Standard Small") {
-            standardSmall
-        }
-        else {
-            standardSmall
-        }
+        diffusionConfigs[presetStr]!!.first
     }
     val seed = if (event.getOption("seed") == null) {
         Random.nextInt(0, 2.toDouble().pow(32).toInt())
