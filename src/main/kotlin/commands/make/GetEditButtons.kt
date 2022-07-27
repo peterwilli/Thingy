@@ -21,8 +21,7 @@ fun getEditButtons(
             style = ButtonStyle.PRIMARY,
             user = user
         ) {
-            var upscaleParams = params.copy(artID = params.artID + "_U${upscaleNumber + 1}")
-            upscale(it, upscaleNumber, upscaleParams)
+            upscale(it, upscaleNumber, params)
         }
         upscaleButtons.add(button)
     }
@@ -33,8 +32,7 @@ fun getEditButtons(
             style = ButtonStyle.PRIMARY,
             user = user
         ) {
-            var variationParams = params.copy(artID = params.artID + "_V${variateNumber + 1}")
-            variate(it, variateNumber, variationParams)
+            variate(it, variateNumber, params)
         }
         variateButtons.add(button)
     }
