@@ -4,7 +4,6 @@ import alphanumericCharPool
 import commands.make.diffusion_configs.diffusionConfigs
 import commands.make.diffusion_configs.standardSmall
 import config
-import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import randomString
 import java.net.URL
@@ -23,7 +22,11 @@ data class CreateArtParameters(
     var symmetryIntensity: Double,
 )
 
-fun optionsToParams(event: GenericCommandInteractionEvent, overridePreset: DiffusionConfig?, imageIndex: Int): CreateArtParameters {
+fun optionsToParams(
+    event: GenericCommandInteractionEvent,
+    overridePreset: DiffusionConfig?,
+    imageIndex: Int
+): CreateArtParameters {
     val prompts = event.getOption("prompts")!!.asString
     val preset = overridePreset
         ?: if (event.getOption("preset") == null) {

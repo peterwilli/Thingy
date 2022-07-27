@@ -56,7 +56,7 @@ fun main() {
             val arrayInstance = StringBuilder("listOf(")
             for ((idx, item) in obj.withIndex()) {
                 arrayInstance.append("${formatJsonObj(item!!)}")
-                if(idx < obj.size - 1) {
+                if (idx < obj.size - 1) {
                     arrayInstance.append(", ")
                 }
             }
@@ -74,7 +74,7 @@ fun main() {
             }
         }
         if (obj is JsonArray<*>) {
-            val objArr = obj as JsonArray<*>
+            val objArr = obj
             if (objArr.isNotEmpty()) {
                 return "List<${getStringType(objArr[0]!!)}>"
             }
@@ -96,7 +96,7 @@ fun main() {
         val camelK = k.snakeToLowerCamelCase()
         initVars.append("val $camelK: ${getStringType(configJSON[k]!!)}")
         classVars.append("$camelK = ${formatJsonObj(configJSON[k]!!)}")
-        if(idx < configJSONFiltered.size - 1) {
+        if (idx < configJSONFiltered.size - 1) {
             initVars.append(",\n")
             classVars.append(", ")
         }

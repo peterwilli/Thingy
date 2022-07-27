@@ -4,3 +4,10 @@ maxEntriesPerOwner: 1
 hostConstraints:
   maxSimultaneousMakeRequests: 1
   totalImagesInMakeCommand: 4
+timeouts:
+  imageNotAppearing: 10
+  imageNotUpdating: 10
+grpcServer:
+  host: "localhost"
+  port: 51001
+imagesFolder: "/app"

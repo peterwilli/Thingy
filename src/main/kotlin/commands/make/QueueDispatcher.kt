@@ -1,5 +1,4 @@
 import commands.make.*
-import commands.make.diffusion_configs.diffusionConfigInstanceToName
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
@@ -10,9 +9,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import java.util.zip.CRC32
 
 class QueueDispatcher(private val jda: JDA) {
     val queue = FairQueue(config.maxEntriesPerOwner)
@@ -37,7 +34,8 @@ class QueueDispatcher(private val jda: JDA) {
                 } catch (e: Exception) {
                     e.printStackTrace()
                     entry.progressDelete()
-                    entry.getChannel().sendMessage("${entry.getMember().asMention} There's an error in the queue dispatcher: $e")
+                    entry.getChannel()
+                        .sendMessage("${entry.getMember().asMention} There's an error in the queue dispatcher: $e")
                         .queue()
                 }
             }
@@ -48,8 +46,7 @@ class QueueDispatcher(private val jda: JDA) {
     private suspend fun dispatch(entry: FairQueueEntry) {
         var inProgress: MutableList<CreateArtParameters> = mutableListOf()
         val prompts = entry.getHumanReadablePrompts()
-        val replyText = "**${entry.description}** | **Preset**: ${diffusionConfigInstanceToName[entry.parameters.first().preset]!!}\n> *$prompts*\n"
-        entry.progressUpdate(replyText)
+        entry.progressUpdate(entry.getHumanReadableOverview())
         val batch = entry.parameters
         var cancelled = false
         coroutineScope {
@@ -103,15 +100,14 @@ class QueueDispatcher(private val jda: JDA) {
                         finalImages = newImages
                         break
                     }
-                    if(newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
+                    if (newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
                         ticksWithoutUpdate++
-                        val updateThresHold = if(newImages.isEmpty()) {
+                        val updateThresHold = if (newImages.isEmpty()) {
                             config.timeouts.imageNotAppearing
-                        }
-                        else {
+                        } else {
                             config.timeouts.imageNotUpdating
                         }
-                        if(ticksWithoutUpdate > updateThresHold) {
+                        if (ticksWithoutUpdate > updateThresHold) {
                             inProgress.clear()
                             cancelled = true
                             val tryAgainButton = jda.button(
@@ -133,12 +129,11 @@ class QueueDispatcher(private val jda: JDA) {
                                 .queue()
                             break
                         }
-                    }
-                    else {
+                    } else {
                         lastPercentCompleted = avgPercentCompleted
                         ticksWithoutUpdate = 0
                         val quilt = makeQuiltFromByteArrayList(newImages)
-                        entry.progressUpdate(replyText, quilt, "${config.botName}_progress.jpg")
+                        entry.progressUpdate(entry.getHumanReadableOverview(), quilt, "${config.botName}_progress.jpg")
                     }
                     delay(1000 * 5)
                 }

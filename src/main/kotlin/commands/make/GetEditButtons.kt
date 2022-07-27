@@ -8,7 +8,12 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 
-fun getEditButtons(client: Client, jda: JDA, user: User, paramsList: List<CreateArtParameters>): Pair<ActionRow, ActionRow> {
+fun getEditButtons(
+    client: Client,
+    jda: JDA,
+    user: User,
+    paramsList: List<CreateArtParameters>
+): Pair<ActionRow, ActionRow> {
     val upscaleButtons = mutableListOf<Button>()
     for ((upscaleNumber, params) in paramsList.withIndex()) {
         val button = jda.button(

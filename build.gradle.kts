@@ -21,6 +21,7 @@ dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.13")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
     implementation("io.grpc:grpc-protobuf:1.47.0")
+    implementation("ch.qos.logback:logback-classic:1.2.8")
     implementation("com.google.protobuf:protobuf-kotlin:3.21.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("io.grpc:grpc-netty:1.47.0")

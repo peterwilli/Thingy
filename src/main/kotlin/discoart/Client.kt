@@ -21,7 +21,7 @@ import kotlin.reflect.full.memberProperties
 
 private fun reqToByteArrayList(req: Jina.DataRequestProto): List<ByteArray> {
     var returnedImages = mutableListOf<ByteArray>()
-    if(req.data.docs.docsCount > 0) {
+    if (req.data.docs.docsCount > 0) {
         for (doc in req.data.docs.docsList) {
             returnedImages.add(Base64.getDecoder().decode(doc.uri.substring("data:image/png;base64,".length)))
         }
@@ -35,10 +35,10 @@ data class RetrieveArtResult(
     val statusPercent: Double
 )
 
-class Client (
+class Client(
     private val channel: ManagedChannel
 ) : Closeable {
-    private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)!!
+    private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)
 
     suspend fun retrieveArt(artID: String): RetrieveArtResult {
         val dataReq = dataRequestProto {
@@ -59,7 +59,7 @@ class Client (
             if (it.data.docs.docsCount > 0) {
                 val doc = it.data.docs.getDocs(0)
                 val fieldsMap = doc.tags.fieldsMap
-                if(fieldsMap["_status"] != null) {
+                if (fieldsMap["_status"] != null) {
                     val statusFieldMap = fieldsMap["_status"]!!.structValue.fieldsMap
                     if (statusFieldMap["completed"] != null) {
                         completed = statusFieldMap["completed"]!!.boolValue
@@ -112,9 +112,9 @@ class Client (
             if (p.name in denyList) {
                 continue
             }
-            val discoArtName = p.name!!.camelToSnakeCase()
+            val discoArtName = p.name.camelToSnakeCase()
             val value = p.getter.call(config)
-            if(value is List<*>) {
+            if (value is List<*>) {
                 builder.putFields(discoArtName, value {
                     listValue = listValue {
                         for (v in value) {
@@ -125,17 +125,16 @@ class Client (
                         }
                     }
                 })
-            }
-            else {
+            } else {
                 val convertedValue = convertAnyToValue(value!!)
                 if (convertedValue != null) {
-                    builder.putFields(discoArtName, convertAnyToValue(value!!))
+                    builder.putFields(discoArtName, convertAnyToValue(value))
                 }
             }
         }
     }
 
-    private fun addDefaultCreateParameters(params: CreateArtParameters, builder: Struct.Builder) {
+    private fun addDefaultCreateParameters(params: CreateArtParameters, builder: Builder) {
         builder.putFields("text_prompts", value {
             listValue = listValue {
                 for (prompt in params.prompts) {
@@ -145,7 +144,7 @@ class Client (
                 }
             }
         })
-        if(params.initImage != null) {
+        if (params.initImage != null) {
             builder.putFields("init_image", value { stringValue = params.initImage!! })
         }
         builder.putFields("name_docarray", value { stringValue = params.artID })
@@ -161,17 +160,16 @@ class Client (
                 })
             }
         })
-        if(params.verticalSymmetry) {
+        if (params.verticalSymmetry) {
             builder.putFields("use_vertical_symmetry", value { boolValue = true })
         }
-        if(params.horizontalSymmetry) {
+        if (params.horizontalSymmetry) {
             builder.putFields("use_horizontal_symmetry", value { boolValue = true })
         }
-        if(params.verticalSymmetry || params.horizontalSymmetry) {
+        if (params.verticalSymmetry || params.horizontalSymmetry) {
             // There is no symmetry (yet) for PLMS
             builder.putFields("diffusion_sampling_mode", value { stringValue = "ddim" })
-        }
-        else {
+        } else {
             // There is no symmetry (yet) for PLMS
             builder.putFields("diffusion_sampling_mode", value { stringValue = "plms" })
         }
@@ -187,7 +185,7 @@ class Client (
     }
 
     suspend fun variateArt(params: CreateArtParameters) {
-        val builder = com.google.protobuf.Struct.newBuilder()
+        val builder = Struct.newBuilder()
         addDiffusionConfig(params.preset, builder)
         addDefaultCreateParameters(params, builder)
         builder.putFields("init_image", value {
@@ -209,7 +207,7 @@ class Client (
     }
 
     suspend fun upscaleArt(params: CreateArtParameters) {
-        val builder = com.google.protobuf.Struct.newBuilder()
+        val builder = Struct.newBuilder()
         addDiffusionConfig(params.preset, builder)
         addDefaultCreateParameters(params, builder)
         builder.putFields("n_batches", value { numberValue = 1.0 })
@@ -240,7 +238,7 @@ class Client (
     }
 
     suspend fun createArt(params: CreateArtParameters) {
-        val builder = com.google.protobuf.Struct.newBuilder()
+        val builder = Struct.newBuilder()
         addDiffusionConfig(params.preset, builder)
         addDefaultCreateParameters(params, builder)
 

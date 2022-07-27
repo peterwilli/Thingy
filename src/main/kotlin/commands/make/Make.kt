@@ -22,11 +22,17 @@ fun makeCommand(jda: JDA) {
             }
 
             fun getStartPrompt(entry: FairQueueEntry): String {
-                return "**Added to queue**\n> *${entry.getHumanReadablePrompts()}*"
+                return entry.getHumanReadableOverview(
+                    withDescription = "Added to queue"
+                )
             }
 
             val prompts = event.getOption("prompts")!!.asString
-            if (event.getOption("preset") == null && anyItemsInString(prompts.lowercase(), listOf("pixel art", "pixelart", "pixel-art"))) {
+            if (event.getOption("preset") == null && anyItemsInString(
+                    prompts.lowercase(),
+                    listOf("pixel art", "pixelart", "pixel-art")
+                )
+            ) {
                 val usePresetButton = jda.button(
                     label = "Use PixelArt preset",
                     style = ButtonStyle.PRIMARY,
@@ -34,9 +40,9 @@ fun makeCommand(jda: JDA) {
                 ) {
                     try {
                         val entry = createEntry(pixelArtHard, it.hook)
-                        it.reply_(getStartPrompt(entry)).queue()
-                        it.message.delete().queue()
+                        it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
                         queueDispatcher.queue.addToQueue(entry)
+                        it.reply_(getStartPrompt(entry)).queue()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         it.reply_("Error! $e").setEphemeral(true).queue()
@@ -47,16 +53,22 @@ fun makeCommand(jda: JDA) {
                     style = ButtonStyle.SECONDARY,
                     user = event.user
                 ) {
-                    val entry = createEntry(null, it.hook)
-                    it.reply_(getStartPrompt(entry)).queue()
-                    it.message.delete().queue()
-                    queueDispatcher.queue.addToQueue(entry)
+                    try {
+                        val entry = createEntry(null, it.hook)
+                        it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
+                        queueDispatcher.queue.addToQueue(entry)
+                        it.reply_(getStartPrompt(entry)).queue()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        it.reply_("Error! $e").setEphemeral(true).queue()
+                    }
                 }
-                event.reply_("You have 'pixelart' or something similar in your prompt, but are using the default preset. Do you want to try the dedicated pixel art model?").addActionRow(listOf(usePresetButton, continueButton)).queue()
+                event.reply_("You have 'pixelart' or something similar in your prompt, but are using the default preset. Do you want to try the dedicated pixel art model?")
+                    .addActionRow(listOf(usePresetButton, continueButton)).queue()
             } else {
                 val entry = createEntry(null, event.hook)
-                event.reply_(getStartPrompt(entry)).queue()
                 queueDispatcher.queue.addToQueue(entry)
+                event.reply_(getStartPrompt(entry)).queue()
             }
         } catch (e: Exception) {
             e.printStackTrace()

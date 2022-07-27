@@ -1,32 +1,61 @@
 package commands.make
 
+import commands.make.diffusion_configs.diffusionConfigInstanceToName
 import config
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.interactions.InteractionHook
 
-class MemberLimitExceededException(message: String): Exception(message)
+class MemberLimitExceededException(message: String) : Exception(message)
 
 enum class FairQueueType {
     Create, Variate, Upscale
 }
 
-data class FairQueueEntry(val description: String, val type: FairQueueType, val owner: String, val parameters: List<CreateArtParameters>, val progressHook: InteractionHook) {
+data class FairQueueEntry(
+    val description: String,
+    val type: FairQueueType,
+    val owner: String,
+    val parameters: List<CreateArtParameters>,
+    val progressHook: InteractionHook
+) {
+    fun getHumanReadableOverview(withDescription: String? = null): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("**")
+        if (withDescription == null) {
+            stringBuilder.append(description)
+        }
+        else {
+            stringBuilder.append(withDescription)
+        }
+        stringBuilder.append("** | ")
+        stringBuilder.append(
+            "**Preset**: ${diffusionConfigInstanceToName[parameters.first().preset]!!}\n" +
+                    "> *${getHumanReadablePrompts()}*\n"
+        )
+        return stringBuilder.toString()
+    }
+
     fun progressUpdate(message: String) {
         progressHook.editOriginal(message).queue()
     }
+
     fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String) {
         progressHook.editOriginal(message).retainFiles(listOf()).addFile(fileBytes, fileName).queue()
     }
+
     fun progressDelete() {
         progressHook.deleteOriginal().queue()
     }
+
     fun getChannel(): TextChannel {
         return progressHook.interaction.textChannel
     }
+
     fun getMember(): Member {
         return progressHook.interaction.member!!
     }
+
     fun getHumanReadablePrompts(): String {
         return parameters.first().prompts.joinToString("|")
     }
@@ -36,7 +65,7 @@ class FairQueue(maxEntriesPerOwner: Int) {
     private val queue = mutableListOf<FairQueueEntry>()
 
     fun next(): FairQueueEntry? {
-        if(queue.isNotEmpty()) {
+        if (queue.isNotEmpty()) {
             return queue.removeAt(0)
         }
         return null
