@@ -26,8 +26,7 @@ fun variate(
             batch,
             buttonInteractionEvent.hook
         )
-        queueDispatcher.queue.addToQueue(entry)
-        buttonInteractionEvent.reply_("**Added to queue**\n> *${entry.getHumanReadablePrompts()}*").queue()
+        buttonInteractionEvent.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
     } catch (e: Exception) {
         e.printStackTrace()
         buttonInteractionEvent.reply_("Error! $e").setEphemeral(true).queue()

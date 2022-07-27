@@ -5,6 +5,7 @@ import config
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.interactions.InteractionHook
+import updateMode
 
 class MemberLimitExceededException(message: String) : Exception(message)
 
@@ -77,11 +78,17 @@ class FairQueue(maxEntriesPerOwner: Int) {
         }
     }
 
-    fun addToQueue(entry: FairQueueEntry) {
+    fun addToQueue(entry: FairQueueEntry): String {
+        if (updateMode) {
+            return "${config.bot.name} is in update mode! New requests are temporarily blocked so we can update the bot, making sure you won't lose any content! Sorry for the inconvenience!"
+        }
         val count = entryCount(entry.owner)
         if (count >= config.maxEntriesPerOwner) {
             throw MemberLimitExceededException("${entry.owner} has currently $count items in the queue! Max is ${config.maxEntriesPerOwner}")
         }
         queue.add(entry)
+        return entry.getHumanReadableOverview(
+            withDescription = "Added to queue: ${entry.getHumanReadablePrompts()}"
+        )
     }
 }

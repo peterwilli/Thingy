@@ -21,12 +21,6 @@ fun makeCommand(jda: JDA) {
                 return FairQueueEntry("Generating Image", FairQueueType.Create, event.member!!.id, batch, hook)
             }
 
-            fun getStartPrompt(entry: FairQueueEntry): String {
-                return entry.getHumanReadableOverview(
-                    withDescription = "Added to queue"
-                )
-            }
-
             val prompts = event.getOption("prompts")!!.asString
             if (event.getOption("preset") == null && anyItemsInString(
                     prompts.lowercase(),
@@ -41,8 +35,7 @@ fun makeCommand(jda: JDA) {
                     try {
                         val entry = createEntry(pixelArtHard, it.hook)
                         it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
-                        queueDispatcher.queue.addToQueue(entry)
-                        it.reply_(getStartPrompt(entry)).queue()
+                        it.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         it.reply_("Error! $e").setEphemeral(true).queue()
@@ -56,8 +49,7 @@ fun makeCommand(jda: JDA) {
                     try {
                         val entry = createEntry(null, it.hook)
                         it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
-                        queueDispatcher.queue.addToQueue(entry)
-                        it.reply_(getStartPrompt(entry)).queue()
+                        it.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         it.reply_("Error! $e").setEphemeral(true).queue()
@@ -67,8 +59,7 @@ fun makeCommand(jda: JDA) {
                     .addActionRow(listOf(usePresetButton, continueButton)).queue()
             } else {
                 val entry = createEntry(null, event.hook)
-                queueDispatcher.queue.addToQueue(entry)
-                event.reply_(getStartPrompt(entry)).queue()
+                event.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
             }
         } catch (e: Exception) {
             e.printStackTrace()

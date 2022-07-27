@@ -62,7 +62,7 @@ fun optionsToParams(
 
     val params = CreateArtParameters(
         seed = seed,
-        artID = "${config.botName}-${randomString(alphanumericCharPool, 32)}",
+        artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
         prompts = prompts.split("|"),
         preset = preset,
         verticalSymmetry = verticalSymmetry,

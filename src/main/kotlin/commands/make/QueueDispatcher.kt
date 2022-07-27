@@ -69,6 +69,7 @@ class QueueDispatcher(private val jda: JDA) {
                     }
                     inProgress.add(params)
                     while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
+                        println("inProgress.size: ${inProgress.size}")
                         delay(1000)
                     }
                     // Make sure GPU is cleaned up
@@ -133,7 +134,7 @@ class QueueDispatcher(private val jda: JDA) {
                         lastPercentCompleted = avgPercentCompleted
                         ticksWithoutUpdate = 0
                         val quilt = makeQuiltFromByteArrayList(newImages)
-                        entry.progressUpdate(entry.getHumanReadableOverview(), quilt, "${config.botName}_progress.jpg")
+                        entry.progressUpdate(entry.getHumanReadableOverview(), quilt, "${config.bot.name}_progress.jpg")
                     }
                     delay(1000 * 5)
                 }
@@ -145,7 +146,7 @@ class QueueDispatcher(private val jda: JDA) {
                 val (upscaleRow, variateRow) = getEditButtons(client, jda, entry.getMember().user, batch)
                 var finishMsg = entry.getChannel()
                     .sendMessage("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*")
-                    .addFile(quilt, "${config.botName}_final.jpg")
+                    .addFile(quilt, "${config.bot.name}_final.jpg")
                 if (entry.type != FairQueueType.Upscale) {
                     finishMsg = finishMsg.setActionRows(upscaleRow, variateRow)
                 }

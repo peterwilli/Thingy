@@ -1,5 +1,6 @@
 import com.sksamuel.hoplite.ConfigLoader
 import commands.make.diffusion_configs.diffusionConfigs
+import commands.update.updateCommand
 import dev.minn.jda.ktx.interactions.commands.choice
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
@@ -16,12 +17,13 @@ import kotlin.time.Duration
 
 lateinit var config: Config
 lateinit var queueDispatcher: QueueDispatcher
+var updateMode = false
 
 suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
         "./config.yml"
     })
-    val builder: JDABuilder = JDABuilder.createDefault(config.botToken)
+    val builder: JDABuilder = JDABuilder.createDefault(config.bot.token)
     builder.apply {
         injectKTX(timeout = Duration.INFINITE)
     }
@@ -36,6 +38,7 @@ suspend fun main(args: Array<String>) {
             queueDispatcher.startQueueDispatcher()
         }
         initCommands(jda)
+        updateCommand(jda)
     }
 }
 
@@ -68,6 +71,9 @@ fun initCommands(jda: JDA) {
                 "Entropy for the random number generator, use the same seed to replicate results!",
                 required = false
             )
+        }
+        slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
+            option<Boolean>("on", "Turn update mode on or off", required = true)
         }
     }.queue()
 }

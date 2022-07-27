@@ -1,5 +1,7 @@
-botName: "My AI bot!"
-botToken: "my_bot_token_keep_secret"
+bot:
+  name: "My AI bot!"
+  token: "my_bot_token_keep_secret"
+  ownerId: "580050773522513920"
 maxEntriesPerOwner: 1
 hostConstraints:
   maxSimultaneousMakeRequests: 1

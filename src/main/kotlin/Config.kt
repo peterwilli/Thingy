@@ -8,14 +8,19 @@ data class GRPCServer(
     val port: Int
 )
 
+data class Bot(
+    val name: String,
+    val ownerId: String,
+    val token: String
+)
+
 data class Timeouts(
     val imageNotAppearing: Int,
     val imageNotUpdating: Int
 )
 
 data class Config(
-    val botName: String,
-    val botToken: String,
+    val bot: Bot,
     val maxEntriesPerOwner: Int,
     val hostConstraints: HostConstraints,
     val grpcServer: GRPCServer,
