@@ -154,6 +154,27 @@ class Client (
         builder.putFields("display_rate", value { numberValue = 15.0 })
         builder.putFields("steps", value { numberValue = 150.0 })
         builder.putFields("truncate_overlength_prompt", value { boolValue = true })
+        builder.putFields("transformation_percent", value {
+            listValue = listValue {
+                this.values.add(value {
+                    numberValue = params.symmetryIntensity
+                })
+            }
+        })
+        if(params.verticalSymmetry) {
+            builder.putFields("use_vertical_symmetry", value { boolValue = true })
+        }
+        if(params.horizontalSymmetry) {
+            builder.putFields("use_horizontal_symmetry", value { boolValue = true })
+        }
+        if(params.verticalSymmetry || params.horizontalSymmetry) {
+            // There is no symmetry (yet) for PLMS
+            builder.putFields("diffusion_sampling_mode", value { stringValue = "ddim" })
+        }
+        else {
+            // There is no symmetry (yet) for PLMS
+            builder.putFields("diffusion_sampling_mode", value { stringValue = "plms" })
+        }
         builder.putFields("width_height", value {
             listValue = listValue {
                 val (w, h) = params.ratio.calculateSize(params.preset.baseSize)
@@ -167,6 +188,7 @@ class Client (
 
     suspend fun variateArt(params: CreateArtParameters) {
         val builder = com.google.protobuf.Struct.newBuilder()
+        addDiffusionConfig(params.preset, builder)
         addDefaultCreateParameters(params, builder)
         builder.putFields("init_image", value {
             stringValue = params.initImage.toString()
@@ -188,6 +210,7 @@ class Client (
 
     suspend fun upscaleArt(params: CreateArtParameters) {
         val builder = com.google.protobuf.Struct.newBuilder()
+        addDiffusionConfig(params.preset, builder)
         addDefaultCreateParameters(params, builder)
         builder.putFields("n_batches", value { numberValue = 1.0 })
         builder.putFields("batch_size", value { numberValue = 1.0 })
@@ -218,8 +241,8 @@ class Client (
 
     suspend fun createArt(params: CreateArtParameters) {
         val builder = com.google.protobuf.Struct.newBuilder()
-        addDefaultCreateParameters(params, builder)
         addDiffusionConfig(params.preset, builder)
+        addDefaultCreateParameters(params, builder)
 
         val dataReq = dataRequestProto {
             parameters = builder.build()

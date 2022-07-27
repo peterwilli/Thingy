@@ -11,7 +11,6 @@ val standardSmall = DiffusionConfig(
     steps = 150,
     clipModels = listOf("ViT-B-32::laion2b_e16"),
     clipGuidanceScale = 5000,
-    diffusionSamplingMode = "plms",
     cutnBatches = 1,
     cutIcPow = 1.65,
     tvScale = 9.0,

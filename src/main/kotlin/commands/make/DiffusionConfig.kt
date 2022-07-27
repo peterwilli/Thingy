@@ -21,7 +21,6 @@ data class DiffusionConfig(
     val cutIcgrayP: String,
     val eta: Double,
     val initScale: Int,
-    val diffusionSamplingMode: String,
     val rangeScale: Int,
     val useSecondaryModel: Boolean,
     val perlinInit: Boolean,

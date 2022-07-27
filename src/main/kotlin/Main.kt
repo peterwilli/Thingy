@@ -52,6 +52,9 @@ fun initCommands(jda: JDA) {
                     choice(diffusionConfigs[k]!!.second, k)
                 }
             }
+            option<Boolean>("horizontal_symmetry", "Make the image horizontally symmetric!", required = false)
+            option<Boolean>("vertical_symmetry", "Make the image vertically symmetric!", required = false)
+            option<Double>("symmetry_intensity", "100% means fully symmetric, anything below that will reduce the effect.", required = false)
             option<Int>("seed", "Entropy for the random number generator, use the same seed to replicate results!", required = false)
         }
     }.queue()
