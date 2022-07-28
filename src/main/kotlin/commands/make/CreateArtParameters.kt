@@ -7,6 +7,8 @@ import config
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import randomString
 import java.net.URL
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -20,6 +22,7 @@ data class CreateArtParameters(
     var verticalSymmetry: Boolean,
     var horizontalSymmetry: Boolean,
     var symmetryIntensity: Double,
+    var skipSteps: Int
 )
 
 fun optionsToParams(
@@ -48,6 +51,12 @@ fun optionsToParams(
         event.getOption("symmetry_intensity")!!.asDouble
     }
 
+    val skipSteps = if (event.getOption("skip_steps") == null) {
+        0
+    } else {
+        max(min(event.getOption("skip_steps")!!.asInt, 140), 0)
+    }
+
     val horizontalSymmetry = if (event.getOption("horizontal_symmetry") == null) {
         false
     } else {
@@ -67,7 +76,8 @@ fun optionsToParams(
         preset = preset,
         verticalSymmetry = verticalSymmetry,
         horizontalSymmetry = horizontalSymmetry,
-        symmetryIntensity = symmetryIntensity
+        symmetryIntensity = symmetryIntensity,
+        skipSteps = skipSteps
     )
 
     val arOption = event.getOption("ar")

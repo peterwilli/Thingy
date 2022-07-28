@@ -146,6 +146,13 @@ class Client(
         })
         if (params.initImage != null) {
             builder.putFields("init_image", value { stringValue = params.initImage!! })
+            builder.putFields("skip_steps", value {
+                numberValue = if (params.skipSteps == 0) {
+                    50
+                } else {
+                    params.skipSteps
+                }.toDouble()
+            })
         }
         builder.putFields("name_docarray", value { stringValue = params.artID })
         builder.putFields("n_batches", value { numberValue = 1.0 })
@@ -192,7 +199,7 @@ class Client(
             stringValue = params.initImage.toString()
         })
         builder.putFields("skip_steps", value {
-            numberValue = 75.0
+            numberValue = 50.0
         })
         val dataReq = dataRequestProto {
             parameters = builder.build()

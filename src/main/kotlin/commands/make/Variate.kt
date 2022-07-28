@@ -18,8 +18,8 @@ fun variate(
         var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
             params.copy(
                 seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
-                initImage = "${config.imagesFolder}/${params.artID.substring(0..params.artID.length - 4)}/0-done-0.png",
-                artID = "${params.artID}_V"
+                initImage = "${config.imagesFolder}/${params.artID}/0-done-0.png",
+                artID = "${params.artID}_V$it"
             )
         }
         val entry = FairQueueEntry(

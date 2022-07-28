@@ -88,7 +88,7 @@ class FairQueue(maxEntriesPerOwner: Int) {
         }
         queue.add(entry)
         return entry.getHumanReadableOverview(
-            withDescription = "Added to queue: ${entry.getHumanReadablePrompts()}"
+            withDescription = "Added to queue"
         )
     }
 }

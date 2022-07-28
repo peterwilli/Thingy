@@ -50,6 +50,11 @@ fun initCommands(jda: JDA) {
             option<String>("prompts", "prompts to make", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             option<String>("init_image", "A link to an previous image you wish to use!", required = false)
+            option<Int>(
+                "skip_steps",
+                "Use with init_image. Number of steps to skip. More skips means closer to your init image.",
+                required = false
+            )
             option<String>(
                 "preset",
                 "A custom configuration pack (any other parameters will override the preset!)",

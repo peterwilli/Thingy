@@ -12,7 +12,7 @@ fun upscale(
 ) {
     try {
         val upscaleParams = params.copy(
-            initImage = "${config.imagesFolder}/${params.artID.substring(0..params.artID.length - 4)}/0-done-0.png",
+            initImage = "${config.imagesFolder}/${params.artID}/0-done-0.png",
             artID = "${params.artID}_U"
         )
         val entry = FairQueueEntry(
