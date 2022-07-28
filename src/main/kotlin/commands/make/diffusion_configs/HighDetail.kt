@@ -2,17 +2,18 @@ package commands.make.diffusion_configs
 
 import commands.make.DiffusionConfig
 
-val pixelArtHard = DiffusionConfig(
-    baseSize = 256,
+val highDetail = DiffusionConfig(
+    baseSize = 512,
     initScale = 1000,
-    skipAugs = false,
-    diffusionModel = "pixel_art_diffusion_hard_256",
+    skipAugs = true,
+    satScale = 1.0,
+    diffusionModel = "512x512_diffusion_uncond_finetune_008100",
     steps = 150,
     clipModels = listOf("ViT-B-32::laion2b_e16"),
     clipGuidanceScale = 5000,
     cutnBatches = 1,
-    cutIcPow = "[1.65]*1000",
-    tvScale = 0.0,
+    cutIcPow = "[0]*200+[0]*200+[5]*200+[10]*200+[20]*200",
+    tvScale = 9.0,
     onMisspelledToken = "ignore",
     useVerticalSymmetry = false,
     useHorizontalSymmetry = false,
@@ -20,17 +21,16 @@ val pixelArtHard = DiffusionConfig(
     skipSteps = 0,
     clampGrad = true,
     fuzzyPrompt = false,
-    rangeScale = 150,
-    randomizeClass = false,
-    cutInnercut = "[32]*100+[16]*100+[8]*400+[4]*400",
+    rangeScale = 5000,
+    randomizeClass = true,
+    cutInnercut = "[2]*200+[4]*200+[8]*200+[16]*200+[32]*200",
     clipDenoised = false,
     perlinMode = "mixed",
-    cutOverview = "[16]*100+[8]*100+[4]*800",
+    cutOverview = "[8]*200+[6]*200+[4]*200+[0]*200+[0]*200",
     transformationPercent = listOf(0.09),
-    satScale = 0.0,
     useSecondaryModel = true,
     perlinInit = false,
-    cutIcgrayP = "[0.2]*400+[0]*600",
+    cutIcgrayP = "[0.25]*100+[0.22]*100+[0.1]*100+[0.05]*100+[0]*600",
     randMag = 0.05,
     eta = 0.3
 )

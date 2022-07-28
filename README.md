@@ -12,7 +12,7 @@ In short: this bot allows you to generate images based on a text prompt, but can
 
 # Credits and special thanks
 
- - First and foremost Han Xiau for being around in DMs helping me with what I struggled with but also putting me on the right direction in various moments.
+ - First and foremost Han Xiao for being around in DMs helping me with what I struggled with but also putting me on the right direction in various moments.
  - [DiscoArt](https://github.com/jina-ai/discoart): without this project, I was never able to cook this up in a weekend.
  - [Jina](https://jina.ai) which has some incredible tooling I got familiar with.
 
@@ -74,4 +74,4 @@ executors:
 - In bot permissions, you only need the following:
     ![Bot permissions checkboxes](./extras/bot_perms.png)
 - After you have done this, you can copy the link and invite the bot into your server.
-- Run the bot using `./gradlew run` and you should be able to use `/make`!
+- Run the bot using `./gradlew run` and you should be able to use `/make` in your Discord server! From there you'll be further instructed how to make images.
