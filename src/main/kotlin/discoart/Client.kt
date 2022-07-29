@@ -39,7 +39,7 @@ class Client(
     private val channel: ManagedChannel
 ) : Closeable {
     private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)
-
+    
     suspend fun retrieveArt(artID: String): RetrieveArtResult {
         val dataReq = dataRequestProto {
             parameters = struct {

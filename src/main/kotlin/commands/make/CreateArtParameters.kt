@@ -25,6 +25,29 @@ data class CreateArtParameters(
     var skipSteps: Int
 )
 
+fun processPrompts(prompts: String): List<String> {
+    val split = prompts.split("|")
+    return split.map { prompt ->
+        val lastDoublePointIndex = prompt.lastIndexOf(":")
+        if (lastDoublePointIndex > -1) {
+            val afterDoublePoint = prompt.substring(lastDoublePointIndex + 1)
+            if (afterDoublePoint.toDoubleOrNull() == null) {
+                // Replace double points by dot-comma (;)
+                return@map prompt.replace(":", ";")
+            } else {
+                // Replace only those that came before (if any)
+                return@map prompt.replaceRange(
+                    0 until lastDoublePointIndex,
+                    prompt.substring(0..lastDoublePointIndex - 1).replace(":", ";")
+                )
+            }
+        } else {
+            // Return as-is as there's no ':'
+            return@map prompt
+        }
+    }
+}
+
 fun optionsToParams(
     event: GenericCommandInteractionEvent,
     overridePreset: DiffusionConfig?,
@@ -72,7 +95,7 @@ fun optionsToParams(
     val params = CreateArtParameters(
         seed = seed,
         artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
-        prompts = prompts.split("|"),
+        prompts = processPrompts(prompts),
         preset = preset,
         verticalSymmetry = verticalSymmetry,
         horizontalSymmetry = horizontalSymmetry,
