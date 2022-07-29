@@ -63,7 +63,7 @@ executors:
       py_modules:
         - discoart.executors
 ```
-- `cd` to this folder, and run the following command: `docker run --rm --net=host -v $(pwd):/app -v $(pwd)/cache:/root/.cache --name=jina_discord_processor --gpus all jinaai/discoart python -m discoart serve /app/flow.yml`
+- `cd` to this folder, and run the following command: `docker run --rm --net=host -v $(pwd):/app -v $(pwd)/cache:/root/.cache --name=jina_discord_processor --gpus all jinaai/discoart bash -c 'pip install discoart==0.9.2 && python -m discoart serve /app/flow.yml'`
 - Congrats, you got your AI server running!
 
 ## Setting up the bot
