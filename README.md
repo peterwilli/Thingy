@@ -42,20 +42,26 @@ with:
   monitoring: false
   cors: true
   port: 51001
-  port_monitoring: 51002
   env:
     JINA_LOG_LEVEL: debug
     DISCOART_DISABLE_IPYTHON: 1
     DISCOART_DISABLE_RESULT_SUMMARY: 1
+    DISCOART_OPTOUT_CLOUD_BACKUP: 1
 executors:
   - name: discoart
     uses: DiscoArtExecutor
     env:
       CUDA_VISIBLE_DEVICES: RR0:2  # change this if you have multiple GPU
     replicas: 1  # change this if you have larger VRAM
-    floating: true  # new feature in Jina 3.7, set this to true allows `create` to be immediately returned without waiting the response on the client
+    floating: true
+    uses_metas:
+      py_modules:
+        - discoart.executors
   - name: poller
     uses: ResultPoller
+    uses_metas:
+      py_modules:
+        - discoart.executors
 ```
 - `cd` to this folder, and run the following command: `docker run --rm --net=host -v $(pwd):/app -v $(pwd)/cache:/root/.cache --name=jina_discord_processor --gpus all jinaai/discoart python -m discoart serve /app/flow.yml`
 - Congrats, you got your AI server running!
@@ -75,3 +81,4 @@ executors:
     ![Bot permissions checkboxes](./extras/bot_perms.png)
 - After you have done this, you can copy the link and invite the bot into your server.
 - Run the bot using `./gradlew run` and you should be able to use `/make` in your Discord server! From there you'll be further instructed how to make images.
+  - The first time, the bot may be triggering a timeout error, this is because it has to download all the model files. After it's done, it'll run properly.
