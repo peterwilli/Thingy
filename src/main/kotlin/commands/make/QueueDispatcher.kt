@@ -69,7 +69,6 @@ class QueueDispatcher(private val jda: JDA) {
                     }
                     inProgress.add(params)
                     while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
-                        println("inProgress.size: ${inProgress.size}")
                         delay(1000)
                     }
                     // Make sure GPU is cleaned up

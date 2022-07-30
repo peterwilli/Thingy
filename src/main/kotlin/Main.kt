@@ -1,4 +1,5 @@
 import com.sksamuel.hoplite.ConfigLoader
+import commands.cancel.cancelCommand
 import commands.make.diffusion_configs.diffusionConfigs
 import commands.update.updateCommand
 import dev.minn.jda.ktx.interactions.commands.choice
@@ -38,6 +39,7 @@ suspend fun main(args: Array<String>) {
             queueDispatcher.startQueueDispatcher()
         }
         initCommands(jda)
+        cancelCommand(jda)
         updateCommand(jda)
     }
 }
@@ -80,5 +82,6 @@ fun initCommands(jda: JDA) {
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)
         }
+        slash("cancel", "Cancel latest item (by you) in the queue")
     }.queue()
 }

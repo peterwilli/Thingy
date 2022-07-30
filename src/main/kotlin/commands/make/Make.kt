@@ -1,7 +1,8 @@
 import commands.make.DiffusionConfig
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
-import commands.make.diffusion_configs.pixelArtHard
+import commands.make.diffusion_configs.catchRecommendedConfig
+import commands.make.diffusion_configs.diffusionConfigs
 import commands.make.optionsToParams
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
@@ -9,7 +10,6 @@ import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import utils.anyItemsInString
 
 fun makeCommand(jda: JDA) {
     jda.onCommand("make") { event ->
@@ -22,18 +22,18 @@ fun makeCommand(jda: JDA) {
             }
 
             val prompts = event.getOption("prompts")!!.asString
-            if (event.getOption("preset") == null && anyItemsInString(
-                    prompts.lowercase(),
-                    listOf("pixel art", "pixelart", "pixel-art")
-                )
-            ) {
+            val catchResult = catchRecommendedConfig(prompts)
+            if (event.getOption("preset") == null && catchResult != null) {
+                val (wordCaught, recommendedPreset) = catchResult
+                val newPreset = diffusionConfigs[recommendedPreset]!!.first
+                val presetDesc = diffusionConfigs[recommendedPreset]!!.second
                 val usePresetButton = jda.button(
-                    label = "Use PixelArt preset",
+                    label = "Use $presetDesc",
                     style = ButtonStyle.PRIMARY,
                     user = event.user
                 ) {
                     try {
-                        val entry = createEntry(pixelArtHard, it.hook)
+                        val entry = createEntry(newPreset, it.hook)
                         it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
                         it.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
                     } catch (e: Exception) {
@@ -55,7 +55,7 @@ fun makeCommand(jda: JDA) {
                         it.reply_("Error! $e").setEphemeral(true).queue()
                     }
                 }
-                event.reply_("You have 'pixelart' or something similar in your prompt, but are using the default preset. Do you want to try the dedicated pixel art model?")
+                event.reply_("You have '$wordCaught' in your prompt, but are using the default preset. Do you want to try a more suitable preset?")
                     .addActionRow(listOf(usePresetButton, continueButton)).queue()
             } else {
                 val entry = createEntry(null, event.hook)

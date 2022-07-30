@@ -78,6 +78,12 @@ class FairQueue(maxEntriesPerOwner: Int) {
         }
     }
 
+    fun deleteLatestEntryByOwner(owner: String) {
+        queue.remove(queue.findLast {
+            it.owner == owner
+        })
+    }
+
     fun addToQueue(entry: FairQueueEntry): String {
         if (updateMode) {
             return "${config.bot.name} is in update mode! New requests are temporarily blocked so we can update the bot, making sure you won't lose any content! Sorry for the inconvenience!"
