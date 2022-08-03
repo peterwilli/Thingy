@@ -219,6 +219,7 @@ class Client(
         addDefaultCreateParameters(params, builder)
         builder.putFields("n_batches", value { numberValue = 1.0 })
         builder.putFields("batch_size", value { numberValue = 1.0 })
+        builder.putFields("init_scale", value { numberValue = 6000.0 })
         builder.putFields("skip_steps", value {
             numberValue = 30.0
         })

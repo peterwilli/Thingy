@@ -10,7 +10,7 @@ import java.io.InputStreamReader
 data class DiffusionConfig(
     val baseSize: Int,
     val cutIcPow: String,
-    val skipAugs: Boolean,
+    val skipAugs: String,
     val fuzzyPrompt: Boolean,
     val randomizeClass: Boolean,
     val clipGuidanceScale: Int,

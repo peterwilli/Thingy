@@ -2,15 +2,15 @@ package commands.make.diffusion_configs
 
 import commands.make.DiffusionConfig
 
-val standardSmall = DiffusionConfig(
+val diorama = DiffusionConfig(
     baseSize = 512,
     initScale = 1000,
-    skipAugs = "[True] * 1000",
+    skipAugs = "[True]*1000",
     satScale = 1.0,
     diffusionModel = "512x512_diffusion_uncond_finetune_008100",
     steps = 150,
     clipModels = listOf("ViT-B-32::openai", "ViT-B-16::openai", "RN50::openai"),
-    clipGuidanceScale = 2500,
+    clipGuidanceScale = 5000,
     cutnBatches = 1,
     cutIcPow = "[1.65]*1000",
     tvScale = 9.0,

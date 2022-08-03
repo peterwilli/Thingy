@@ -5,10 +5,10 @@ import commands.make.DiffusionConfig
 val pixelArtHard = DiffusionConfig(
     baseSize = 256,
     initScale = 1000,
-    skipAugs = false,
+    skipAugs = "[False] * 1000",
     diffusionModel = "pixel_art_diffusion_hard_256",
     steps = 150,
-    clipModels = listOf("ViT-B-32::laion2b_e16"),
+    clipModels = listOf("ViT-B-32::openai", "ViT-B-16::openai", "RN50::openai"),
     clipGuidanceScale = 5000,
     cutnBatches = 1,
     cutIcPow = "[1.65]*1000",

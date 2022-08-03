@@ -6,6 +6,7 @@ val diffusionConfigs = mapOf(
     "pixelArt4K" to (pixelArt4K to "Pixel art (4K)"),
     "pixelArtHard" to (pixelArtHard to "Pixel art (hard)"),
     "pixelArtSoft" to (pixelArtSoft to "Pixel art (soft)"),
+    "diorama" to (diorama to "Diorama effect"),
     "portrait" to (portrait to "Portrait")
 )
 val diffusionConfigInstanceToName = diffusionConfigs.keys.associateBy({
