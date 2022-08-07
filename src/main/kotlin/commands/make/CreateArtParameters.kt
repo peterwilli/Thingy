@@ -38,7 +38,7 @@ fun processPrompts(prompts: String): List<String> {
                 // Replace only those that came before (if any)
                 return@map prompt.replaceRange(
                     0 until lastDoublePointIndex,
-                    prompt.substring(0..lastDoublePointIndex - 1).replace(":", ";")
+                    prompt.substring(0 until lastDoublePointIndex).replace(":", ";")
                 )
             }
         } else {
@@ -65,7 +65,14 @@ fun optionsToParams(
     val seed = if (event.getOption("seed") == null) {
         Random.nextInt(0, 2.toDouble().pow(32).toInt())
     } else {
-        event.getOption("seed")!!.asInt + imageIndex
+        try {
+            event.getOption("seed")!!.asInt + imageIndex
+        }
+        catch(e: Exception) {
+            println("Warning, seed '${event.getOption("seed")!!.asString}' invalid! Using $imageIndex instead...")
+            e.printStackTrace()
+            imageIndex
+        }
     }
 
     val symmetryIntensity = if (event.getOption("symmetry_intensity") == null) {

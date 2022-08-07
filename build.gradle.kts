@@ -21,11 +21,11 @@ dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.13")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
     implementation("io.grpc:grpc-protobuf:1.47.0")
-    implementation("ch.qos.logback:logback-classic:1.2.8")
-    implementation("com.google.protobuf:protobuf-kotlin:3.21.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("com.google.protobuf:protobuf-kotlin:3.21.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("io.grpc:grpc-netty:1.47.0")
-    implementation("com.beust:klaxon:5.5")
+    implementation("com.beust:klaxon:5.6")
     implementation("com.sksamuel.hoplite:hoplite-core:2.4.0")
     implementation("com.sksamuel.hoplite:hoplite-yaml:2.4.0")
     implementation(kotlin("reflect"))
@@ -45,7 +45,7 @@ application {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:21.0-rc-1"
+        artifact = "com.google.protobuf:protoc:3.21.3"
     }
     plugins {
         id("grpc") {
