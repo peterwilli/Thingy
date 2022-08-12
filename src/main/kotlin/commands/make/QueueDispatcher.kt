@@ -83,7 +83,12 @@ class QueueDispatcher(private val jda: JDA) {
                     var completedCount = 0
                     var avgPercentCompleted: Double = 0.0
                     for (params in batch) {
-                        val retrieveArtResult = client.retrieveArt(params.artID)
+                        val retrieveArtResult = if(entry.type == FairQueueType.Upscale) {
+                            client.retrieveUpscaleArt(params.artID)
+                        }
+                        else {
+                            client.retrieveArt(params.artID)
+                        }
                         if (retrieveArtResult.completed) {
                             completedCount++
                             inProgress.remove(params)

@@ -6,11 +6,12 @@ import com.google.protobuf.*
 import com.google.protobuf.Struct.Builder
 import commands.make.CreateArtParameters
 import commands.make.DiffusionConfig
+import docarray.DocumentArrayProtoKt
+import docarray.documentArrayProto
+import docarray.documentProto
 import io.grpc.ManagedChannel
-import jina.Jina
-import jina.JinaRPCGrpcKt
-import jina.dataRequestProto
-import jina.headerProto
+import jina.*
+import jina.Jina.DataRequestProto.DataContentProto
 import kotlinx.coroutines.flow.asFlow
 import randomString
 import utils.camelToSnakeCase
@@ -23,7 +24,8 @@ private fun reqToByteArrayList(req: Jina.DataRequestProto): List<ByteArray> {
     var returnedImages = mutableListOf<ByteArray>()
     if (req.data.docs.docsCount > 0) {
         for (doc in req.data.docs.docsList) {
-            returnedImages.add(Base64.getDecoder().decode(doc.uri.substring("data:image/png;base64,".length)))
+            val filteredUrl = doc.uri.substring(doc.uri.indexOf(",") + 1)
+            returnedImages.add(Base64.getDecoder().decode(filteredUrl))
         }
     }
     return returnedImages
@@ -39,7 +41,43 @@ class Client(
     private val channel: ManagedChannel
 ) : Closeable {
     private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)
-    
+
+    suspend fun retrieveUpscaleArt(artID: String): RetrieveArtResult {
+        val dataReq = dataRequestProto {
+            data = DataRequestProtoKt.dataContentProto {
+                this.docs = documentArrayProto {
+                    this.docs.add(documentProto {
+                        this.id = artID
+                    })
+                }
+            }
+            header = headerProto {
+                execEndpoint = "/upscale_progress"
+                requestId = randomString(alphanumericCharPool, 32)
+            }
+        }
+        val reqs = listOf(dataReq).asFlow()
+        var result: List<ByteArray>? = null
+        var completed = false
+        var progress = 0.0
+        stub.withCompression("gzip").call(reqs).collect {
+            result = reqToByteArrayList(it)
+            if (it.data.docs.docsCount > 0) {
+                val doc = it.data.docs.getDocs(0)
+                val fieldsMap = doc.tags.fieldsMap
+                if (fieldsMap["progress"] != null) {
+                    progress = fieldsMap["progress"]!!.numberValue.toDouble()
+                    completed = progress == 1.0
+                }
+            }
+        }
+        return RetrieveArtResult(
+            images = result!!,
+            statusPercent = progress,
+            completed = completed
+        )
+    }
+
     suspend fun retrieveArt(artID: String): RetrieveArtResult {
         val dataReq = dataRequestProto {
             parameters = struct {
@@ -215,32 +253,22 @@ class Client(
 
     suspend fun upscaleArt(params: CreateArtParameters) {
         val builder = Struct.newBuilder()
-        addDiffusionConfig(params.preset, builder)
-        addDefaultCreateParameters(params, builder)
         builder.putFields("n_batches", value { numberValue = 1.0 })
-        builder.putFields("batch_size", value { numberValue = 1.0 })
-        builder.putFields("init_scale", value { numberValue = 6000.0 })
-        builder.putFields("skip_steps", value {
-            numberValue = 30.0
-        })
-        builder.putFields("width_height", value {
-            listValue = listValue {
-                val (w, h) = params.ratio.calculateSize(1024)
-                values.addAll(listOf(
-                    value { numberValue = w.toDouble() },
-                    value { numberValue = h.toDouble() }
-                ))
-            }
-        })
         val dataReq = dataRequestProto {
-            parameters = builder.build()
+            data = DataRequestProtoKt.dataContentProto {
+               this.docs = documentArrayProto {
+                   this.docs.add(documentProto {
+                       this.id = params.artID
+                       this.uri = params.initImage!!
+                   })
+               }
+            }
             header = headerProto {
-                execEndpoint = "/create"
+                execEndpoint = "/upscale"
                 requestId = randomString(alphanumericCharPool, 32)
             }
         }
         val reqs = listOf(dataReq).asFlow()
-        var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {
         }
     }
