@@ -28,6 +28,9 @@ dependencies {
     implementation("com.beust:klaxon:5.6")
     implementation("com.sksamuel.hoplite:hoplite-core:2.4.0")
     implementation("com.sksamuel.hoplite:hoplite-yaml:2.4.0")
+    implementation("com.j256.ormlite:ormlite-core:6.1")
+    implementation("com.j256.ormlite:ormlite-jdbc:6.1")
+    implementation("org.xerial:sqlite-jdbc:3.39.2.1")
     implementation(kotlin("reflect"))
 }
 

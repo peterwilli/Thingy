@@ -2,6 +2,7 @@ import com.sksamuel.hoplite.ConfigLoader
 import commands.cancel.cancelCommand
 import commands.make.diffusion_configs.diffusionConfigs
 import commands.update.updateCommand
+import database.initDatabase
 import dev.minn.jda.ktx.interactions.commands.choice
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
@@ -24,6 +25,7 @@ suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
         "./config.yml"
     })
+    initDatabase()
     val builder: JDABuilder = JDABuilder.createDefault(config.bot.token)
     builder.apply {
         injectKTX(timeout = Duration.INFINITE)
@@ -45,13 +47,24 @@ suspend fun main(args: Array<String>) {
 }
 
 fun initCommands(jda: JDA) {
-    makeCommand(jda)
+    discoDiffusionCommand(jda)
 
     jda.updateCommands {
-        slash("make", "I make you a thing!") {
-            option<String>("prompts", "prompts to make", required = true)
+        slash("stable_diffusion", "Making things with Stable Diffusion!") {
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<String>("init_image", "A link to an previous image you wish to use!", required = false)
+            option<String>("init_image", "A link to an image you wish to use as start!", required = false)
+            option<Int>(
+                "seed",
+                "Entropy for the random number generator, use the same seed to replicate results!",
+                required = false
+            )
+        }
+
+        slash("disco_diffusion", "Making things with Disco Diffusion!") {
+            option<String>("prompts", "prompts to make (weighted prompts can be separated by |, i.e 'Landscape:100|JPEG artifacts:-50')", required = true)
+            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
+            option<String>("init_image", "A link to an image you wish to use as start!", required = false)
             option<Int>(
                 "skip_steps",
                 "Use with init_image. Number of steps to skip. More skips means closer to your init image.",

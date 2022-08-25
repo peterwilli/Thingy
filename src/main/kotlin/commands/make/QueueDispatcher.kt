@@ -1,4 +1,9 @@
+import com.j256.ormlite.dao.Dao
+import com.j256.ormlite.dao.DaoManager
 import commands.make.*
+import database.chapterDao
+import database.connectionSource
+import database.models.UserChapter
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
@@ -82,6 +87,7 @@ class QueueDispatcher(private val jda: JDA) {
                     val newImages = mutableListOf<ByteArray>()
                     var completedCount = 0
                     var avgPercentCompleted: Double = 0.0
+
                     for (params in batch) {
                         val retrieveArtResult = if(entry.type == FairQueueType.Upscale) {
                             client.retrieveUpscaleArt(params.artID)
@@ -147,13 +153,22 @@ class QueueDispatcher(private val jda: JDA) {
             entry.progressDelete()
             if (finalImages != null) {
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
-                val (upscaleRow, variateRow) = getEditButtons(client, jda, entry.getMember().user, batch)
+                if(entry.chapter == null) {
+                    val chapter = UserChapter(
+                        userID = entry.progressHook.interaction.user.id,
+                        serverID = entry.progressHook.interaction.guild!!.id,
+                        messageID = entry.progressHook.interaction.id
+                    )
+                    chapterDao.create(chapter)
+                }
+                else {
+                    entry.chapter.messageID = entry.progressHook.interaction.id
+                    chapterDao.update(entry.chapter)
+                }
                 var finishMsg = entry.getChannel()
                     .sendMessage("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*")
                     .addFile(quilt, "${config.bot.name}_final.jpg")
-                if (entry.type != FairQueueType.Upscale) {
-                    finishMsg = finishMsg.setActionRows(upscaleRow, variateRow)
-                }
+
                 finishMsg.queue()
             }
         }

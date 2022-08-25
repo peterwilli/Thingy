@@ -10,21 +10,21 @@ fun upscale(
     imageIndex: Int,
     params: CreateArtParameters
 ) {
-    try {
-        val upscaleParams = params.copy(
-            initImage = "${config.imagesFolder}/${params.artID}/0-done-0.png",
-            artID = "${params.artID}_U"
-        )
-        val entry = FairQueueEntry(
-            "Upscaling #${imageIndex + 1}",
-            FairQueueType.Upscale,
-            buttonInteractionEvent.member!!.id,
-            listOf(upscaleParams),
-            buttonInteractionEvent.hook
-        )
-        buttonInteractionEvent.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
-    } catch (e: Exception) {
-        e.printStackTrace()
-        buttonInteractionEvent.reply_("Error! $e").setEphemeral(true).queue()
-    }
+//    try {
+//        val upscaleParams = params.copy(
+//            initImage = "${config.imagesFolder}/${params.artID}/0-done-0.png",
+//            artID = "${params.artID}_U"
+//        )
+//        val entry = FairQueueEntry(
+//            "Upscaling #${imageIndex + 1}",
+//            FairQueueType.Upscale,
+//            buttonInteractionEvent.member!!.id,
+//            listOf(upscaleParams),
+//            buttonInteractionEvent.hook
+//        )
+//        buttonInteractionEvent.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
+//    } catch (e: Exception) {
+//        e.printStackTrace()
+//        buttonInteractionEvent.reply_("Error! $e").setEphemeral(true).queue()
+//    }
 }

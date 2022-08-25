@@ -1,9 +1,14 @@
+import com.j256.ormlite.dao.Dao
+import com.j256.ormlite.dao.DaoManager
 import commands.make.DiffusionConfig
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
 import commands.make.diffusion_configs.catchRecommendedConfig
 import commands.make.diffusion_configs.diffusionConfigs
 import commands.make.optionsToParams
+import database.chapterDao
+import database.connectionSource
+import database.models.UserChapter
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
@@ -11,17 +16,17 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 
-fun makeCommand(jda: JDA) {
-    jda.onCommand("make") { event ->
+fun discoDiffusionCommand(jda: JDA) {
+    jda.onCommand("disco_diffusion") { event ->
         try {
+            val prompts = event.getOption("prompts")!!.asString
             fun createEntry(overridePreset: DiffusionConfig?, hook: InteractionHook): FairQueueEntry {
                 var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
                     optionsToParams(event, overridePreset, it)
                 }
-                return FairQueueEntry("Generating Image", FairQueueType.Create, event.member!!.id, batch, hook)
+                return FairQueueEntry("Generating Image", FairQueueType.Create, event.member!!.id, batch, hook, null)
             }
 
-            val prompts = event.getOption("prompts")!!.asString
             val catchResult = catchRecommendedConfig(prompts)
             if (event.getOption("preset") == null && catchResult != null) {
                 val (wordCaught, recommendedPreset) = catchResult

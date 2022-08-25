@@ -2,6 +2,7 @@ package commands.make
 
 import commands.make.diffusion_configs.diffusionConfigInstanceToName
 import config
+import database.models.UserChapter
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.interactions.InteractionHook
@@ -18,7 +19,8 @@ data class FairQueueEntry(
     val type: FairQueueType,
     val owner: String,
     val parameters: List<CreateArtParameters>,
-    val progressHook: InteractionHook
+    val progressHook: InteractionHook,
+    val chapter: UserChapter?
 ) {
     fun getHumanReadableOverview(withDescription: String? = null): String {
         val stringBuilder = StringBuilder()
