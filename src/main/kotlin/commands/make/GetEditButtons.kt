@@ -12,7 +12,7 @@ fun getEditButtons(
     client: Client,
     jda: JDA,
     user: User,
-    paramsList: List<CreateArtParameters>
+    paramsList: List<DiscoDiffusionParameters>
 ): Pair<ActionRow, ActionRow> {
     val upscaleButtons = mutableListOf<Button>()
     for ((upscaleNumber, params) in paramsList.withIndex()) {

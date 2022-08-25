@@ -7,7 +7,7 @@ import utils.snakeToLowerCamelCase
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-data class DiffusionConfig(
+data class DiscoDiffusionConfig(
     val baseSize: Int,
     val cutIcPow: String,
     val skipAugs: String,

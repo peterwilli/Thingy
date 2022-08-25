@@ -1,12 +1,12 @@
 package commands.make.diffusion_configs
 
-import commands.make.DiffusionConfig
+import commands.make.DiscoDiffusionConfig
 
-val pixelArtSoft = DiffusionConfig(
+val pixelArtHard = DiscoDiffusionConfig(
     baseSize = 256,
     initScale = 1000,
-    skipAugs = "[True] * 1000",
-    diffusionModel = "pixel_art_diffusion_soft_256",
+    skipAugs = "[False] * 1000",
+    diffusionModel = "pixel_art_diffusion_hard_256",
     steps = 150,
     clipModels = listOf("ViT-B-32::openai", "ViT-B-16::openai", "RN50::openai"),
     clipGuidanceScale = 5000,
@@ -22,10 +22,10 @@ val pixelArtSoft = DiffusionConfig(
     fuzzyPrompt = false,
     rangeScale = 150,
     randomizeClass = false,
-    cutInnercut = "[2]*600+[4]*400",
+    cutInnercut = "[32]*100+[16]*100+[8]*400+[4]*400",
     clipDenoised = false,
     perlinMode = "mixed",
-    cutOverview = "[4]*1000",
+    cutOverview = "[16]*100+[8]*100+[4]*800",
     transformationPercent = listOf(0.09),
     satScale = 0.0,
     useSecondaryModel = true,

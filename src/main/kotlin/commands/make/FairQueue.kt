@@ -1,6 +1,6 @@
 package commands.make
 
-import commands.make.diffusion_configs.diffusionConfigInstanceToName
+import commands.make.diffusion_configs.disco.discoDiffusionConfigInstanceToName
 import config
 import database.models.UserChapter
 import net.dv8tion.jda.api.entities.Member
@@ -11,14 +11,14 @@ import updateMode
 class MemberLimitExceededException(message: String) : Exception(message)
 
 enum class FairQueueType {
-    Create, Variate, Upscale
+    DiscoDiffusion, StableDiffusion, Variate, Upscale
 }
 
 data class FairQueueEntry(
     val description: String,
     val type: FairQueueType,
     val owner: String,
-    val parameters: List<CreateArtParameters>,
+    val parameters: List<DiffusionParameters>,
     val progressHook: InteractionHook,
     val chapter: UserChapter?
 ) {
@@ -32,10 +32,12 @@ data class FairQueueEntry(
             stringBuilder.append(withDescription)
         }
         stringBuilder.append("** | ")
-        stringBuilder.append(
-            "**Preset**: ${diffusionConfigInstanceToName[parameters.first().preset]!!}\n" +
-                    "> *${getHumanReadablePrompts()}*\n"
-        )
+        if (parameters.first().discoDiffusionParameters != null) {
+            stringBuilder.append(
+                "**Preset**: ${discoDiffusionConfigInstanceToName[parameters.first().discoDiffusionParameters!!.preset]!!}\n"
+            )
+        }
+        stringBuilder.append("> *${getHumanReadablePrompts()}*\n")
         return stringBuilder.toString()
     }
 
@@ -60,7 +62,14 @@ data class FairQueueEntry(
     }
 
     fun getHumanReadablePrompts(): String {
-        return parameters.first().prompts.joinToString("|")
+        val firstParams = parameters.first()
+        if(firstParams.discoDiffusionParameters != null) {
+            return firstParams.discoDiffusionParameters.prompts.joinToString("|")
+        }
+        if(firstParams.stableDiffusionParameters != null) {
+            return firstParams.stableDiffusionParameters.prompt
+        }
+        return "Invalid Diffusion type"
     }
 }
 

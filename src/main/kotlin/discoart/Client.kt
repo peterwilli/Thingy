@@ -4,14 +4,12 @@ package discoart
 import alphanumericCharPool
 import com.google.protobuf.*
 import com.google.protobuf.Struct.Builder
-import commands.make.CreateArtParameters
-import commands.make.DiffusionConfig
-import docarray.DocumentArrayProtoKt
+import commands.make.DiffusionParameters
+import commands.make.DiscoDiffusionConfig
 import docarray.documentArrayProto
 import docarray.documentProto
 import io.grpc.ManagedChannel
 import jina.*
-import jina.Jina.DataRequestProto.DataContentProto
 import kotlinx.coroutines.flow.asFlow
 import randomString
 import utils.camelToSnakeCase
@@ -143,7 +141,7 @@ class Client(
         }
     }
 
-    private fun addDiffusionConfig(config: DiffusionConfig, builder: Builder) {
+    private fun addDiscoDiffusionConfig(config: DiscoDiffusionConfig, builder: Builder) {
         // Block our own settings
         val denyList = listOf("baseSize")
         for (p in config::class.memberProperties) {
@@ -172,23 +170,28 @@ class Client(
         }
     }
 
-    private fun addDefaultCreateParameters(params: CreateArtParameters, builder: Builder) {
+    private fun addDefaultStableDiffusionParameters(params: DiffusionParameters, builder: Builder) {
+        val stableParams = params.stableDiffusionParameters!!
+    }
+
+    private fun addDefaultDiscoDiffusionParameters(params: DiffusionParameters, builder: Builder) {
+        val discoParams = params.discoDiffusionParameters!!
         builder.putFields("text_prompts", value {
             listValue = listValue {
-                for (prompt in params.prompts) {
+                for (prompt in discoParams.prompts) {
                     values.add(value {
                         stringValue = prompt
                     })
                 }
             }
         })
-        if (params.initImage != null) {
-            builder.putFields("init_image", value { stringValue = params.initImage!! })
+        if (discoParams.initImage != null) {
+            builder.putFields("init_image", value { stringValue = discoParams.initImage!! })
             builder.putFields("skip_steps", value {
-                numberValue = if (params.skipSteps == 0) {
+                numberValue = if (discoParams.skipSteps == 0) {
                     50
                 } else {
-                    params.skipSteps
+                    discoParams.skipSteps
                 }.toDouble()
             })
         }
@@ -201,17 +204,17 @@ class Client(
         builder.putFields("transformation_percent", value {
             listValue = listValue {
                 this.values.add(value {
-                    numberValue = params.symmetryIntensity
+                    numberValue = discoParams.symmetryIntensity
                 })
             }
         })
-        if (params.verticalSymmetry) {
+        if (discoParams.verticalSymmetry) {
             builder.putFields("use_vertical_symmetry", value { boolValue = true })
         }
-        if (params.horizontalSymmetry) {
+        if (discoParams.horizontalSymmetry) {
             builder.putFields("use_horizontal_symmetry", value { boolValue = true })
         }
-        if (params.verticalSymmetry || params.horizontalSymmetry) {
+        if (discoParams.verticalSymmetry || discoParams.horizontalSymmetry) {
             // There is no symmetry (yet) for PLMS
             builder.putFields("diffusion_sampling_mode", value { stringValue = "ddim" })
         } else {
@@ -220,7 +223,7 @@ class Client(
         }
         builder.putFields("width_height", value {
             listValue = listValue {
-                val (w, h) = params.ratio.calculateSize(params.preset.baseSize)
+                val (w, h) = discoParams.ratio.calculateSize(discoParams.preset.baseSize)
                 values.addAll(listOf(
                     value { numberValue = w.toDouble() },
                     value { numberValue = h.toDouble() }
@@ -229,54 +232,42 @@ class Client(
         })
     }
 
-    suspend fun variateArt(params: CreateArtParameters) {
+    suspend fun variateArt(params: DiffusionParameters) {
+    }
+
+    suspend fun upscaleArt(params: DiffusionParameters) {
+    }
+
+    suspend fun createStableDiffusionArt(params: DiffusionParameters): List<ByteArray> {
         val builder = Struct.newBuilder()
-        addDiffusionConfig(params.preset, builder)
-        addDefaultCreateParameters(params, builder)
-        builder.putFields("init_image", value {
-            stringValue = params.initImage.toString()
-        })
-        builder.putFields("skip_steps", value {
-            numberValue = 50.0
-        })
+        addDefaultStableDiffusionParameters(params, builder)
+
         val dataReq = dataRequestProto {
             parameters = builder.build()
             header = headerProto {
-                execEndpoint = "/create"
+                execEndpoint = "/stable_diffusion/txt2img"
                 requestId = randomString(alphanumericCharPool, 32)
             }
-        }
-        val reqs = listOf(dataReq).asFlow()
-        stub.withCompression("gzip").call(reqs).collect {
-        }
-    }
-
-    suspend fun upscaleArt(params: CreateArtParameters) {
-        val builder = Struct.newBuilder()
-        builder.putFields("n_batches", value { numberValue = 1.0 })
-        val dataReq = dataRequestProto {
             data = DataRequestProtoKt.dataContentProto {
-               this.docs = documentArrayProto {
-                   this.docs.add(documentProto {
-                       this.id = params.artID
-                       this.uri = params.initImage!!
-                   })
-               }
-            }
-            header = headerProto {
-                execEndpoint = "/upscale"
-                requestId = randomString(alphanumericCharPool, 32)
+                this.docs = documentArrayProto {
+                    this.docs.add(documentProto {
+                        text = params.stableDiffusionParameters!!.prompt
+                    })
+                }
             }
         }
         val reqs = listOf(dataReq).asFlow()
+        var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {
+            result = reqToByteArrayList(it)
         }
+        return result!!
     }
 
-    suspend fun createArt(params: CreateArtParameters) {
+    suspend fun createDiscoDiffusionArt(params: DiffusionParameters) {
         val builder = Struct.newBuilder()
-        addDiffusionConfig(params.preset, builder)
-        addDefaultCreateParameters(params, builder)
+        addDiscoDiffusionConfig(params.discoDiffusionParameters!!.preset, builder)
+        addDefaultDiscoDiffusionParameters(params, builder)
 
         val dataReq = dataRequestProto {
             parameters = builder.build()

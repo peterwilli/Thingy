@@ -1,6 +1,8 @@
-package commands.make.diffusion_configs
+package commands.make.diffusion_configs.disco
 
-val diffusionConfigs = mapOf(
+import commands.make.diffusion_configs.*
+
+val discoDiffusionConfigs = mapOf(
     "standardSmall" to (standardSmall to "Standard"),
     "highDetail" to (highDetail to "High detail"),
     "pixelArt4K" to (pixelArt4K to "Pixel art (4K)"),
@@ -9,8 +11,8 @@ val diffusionConfigs = mapOf(
     "diorama" to (diorama to "Diorama effect"),
     "portrait" to (portrait to "Portrait")
 )
-val diffusionConfigInstanceToName = diffusionConfigs.keys.associateBy({
-    diffusionConfigs[it]!!.first
+val discoDiffusionConfigInstanceToName = discoDiffusionConfigs.keys.associateBy({
+    discoDiffusionConfigs[it]!!.first
 }) {
-    diffusionConfigs[it]!!.second
+    discoDiffusionConfigs[it]!!.second
 }

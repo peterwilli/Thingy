@@ -1,7 +1,7 @@
 package commands.make
 
 import alphanumericCharPool
-import commands.make.diffusion_configs.diffusionConfigs
+import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.make.diffusion_configs.standardSmall
 import config
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
@@ -12,13 +12,11 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
 
-data class CreateArtParameters(
-    val artID: String,
-    val seed: Int,
+data class DiscoDiffusionParameters(
     val prompts: List<String>,
     var initImage: String? = null,
     var ratio: Ratio = Ratio(),
-    var preset: DiffusionConfig,
+    var preset: DiscoDiffusionConfig,
     var verticalSymmetry: Boolean,
     var horizontalSymmetry: Boolean,
     var symmetryIntensity: Double,
@@ -48,18 +46,18 @@ fun processPrompts(prompts: String): List<String> {
     }
 }
 
-fun optionsToParams(
+fun optionsToDiscoDiffusionParams(
     event: GenericCommandInteractionEvent,
-    overridePreset: DiffusionConfig?,
+    overridePreset: DiscoDiffusionConfig?,
     imageIndex: Int
-): CreateArtParameters {
+): DiffusionParameters {
     val prompts = event.getOption("prompts")!!.asString
     val preset = overridePreset
         ?: if (event.getOption("preset") == null) {
             standardSmall
         } else {
             val presetStr = event.getOption("preset")!!.asString
-            diffusionConfigs[presetStr]!!.first
+            discoDiffusionConfigs[presetStr]!!.first
         }
 
     val seed = if (event.getOption("seed") == null) {
@@ -99,22 +97,25 @@ fun optionsToParams(
         event.getOption("vertical_symmetry")!!.asBoolean
     }
 
-    val params = CreateArtParameters(
+    val params = DiffusionParameters(
         seed = seed,
         artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
-        prompts = processPrompts(prompts),
-        preset = preset,
-        verticalSymmetry = verticalSymmetry,
-        horizontalSymmetry = horizontalSymmetry,
-        symmetryIntensity = symmetryIntensity,
-        skipSteps = skipSteps
+        discoDiffusionParameters = DiscoDiffusionParameters(
+            prompts = processPrompts(prompts),
+            preset = preset,
+            verticalSymmetry = verticalSymmetry,
+            horizontalSymmetry = horizontalSymmetry,
+            symmetryIntensity = symmetryIntensity,
+            skipSteps = skipSteps
+        ),
+        stableDiffusionParameters = null
     )
 
     val arOption = event.getOption("ar")
     if (arOption != null) {
         try {
             val split = arOption.asString.split(":")
-            params.ratio = Ratio(w = split[0].toInt(), h = split[1].toInt())
+            params.discoDiffusionParameters!!.ratio = Ratio(w = split[0].toInt(), h = split[1].toInt())
         } catch (e: Exception) {
             throw Exception("AR formatting *${arOption.asString}* in prompt *${prompts}* is invalid! Example: 16:9")
         }
@@ -124,7 +125,7 @@ fun optionsToParams(
     if (initImageOption != null) {
         try {
             val imageURL = URL(initImageOption.asString)
-            params.initImage = imageURL.toString()
+            params.discoDiffusionParameters!!.initImage = imageURL.toString()
         } catch (e: Exception) {
             throw Exception("Image URL is invalid! Make sure init_image is set to a valid link!")
         }

@@ -14,9 +14,14 @@ data class Bot(
     val token: String
 )
 
-data class Timeouts(
+data class Timeout(
     val imageNotAppearing: Int,
     val imageNotUpdating: Int
+)
+
+data class Timeouts(
+    val discoDiffusion: Timeout,
+    val stableDiffusion: Timeout
 )
 
 data class Config(
@@ -25,5 +30,5 @@ data class Config(
     val hostConstraints: HostConstraints,
     val grpcServer: GRPCServer,
     val imagesFolder: String,
-    val timeouts: Timeouts
+    val timeouts: Timeouts,
 )

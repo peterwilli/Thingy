@@ -1,6 +1,6 @@
 import com.sksamuel.hoplite.ConfigLoader
 import commands.cancel.cancelCommand
-import commands.make.diffusion_configs.diffusionConfigs
+import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.update.updateCommand
 import database.initDatabase
 import dev.minn.jda.ktx.interactions.commands.choice
@@ -48,6 +48,7 @@ suspend fun main(args: Array<String>) {
 
 fun initCommands(jda: JDA) {
     discoDiffusionCommand(jda)
+    stableDiffusionCommand(jda)
 
     jda.updateCommands {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
@@ -75,8 +76,8 @@ fun initCommands(jda: JDA) {
                 "A custom configuration pack (any other parameters will override the preset!)",
                 required = false
             ) {
-                for (k in diffusionConfigs.keys) {
-                    choice(diffusionConfigs[k]!!.second, k)
+                for (k in discoDiffusionConfigs.keys) {
+                    choice(discoDiffusionConfigs[k]!!.second, k)
                 }
             }
             option<Boolean>("horizontal_symmetry", "Make the image horizontally symmetric!", required = false)

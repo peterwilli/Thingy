@@ -1,12 +1,10 @@
-import com.j256.ormlite.dao.Dao
-import com.j256.ormlite.dao.DaoManager
 import commands.make.*
 import database.chapterDao
-import database.connectionSource
 import database.models.UserChapter
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
+import discoart.RetrieveArtResult
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusException
@@ -15,6 +13,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import kotlin.math.max
 
 class QueueDispatcher(private val jda: JDA) {
     val queue = FairQueue(config.maxEntriesPerOwner)
@@ -49,10 +48,11 @@ class QueueDispatcher(private val jda: JDA) {
     }
 
     private suspend fun dispatch(entry: FairQueueEntry) {
-        var inProgress: MutableList<CreateArtParameters> = mutableListOf()
+        var inProgress: MutableList<Any> = mutableListOf()
         val prompts = entry.getHumanReadablePrompts()
         entry.progressUpdate(entry.getHumanReadableOverview())
         val batch = entry.parameters
+        val mockRetrieveArtMap: MutableMap<String, ByteArray> = mutableMapOf()
         var cancelled = false
         coroutineScope {
             var finalImages: List<ByteArray>? = null
@@ -62,8 +62,12 @@ class QueueDispatcher(private val jda: JDA) {
                         break
                     }
                     when (entry.type) {
-                        FairQueueType.Create -> {
-                            client.createArt(params)
+                        FairQueueType.DiscoDiffusion -> {
+                            client.createDiscoDiffusionArt(params)
+                        }
+                        FairQueueType.StableDiffusion -> {
+                            val art = client.createStableDiffusionArt(params)
+                            mockRetrieveArtMap.put(params.artID, art.first())
                         }
                         FairQueueType.Variate -> {
                             client.variateArt(params)
@@ -93,7 +97,26 @@ class QueueDispatcher(private val jda: JDA) {
                             client.retrieveUpscaleArt(params.artID)
                         }
                         else {
-                            client.retrieveArt(params.artID)
+                            if(params.stableDiffusionParameters != null) {
+                                val art = mockRetrieveArtMap[params.artID]
+                                val result = RetrieveArtResult(
+                                    statusPercent = if(art == null) {
+                                        0.0
+                                    } else {
+                                        1.0
+                                    },
+                                    images = if(art == null) {
+                                        listOf()
+                                    } else {
+                                        listOf(art)
+                                    },
+                                    completed = art != null
+                                )
+                                result
+                            }
+                            else {
+                                client.retrieveArt(params.artID)
+                            }
                         }
                         if (retrieveArtResult.completed) {
                             completedCount++
@@ -113,10 +136,22 @@ class QueueDispatcher(private val jda: JDA) {
                     }
                     if (newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
                         ticksWithoutUpdate++
+                        var imageNotAppearing = 0
+                        var imageNotUpdating = 0
+                        for(params in batch) {
+                            val timeout = if(params.stableDiffusionParameters != null) {
+                                config.timeouts.stableDiffusion
+                            }
+                            else {
+                                config.timeouts.discoDiffusion
+                            }
+                            imageNotAppearing = max(timeout.imageNotAppearing, imageNotAppearing)
+                            imageNotUpdating = max(timeout.imageNotUpdating, imageNotUpdating)
+                        }
                         val updateThresHold = if (newImages.isEmpty()) {
-                            config.timeouts.imageNotAppearing
+                            imageNotAppearing
                         } else {
-                            config.timeouts.imageNotUpdating
+                            imageNotUpdating
                         }
                         if (ticksWithoutUpdate > updateThresHold) {
                             inProgress.clear()

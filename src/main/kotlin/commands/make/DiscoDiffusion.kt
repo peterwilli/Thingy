@@ -1,14 +1,9 @@
-import com.j256.ormlite.dao.Dao
-import com.j256.ormlite.dao.DaoManager
-import commands.make.DiffusionConfig
+import commands.make.DiscoDiffusionConfig
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
 import commands.make.diffusion_configs.catchRecommendedConfig
-import commands.make.diffusion_configs.diffusionConfigs
-import commands.make.optionsToParams
-import database.chapterDao
-import database.connectionSource
-import database.models.UserChapter
+import commands.make.diffusion_configs.disco.discoDiffusionConfigs
+import commands.make.optionsToDiscoDiffusionParams
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
@@ -20,18 +15,18 @@ fun discoDiffusionCommand(jda: JDA) {
     jda.onCommand("disco_diffusion") { event ->
         try {
             val prompts = event.getOption("prompts")!!.asString
-            fun createEntry(overridePreset: DiffusionConfig?, hook: InteractionHook): FairQueueEntry {
+            fun createEntry(overridePreset: DiscoDiffusionConfig?, hook: InteractionHook): FairQueueEntry {
                 var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
-                    optionsToParams(event, overridePreset, it)
+                    optionsToDiscoDiffusionParams(event, overridePreset, it)
                 }
-                return FairQueueEntry("Generating Image", FairQueueType.Create, event.member!!.id, batch, hook, null)
+                return FairQueueEntry("Generating Image", FairQueueType.DiscoDiffusion, event.member!!.id, batch, hook, null)
             }
 
             val catchResult = catchRecommendedConfig(prompts)
             if (event.getOption("preset") == null && catchResult != null) {
                 val (wordCaught, recommendedPreset) = catchResult
-                val newPreset = diffusionConfigs[recommendedPreset]!!.first
-                val presetDesc = diffusionConfigs[recommendedPreset]!!.second
+                val newPreset = discoDiffusionConfigs[recommendedPreset]!!.first
+                val presetDesc = discoDiffusionConfigs[recommendedPreset]!!.second
                 val usePresetButton = jda.button(
                     label = "Use $presetDesc",
                     style = ButtonStyle.PRIMARY,

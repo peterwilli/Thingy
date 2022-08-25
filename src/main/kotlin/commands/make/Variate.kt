@@ -1,16 +1,11 @@
 package commands.make
 
-import config
-import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import queueDispatcher
-import kotlin.math.pow
-import kotlin.random.Random
 
 fun variate(
     buttonInteractionEvent: ButtonInteractionEvent,
     imageIndex: Int,
-    params: CreateArtParameters
+    params: DiscoDiffusionParameters
 ) {
 //    try {
 //        var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
