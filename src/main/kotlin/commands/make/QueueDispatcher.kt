@@ -64,19 +64,21 @@ class QueueDispatcher(private val jda: JDA) {
                     when (entry.type) {
                         FairQueueType.DiscoDiffusion -> {
                             client.createDiscoDiffusionArt(params)
+                            inProgress.add(params)
                         }
                         FairQueueType.StableDiffusion -> {
                             val art = client.createStableDiffusionArt(params)
-                            mockRetrieveArtMap.put(params.artID, art.first())
+                            mockRetrieveArtMap[params.artID] = art.first()
                         }
                         FairQueueType.Variate -> {
                             client.variateArt(params)
+                            inProgress.add(params)
                         }
                         FairQueueType.Upscale -> {
                             client.upscaleArt(params)
+                            inProgress.add(params)
                         }
                     }
-                    inProgress.add(params)
                     while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
                         delay(1000)
                     }
