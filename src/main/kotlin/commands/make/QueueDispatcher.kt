@@ -1,9 +1,13 @@
+import com.j256.ormlite.misc.TransactionManager
 import commands.make.FairQueue
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
 import commands.make.makeQuiltFromByteArrayList
 import database.chapterDao
+import database.connectionSource
+import database.models.User
 import database.models.UserChapter
+import database.userDao
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
@@ -16,6 +20,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import java.util.concurrent.Callable
 import kotlin.math.max
 
 class QueueDispatcher(private val jda: JDA) {
@@ -196,22 +201,38 @@ class QueueDispatcher(private val jda: JDA) {
             entry.progressDelete()
             if (finalImages != null) {
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
-                if (entry.chapter == null) {
-                    val chapter = UserChapter(
-                        userID = entry.progressHook.interaction.user.id,
-                        serverID = entry.progressHook.interaction.guild!!.id,
-                        messageID = entry.progressHook.interaction.id
-                    )
-                    chapterDao.create(chapter)
-                } else {
-                    entry.chapter.messageID = entry.progressHook.interaction.id
-                    chapterDao.update(entry.chapter)
-                }
                 var finishMsg = entry.getChannel()
                     .sendMessage("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*")
                     .addFile(quilt, "${config.bot.name}_final.jpg")
 
-                finishMsg.queue()
+                finishMsg.queue {
+                    if (entry.chapter == null) {
+                        val userQuery = userDao.queryBuilder().where().eq("discordUserID", it.author.id)
+                        val user = if(userQuery.countOf() == 0L) {
+                            val newUser = User(it.author)
+                            userDao.create(newUser)
+                            userQuery.query().first()!!
+                        } else {
+                            userQuery.query().first()!!
+                        }
+                        TransactionManager.callInTransaction(connectionSource) {
+                            val userScopedID = chapterDao.queryBuilder().where().eq("userID", it.author.id).countOf()
+                            user.generationsDone = user.generationsDone!! + 1
+                            user.currentChapterId = userScopedID
+                            val chapter = UserChapter(
+                                userID = user.id,
+                                serverID = it.guild!!.id,
+                                messageID = it.id,
+                                userScopedID = userScopedID
+                            )
+                            userDao.update(user)
+                            chapterDao.create(chapter)
+                        }
+                    } else {
+                        entry.chapter.messageID = it.id
+                        chapterDao.update(entry.chapter)
+                    }
+                }
             }
         }
     }

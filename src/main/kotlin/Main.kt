@@ -1,5 +1,6 @@
 import com.sksamuel.hoplite.ConfigLoader
 import commands.cancel.cancelCommand
+import commands.chapters.listChaptersCommand
 import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.update.updateCommand
 import database.initDatabase
@@ -43,6 +44,7 @@ suspend fun main(args: Array<String>) {
         initCommands(jda)
         cancelCommand(jda)
         updateCommand(jda)
+        listChaptersCommand(jda)
     }
 }
 
@@ -101,5 +103,9 @@ fun initCommands(jda: JDA) {
             option<Boolean>("on", "Turn update mode on or off", required = true)
         }
         slash("cancel", "Cancel latest item (by you) in the queue")
+
+        slash("chapters", "Show your previous work!") {
+            option<Boolean>("all", "Whether or not to show all your work or from this server", required = false)
+        }
     }.queue()
 }

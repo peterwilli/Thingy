@@ -2,8 +2,9 @@ package database.models
 
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
+import database.chapterDao
+import database.userDao
 import org.jetbrains.annotations.NotNull
-
 
 @DatabaseTable(tableName = "user_chapter")
 class UserChapter {
@@ -11,11 +12,12 @@ class UserChapter {
     var id: Long = 0
 
     @NotNull
-    var userScopedID: Long = 0
+    @DatabaseField()
+    var userScopedID: Long? = null
 
     @NotNull
     @DatabaseField(index = true)
-    var userID: String? = null
+    var userID: Long? = null
 
     @NotNull
     @DatabaseField(index = true)
@@ -28,9 +30,10 @@ class UserChapter {
     constructor() {
     }
 
-    constructor(userID: String, serverID: String, messageID: String?) {
+    constructor(userID: Long, serverID: String, messageID: String, userScopedID: Long) {
         this.userID = userID
         this.serverID = serverID
         this.messageID = messageID
+        this.userScopedID = userScopedID
     }
 }
