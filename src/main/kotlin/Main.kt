@@ -63,7 +63,11 @@ fun initCommands(jda: JDA) {
         }
 
         slash("disco_diffusion", "Making things with Disco Diffusion!") {
-            option<String>("prompts", "prompts to make (weighted prompts can be separated by |, i.e 'Landscape:100|JPEG artifacts:-50')", required = true)
+            option<String>(
+                "prompts",
+                "prompts to make (weighted prompts can be separated by |, i.e 'Landscape:100|JPEG artifacts:-50')",
+                required = true
+            )
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             option<String>("init_image", "A link to an image you wish to use as start!", required = false)
             option<Int>(

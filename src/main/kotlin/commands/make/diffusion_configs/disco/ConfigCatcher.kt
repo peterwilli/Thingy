@@ -8,8 +8,8 @@ private val wordsToConfig = mapOf(
 fun catchRecommendedConfig(prompts: String): Pair<String, String>? {
     val lowerCasePrompts = prompts.lowercase()
     for ((words, configName) in wordsToConfig) {
-        for(word in words) {
-            if(lowerCasePrompts.contains(word)) {
+        for (word in words) {
+            if (lowerCasePrompts.contains(word)) {
                 return word to configName
             }
         }

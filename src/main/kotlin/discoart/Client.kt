@@ -120,21 +120,25 @@ class Client(
                     numberValue = value.toDouble()
                 }
             }
+
             is Double -> {
                 value {
                     numberValue = value.toDouble()
                 }
             }
+
             is Boolean -> {
                 value {
                     boolValue = value
                 }
             }
+
             is String -> {
                 value {
                     stringValue = value
                 }
             }
+
             else -> {
                 return null
             }

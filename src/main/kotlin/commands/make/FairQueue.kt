@@ -27,8 +27,7 @@ data class FairQueueEntry(
         stringBuilder.append("**")
         if (withDescription == null) {
             stringBuilder.append(description)
-        }
-        else {
+        } else {
             stringBuilder.append(withDescription)
         }
         stringBuilder.append("** | ")
@@ -63,10 +62,10 @@ data class FairQueueEntry(
 
     fun getHumanReadablePrompts(): String {
         val firstParams = parameters.first()
-        if(firstParams.discoDiffusionParameters != null) {
+        if (firstParams.discoDiffusionParameters != null) {
             return firstParams.discoDiffusionParameters.prompts.joinToString("|")
         }
-        if(firstParams.stableDiffusionParameters != null) {
+        if (firstParams.stableDiffusionParameters != null) {
             return firstParams.stableDiffusionParameters.prompt
         }
         return "Invalid Diffusion type"

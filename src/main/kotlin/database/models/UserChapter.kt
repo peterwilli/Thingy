@@ -2,7 +2,6 @@ package database.models
 
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
-import database.chapterDao
 import org.jetbrains.annotations.NotNull
 
 

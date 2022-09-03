@@ -25,8 +25,7 @@ fun optionsToStableDiffusionParams(
     } else {
         try {
             event.getOption("seed")!!.asInt + imageIndex
-        }
-        catch(e: Exception) {
+        } catch (e: Exception) {
             println("Warning, seed '${event.getOption("seed")!!.asString}' invalid! Using $imageIndex instead...")
             e.printStackTrace()
             imageIndex

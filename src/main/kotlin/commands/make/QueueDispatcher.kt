@@ -1,4 +1,7 @@
-import commands.make.*
+import commands.make.FairQueue
+import commands.make.FairQueueEntry
+import commands.make.FairQueueType
+import commands.make.makeQuiltFromByteArrayList
 import database.chapterDao
 import database.models.UserChapter
 import dev.minn.jda.ktx.interactions.components.button
@@ -36,11 +39,16 @@ class QueueDispatcher(private val jda: JDA) {
                         .sendMessage("${entry.getMember().asMention} Connection to the DiscoArt server has failed, it's likely that the bot is offline, we're sorry, please try again later!")
                         .queue()
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    entry.progressDelete()
-                    entry.getChannel()
-                        .sendMessage("${entry.getMember().asMention} There's an error in the queue dispatcher: $e")
-                        .queue()
+                    try {
+                        e.printStackTrace()
+                        entry.progressDelete()
+                        entry.getChannel()
+                            .sendMessage("${entry.getMember().asMention} There's an error in the queue dispatcher: $e")
+                            .queue()
+                    } catch (e: Exception) {
+                        println("Error here means the bot most likely tries to post in a message it doesn't have access to!")
+                        e.printStackTrace()
+                    }
                 }
             }
             delay(1000)
@@ -64,21 +72,22 @@ class QueueDispatcher(private val jda: JDA) {
                     when (entry.type) {
                         FairQueueType.DiscoDiffusion -> {
                             client.createDiscoDiffusionArt(params)
-                            inProgress.add(params)
                         }
+
                         FairQueueType.StableDiffusion -> {
                             val art = client.createStableDiffusionArt(params)
                             mockRetrieveArtMap[params.artID] = art.first()
                         }
+
                         FairQueueType.Variate -> {
                             client.variateArt(params)
-                            inProgress.add(params)
                         }
+
                         FairQueueType.Upscale -> {
                             client.upscaleArt(params)
-                            inProgress.add(params)
                         }
                     }
+                    inProgress.add(params)
                     while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
                         delay(1000)
                     }
@@ -95,19 +104,18 @@ class QueueDispatcher(private val jda: JDA) {
                     var avgPercentCompleted: Double = 0.0
 
                     for (params in batch) {
-                        val retrieveArtResult = if(entry.type == FairQueueType.Upscale) {
+                        val retrieveArtResult = if (entry.type == FairQueueType.Upscale) {
                             client.retrieveUpscaleArt(params.artID)
-                        }
-                        else {
-                            if(params.stableDiffusionParameters != null) {
+                        } else {
+                            if (params.stableDiffusionParameters != null) {
                                 val art = mockRetrieveArtMap[params.artID]
                                 val result = RetrieveArtResult(
-                                    statusPercent = if(art == null) {
+                                    statusPercent = if (art == null) {
                                         0.0
                                     } else {
                                         1.0
                                     },
-                                    images = if(art == null) {
+                                    images = if (art == null) {
                                         listOf()
                                     } else {
                                         listOf(art)
@@ -115,8 +123,7 @@ class QueueDispatcher(private val jda: JDA) {
                                     completed = art != null
                                 )
                                 result
-                            }
-                            else {
+                            } else {
                                 client.retrieveArt(params.artID)
                             }
                         }
@@ -140,11 +147,10 @@ class QueueDispatcher(private val jda: JDA) {
                         ticksWithoutUpdate++
                         var imageNotAppearing = 0
                         var imageNotUpdating = 0
-                        for(params in batch) {
-                            val timeout = if(params.stableDiffusionParameters != null) {
+                        for (params in batch) {
+                            val timeout = if (params.stableDiffusionParameters != null) {
                                 config.timeouts.stableDiffusion
-                            }
-                            else {
+                            } else {
                                 config.timeouts.discoDiffusion
                             }
                             imageNotAppearing = max(timeout.imageNotAppearing, imageNotAppearing)
@@ -190,15 +196,14 @@ class QueueDispatcher(private val jda: JDA) {
             entry.progressDelete()
             if (finalImages != null) {
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
-                if(entry.chapter == null) {
+                if (entry.chapter == null) {
                     val chapter = UserChapter(
                         userID = entry.progressHook.interaction.user.id,
                         serverID = entry.progressHook.interaction.guild!!.id,
                         messageID = entry.progressHook.interaction.id
                     )
                     chapterDao.create(chapter)
-                }
-                else {
+                } else {
                     entry.chapter.messageID = entry.progressHook.interaction.id
                     chapterDao.update(entry.chapter)
                 }

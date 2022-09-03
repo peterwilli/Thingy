@@ -1,9 +1,6 @@
-import commands.make.DiscoDiffusionConfig
-import commands.make.FairQueueEntry
-import commands.make.FairQueueType
+import commands.make.*
 import commands.make.diffusion_configs.catchRecommendedConfig
 import commands.make.diffusion_configs.disco.discoDiffusionConfigs
-import commands.make.optionsToDiscoDiffusionParams
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
@@ -14,12 +11,22 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 fun discoDiffusionCommand(jda: JDA) {
     jda.onCommand("disco_diffusion") { event ->
         try {
+            if (!validatePermissions(event)) {
+                return@onCommand
+            }
             val prompts = event.getOption("prompts")!!.asString
             fun createEntry(overridePreset: DiscoDiffusionConfig?, hook: InteractionHook): FairQueueEntry {
                 var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
                     optionsToDiscoDiffusionParams(event, overridePreset, it)
                 }
-                return FairQueueEntry("Generating Image", FairQueueType.DiscoDiffusion, event.member!!.id, batch, hook, null)
+                return FairQueueEntry(
+                    "Generating Image",
+                    FairQueueType.DiscoDiffusion,
+                    event.member!!.id,
+                    batch,
+                    hook,
+                    null
+                )
             }
 
             val catchResult = catchRecommendedConfig(prompts)
