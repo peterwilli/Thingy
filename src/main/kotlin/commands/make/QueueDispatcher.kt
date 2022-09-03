@@ -1,4 +1,5 @@
 import com.j256.ormlite.misc.TransactionManager
+import com.j256.ormlite.stmt.UpdateBuilder
 import commands.make.FairQueue
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
@@ -20,8 +21,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import java.util.concurrent.Callable
+import net.dv8tion.jda.api.utils.FileUpload
 import kotlin.math.max
+
 
 class QueueDispatcher(private val jda: JDA) {
     val queue = FairQueue(config.maxEntriesPerOwner)
@@ -203,34 +205,38 @@ class QueueDispatcher(private val jda: JDA) {
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
                 var finishMsg = entry.getChannel()
                     .sendMessage("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*")
-                    .addFile(quilt, "${config.bot.name}_final.jpg")
+                    .setFiles(FileUpload.fromData(quilt, "${config.bot.name}_final.jpg"))
 
-                finishMsg.queue {
+                finishMsg.queue { finishMsg ->
                     if (entry.chapter == null) {
-                        val userQuery = userDao.queryBuilder().where().eq("discordUserID", it.author.id)
+                        val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)
                         val user = if(userQuery.countOf() == 0L) {
-                            val newUser = User(it.author)
+                            val newUser = User(entry.owner)
                             userDao.create(newUser)
                             userQuery.query().first()!!
                         } else {
                             userQuery.query().first()!!
                         }
                         TransactionManager.callInTransaction(connectionSource) {
-                            val userScopedID = chapterDao.queryBuilder().where().eq("userID", it.author.id).countOf()
+                            val userScopedID = chapterDao.queryBuilder().where().eq("userID", finishMsg.author.id).countOf()
                             user.generationsDone = user.generationsDone!! + 1
                             user.currentChapterId = userScopedID
                             val chapter = UserChapter(
                                 userID = user.id,
-                                serverID = it.guild!!.id,
-                                messageID = it.id,
-                                userScopedID = userScopedID
+                                serverID = finishMsg.guild!!.id,
+                                channelID = finishMsg.channel.id,
+                                messageID = finishMsg.id,
+                                userScopedID = userScopedID,
+                                parameters = gson.toJson(entry.parameters)
                             )
                             userDao.update(user)
                             chapterDao.create(chapter)
                         }
                     } else {
-                        entry.chapter.messageID = it.id
-                        chapterDao.update(entry.chapter)
+                        val updateBuilder = chapterDao.updateBuilder()
+                        updateBuilder.where().eq("id", entry.chapter.id)
+                        updateBuilder.updateColumnValue("messageID", finishMsg.id)
+                        updateBuilder.update()
                     }
                 }
             }

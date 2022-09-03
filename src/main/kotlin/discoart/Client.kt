@@ -12,6 +12,7 @@ import io.grpc.ManagedChannel
 import jina.*
 import kotlinx.coroutines.flow.asFlow
 import randomString
+import utils.bufferedImageToDataURI
 import utils.camelToSnakeCase
 import java.io.Closeable
 import java.util.*
@@ -246,20 +247,40 @@ class Client(
         val builder = Struct.newBuilder()
         addDefaultStableDiffusionParameters(params, builder)
 
-        val dataReq = dataRequestProto {
-            parameters = builder.build()
-            header = headerProto {
-                execEndpoint = "/stable_diffusion/txt2img"
-                requestId = randomString(alphanumericCharPool, 32)
-            }
-            data = DataRequestProtoKt.dataContentProto {
-                this.docs = documentArrayProto {
-                    this.docs.add(documentProto {
-                        text = params.stableDiffusionParameters!!.prompt
-                    })
+        val dataReq = if (params.stableDiffusionParameters!!.initImage == null) {
+             dataRequestProto {
+                parameters = builder.build()
+                header = headerProto {
+                    execEndpoint = "/stable_diffusion/txt2img"
+                    requestId = randomString(alphanumericCharPool, 32)
+                }
+                data = DataRequestProtoKt.dataContentProto {
+                    this.docs = documentArrayProto {
+                        this.docs.add(documentProto {
+                            text = params.stableDiffusionParameters!!.prompt
+                        })
+                    }
                 }
             }
         }
+        else {
+            dataRequestProto {
+                parameters = builder.build()
+                header = headerProto {
+                    execEndpoint = "/stable_diffusion/img2img"
+                    requestId = randomString(alphanumericCharPool, 32)
+                }
+                data = DataRequestProtoKt.dataContentProto {
+                    this.docs = documentArrayProto {
+                        this.docs.add(documentProto {
+                            text = params.stableDiffusionParameters!!.prompt
+                            uri = params.stableDiffusionParameters!!.initImage!!.toString()
+                        })
+                    }
+                }
+            }
+        }
+
         val reqs = listOf(dataReq).asFlow()
         var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {

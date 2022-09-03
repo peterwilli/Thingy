@@ -9,7 +9,7 @@ fun validatePermissions(event: GenericCommandInteractionEvent): Boolean {
     val permsToCheck = listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)
     val permsMissing = mutableListOf<Permission>()
     for (perm in permsToCheck) {
-        if (!PermissionUtil.checkPermission(event.textChannel, event.guild!!.selfMember, perm)) {
+        if (!event.guild!!.selfMember.hasPermission(event.guildChannel, perm)) {
             permsMissing.add(perm)
         }
     }

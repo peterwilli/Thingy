@@ -4,13 +4,17 @@ import alphanumericCharPool
 import config
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import randomString
+import utils.bufferedImageToDataURI
+import java.awt.image.BufferedImage
+import java.net.URI
 import java.net.URL
+import javax.imageio.ImageIO
 import kotlin.math.pow
 import kotlin.random.Random
 
 data class StableDiffusionParameters(
     val prompt: String,
-    var initImage: String? = null,
+    var initImage: URI? = null,
     var ratio: Ratio = Ratio()
 )
 
@@ -55,7 +59,7 @@ fun optionsToStableDiffusionParams(
     if (initImageOption != null) {
         try {
             val imageURL = URL(initImageOption.asString)
-            params.stableDiffusionParameters!!.initImage = imageURL.toString()
+            params.stableDiffusionParameters!!.initImage = bufferedImageToDataURI(ImageIO.read(imageURL))
         } catch (e: Exception) {
             throw Exception("Image URL is invalid! Make sure init_image is set to a valid link!")
         }

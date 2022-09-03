@@ -25,7 +25,7 @@ class User {
     constructor() {
     }
 
-    constructor(user: User) {
-        this.discordUserID = user.id
+    constructor(user: String) {
+        this.discordUserID = user
     }
 }

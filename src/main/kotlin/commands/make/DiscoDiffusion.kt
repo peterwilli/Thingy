@@ -41,7 +41,7 @@ fun discoDiffusionCommand(jda: JDA) {
                 ) {
                     try {
                         val entry = createEntry(newPreset, it.hook)
-                        it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
+                        it.message.editMessage(it.message.contentRaw).setActionRow(listOf()).queue()
                         it.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -55,7 +55,7 @@ fun discoDiffusionCommand(jda: JDA) {
                 ) {
                     try {
                         val entry = createEntry(null, it.hook)
-                        it.message.editMessage(it.message.contentRaw).setActionRows(listOf()).queue()
+                        it.message.editMessage(it.message.contentRaw).setActionRow(listOf()).queue()
                         it.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
                     } catch (e: Exception) {
                         e.printStackTrace()

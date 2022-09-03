@@ -23,6 +23,15 @@ class UserChapter {
     @DatabaseField(index = true)
     var serverID: String? = null
 
+    @NotNull
+    @DatabaseField()
+    var channelID: String? = null
+
+    @NotNull
+    @DatabaseField()
+    var parameters: String? = null
+
+    @NotNull
     @DatabaseField()
     var messageID: String? = null
 
@@ -30,10 +39,12 @@ class UserChapter {
     constructor() {
     }
 
-    constructor(userID: Long, serverID: String, messageID: String, userScopedID: Long) {
+    constructor(userID: Long, serverID: String, channelID: String, messageID: String, userScopedID: Long, parameters: String) {
         this.userID = userID
         this.serverID = serverID
+        this.channelID = channelID
         this.messageID = messageID
         this.userScopedID = userScopedID
+        this.parameters = parameters
     }
 }

@@ -6,6 +6,7 @@ import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.paginator
 import dev.minn.jda.ktx.interactions.components.replyPaginator
 import dev.minn.jda.ktx.messages.reply_
+import miniManual
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.emoji.Emoji
@@ -17,7 +18,6 @@ import kotlin.time.Duration.Companion.minutes
 fun listChaptersCommand(jda: JDA) {
     jda.onCommand("chapters") { event ->
         try {
-            val miniManual = "Start by making one using `/make`, `/disco_diffusion`, or `/stable_diffusion`"
             val user = userDao.queryBuilder().selectColumns("id").where().eq("discordUserID", event.user.id).queryForFirst()
             if (user == null) {
                 event.reply_("User not found! Did you make art yet? $miniManual")
@@ -26,7 +26,7 @@ fun listChaptersCommand(jda: JDA) {
             }
             val possibleChapters =
                 chapterDao.queryBuilder().selectColumns().where().eq("serverID", event.guild!!.id)
-                    .and().eq("userID", event.user.id).query()
+                    .and().eq("userID", user.id).query()
             if (possibleChapters.isEmpty()) {
                 event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                     .setEphemeral(true).queue()

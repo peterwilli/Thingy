@@ -4,8 +4,10 @@ import commands.make.diffusion_configs.disco.discoDiffusionConfigInstanceToName
 import config
 import database.models.UserChapter
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.utils.FileUpload
 import updateMode
 
 class MemberLimitExceededException(message: String) : Exception(message)
@@ -45,15 +47,15 @@ data class FairQueueEntry(
     }
 
     fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String) {
-        progressHook.editOriginal(message).retainFiles(listOf()).addFile(fileBytes, fileName).queue()
+        progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).queue()
     }
 
     fun progressDelete() {
         progressHook.deleteOriginal().queue()
     }
 
-    fun getChannel(): TextChannel {
-        return progressHook.interaction.textChannel
+    fun getChannel(): MessageChannel {
+        return progressHook.interaction.messageChannel
     }
 
     fun getMember(): Member {

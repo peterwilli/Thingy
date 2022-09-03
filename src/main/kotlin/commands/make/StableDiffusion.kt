@@ -13,6 +13,7 @@ fun stableDiffusionCommand(jda: JDA) {
             if (!validatePermissions(event)) {
                 return@onCommand
             }
+
             fun createEntry(hook: InteractionHook): FairQueueEntry {
                 var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
                     optionsToStableDiffusionParams(event, it)
@@ -26,7 +27,6 @@ fun stableDiffusionCommand(jda: JDA) {
                     null
                 )
             }
-
             val entry = createEntry(event.hook)
             event.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
         } catch (e: Exception) {

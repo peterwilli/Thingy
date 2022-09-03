@@ -17,8 +17,8 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.github.minndevelopment:jda-ktx:d5c5d9d2da")
-    implementation("net.dv8tion:JDA:5.0.0-alpha.13")
+    implementation("com.github.minndevelopment:jda-ktx:081a177281")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.18")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
     implementation("io.grpc:grpc-protobuf:1.47.0")
     implementation("ch.qos.logback:logback-classic:1.2.11")
@@ -31,6 +31,7 @@ dependencies {
     implementation("com.j256.ormlite:ormlite-core:6.1")
     implementation("com.j256.ormlite:ormlite-jdbc:6.1")
     implementation("org.xerial:sqlite-jdbc:3.39.2.1")
+    implementation("com.google.code.gson:gson:2.9.1")
     implementation(kotlin("reflect"))
 }
 
