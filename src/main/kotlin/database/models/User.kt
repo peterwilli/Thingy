@@ -16,10 +16,10 @@ class User {
 
     @NotNull
     @DatabaseField(defaultValue = "0")
-    var generationsDone: Long? = null
+    var generationsDone: Long = 0
 
     @DatabaseField()
-    var currentChapterId: Long? = null
+    var currentChapterId: Long = 0
 
     // ORMLite needs a no-arg constructor
     constructor() {

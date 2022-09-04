@@ -1,9 +1,11 @@
 package commands.chapters
 
 import commands.make.DiffusionParameters
+import commands.make.upscale
 import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
+import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.paginator
 import dev.minn.jda.ktx.interactions.components.replyPaginator
 import dev.minn.jda.ktx.messages.reply_
@@ -13,7 +15,10 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import replyPaginator
 import utils.ImageSliderEntry
+import utils.peterDate
 import utils.sendImageSlider
 import utils.sendPagination
 import java.net.URL
@@ -23,14 +28,16 @@ import kotlin.time.Duration.Companion.minutes
 fun listChaptersCommand(jda: JDA) {
     jda.onCommand("chapters") { event ->
         try {
-            val user = userDao.queryBuilder().selectColumns("id").where().eq("discordUserID", event.user.id).queryForFirst()
+            val user =
+                userDao.queryBuilder().selectColumns("id").where().eq("discordUserID", event.user.id).queryForFirst()
             if (user == null) {
                 event.reply_("User not found! Did you make art yet? $miniManual")
                     .setEphemeral(true).queue()
                 return@onCommand
             }
             val possibleChapters =
-                chapterDao.queryBuilder().orderBy("creationTimestamp", false).selectColumns().where().eq("userID", user.id).query()
+                chapterDao.queryBuilder().orderBy("creationTimestamp", false).selectColumns().where()
+                    .eq("userID", user.id).query()
             if (possibleChapters.isEmpty()) {
                 event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                     .setEphemeral(true).queue()
@@ -44,7 +51,23 @@ fun listChaptersCommand(jda: JDA) {
                     image = URL(latestEntry.imageURL)
                 )
             }
-            sendImageSlider(event, "My Chapters", chapterEntries).setEphemeral(true).queue()
+            val slider = sendImageSlider(event, "My Chapters", chapterEntries)
+            slider.customActionComponents = listOf(jda.button(
+                label = "Select",
+                style = ButtonStyle.PRIMARY,
+                user = event.user
+            ) {
+                val chapter = possibleChapters[slider.getIndex()]
+                val parameters = gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+
+                val updateBuilder = userDao.updateBuilder()
+                updateBuilder.where().eq("id", chapter.userID)
+                updateBuilder.updateColumnValue("currentChapterId", chapter.userScopedID)
+                updateBuilder.update()
+
+                it.reply_("${parameters.first().getPrompt()} is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!").setEphemeral(true).queue()
+            })
+            event.replyPaginator(slider).setEphemeral(true).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()

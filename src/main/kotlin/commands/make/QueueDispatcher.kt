@@ -212,6 +212,7 @@ class QueueDispatcher(private val jda: JDA) {
                     .setFiles(FileUpload.fromData(quilt, "${config.bot.name}_final.jpg"))
 
                 finishMsg.queue { finishMsg ->
+                    var userScopedID: Long = 0
                     if (entry.chapter == null) {
                         val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)
                         val user = if(userQuery.countOf() == 0L) {
@@ -222,14 +223,11 @@ class QueueDispatcher(private val jda: JDA) {
                             userQuery.query().first()!!
                         }
                         TransactionManager.callInTransaction(connectionSource) {
-                            val userScopedID = chapterDao.queryBuilder().where().eq("userID", finishMsg.author.id).countOf()
-                            user.generationsDone = user.generationsDone!! + 1
-                            user.currentChapterId = userScopedID
+                            userScopedID = chapterDao.queryBuilder().where().eq("userID", user.id).countOf()
                             val chapter = UserChapter(
                                 userID = user.id,
                                 userScopedID = userScopedID
                             )
-                            userDao.update(user)
                             chapterDao.create(chapter)
                             val chapterID = chapterDao.queryBuilder().selectColumns("id").countOf()
                             val chapterEntry = ChapterEntry(
@@ -243,6 +241,7 @@ class QueueDispatcher(private val jda: JDA) {
                             chapterEntryDao.create(chapterEntry)
                         }
                     } else {
+                        userScopedID = entry.chapter.userScopedID
                         TransactionManager.callInTransaction(connectionSource) {
                             val chapterEntry = ChapterEntry(
                                 chapterID = entry.chapter.id,
@@ -258,6 +257,15 @@ class QueueDispatcher(private val jda: JDA) {
                             updateBuilder.updateColumnValue("updateTimestamp", peterDate())
                             updateBuilder.update()
                         }
+                    }
+                    TransactionManager.callInTransaction(connectionSource) {
+                        val user = userDao.queryBuilder().selectColumns("id", "generationsDone").where()
+                            .eq("discordUserID", entry.owner).queryForFirst()
+                        val updateBuilder = userDao.updateBuilder()
+                        updateBuilder.where().eq("id", user.id)
+                        updateBuilder.updateColumnValue("generationsDone", user.generationsDone + 1L)
+                        updateBuilder.updateColumnValue("currentChapterId", userScopedID)
+                        updateBuilder.update()
                     }
                 }
             }

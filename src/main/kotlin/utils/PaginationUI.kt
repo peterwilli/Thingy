@@ -1,12 +1,10 @@
 package utils
 
-import dev.minn.jda.ktx.interactions.components.paginator
-import dev.minn.jda.ktx.interactions.components.replyPaginator
+import Paginator
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
-import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
+import paginator
 import java.net.URL
-import kotlin.math.ceil
 import kotlin.time.Duration.Companion.minutes
 
 data class ImageSliderEntry(
@@ -14,8 +12,9 @@ data class ImageSliderEntry(
     val image: URL
 )
 
-fun sendImageSlider(event: GenericCommandInteractionEvent, title: String, items: List<ImageSliderEntry>): ReplyCallbackAction {
+fun sendImageSlider(event: GenericCommandInteractionEvent, title: String, items: List<ImageSliderEntry>): Paginator {
     val pagesAmount = items.size
+    println("pagesAmount: $pagesAmount")
     val messages = items.mapIndexed { index, entry ->
         val page = EmbedBuilder()
         page.setTitle(title)
@@ -25,12 +24,15 @@ fun sendImageSlider(event: GenericCommandInteractionEvent, title: String, items:
         page.setColor(0x33cc33)
         page.build()
     }.toTypedArray()
-    val pagination = paginator(*messages, expireAfter = 10.minutes)
-    pagination.addPages(*messages)
-    return event.replyPaginator(pagination)
+    return paginator(*messages, expireAfter = 10.minutes)
 }
 
-fun sendPagination(event: GenericCommandInteractionEvent, title: String, items: List<String>, itemsPerPage: Int): ReplyCallbackAction {
+fun sendPagination(
+    event: GenericCommandInteractionEvent,
+    title: String,
+    items: List<String>,
+    itemsPerPage: Int
+): Paginator {
     val chunks = items.chunked(itemsPerPage)
     val pagesAmount = chunks.size
     val messages = (0 until pagesAmount).map { pageNumber ->
@@ -41,7 +43,5 @@ fun sendPagination(event: GenericCommandInteractionEvent, title: String, items: 
         page.setColor(0x33cc33)
         page.build()
     }.toTypedArray()
-    val pagination = paginator(*messages, expireAfter = 10.minutes)
-    pagination.addPages(*messages)
-    return event.replyPaginator(pagination)
+    return paginator(*messages, expireAfter = 10.minutes)
 }
