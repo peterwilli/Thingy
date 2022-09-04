@@ -20,6 +20,7 @@ import randomString
 import utils.bufferedImageToDataURI
 import java.net.URL
 import javax.imageio.ImageIO
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.random.Random
@@ -41,45 +42,43 @@ fun variateCommand(jda: JDA) {
             return@onCommand
         }
 
-//        event.deferReply().queue()
-        val channel = jda.getChannel<TextChannel>(usingChapter.channelID!!)!!
-        channel.retrieveMessageById(usingChapter.messageID!!).queue {
-            val attachement = it.attachments.first()
-            val parameters = gson.fromJson(usingChapter.parameters!!, Array<DiffusionParameters>::class.java)
-            if (chosenImage < 1 || chosenImage > parameters.size) {
-                event
-                    .reply_("Index should be between 1 and ${parameters.size}!")
-                    .setEphemeral(true).queue()
-                return@queue
-            }
-            val parameterToVariate = parameters[chosenImage - 1]
-            val quilt = ImageIO.read(URL(attachement.url))
-            val imagesPerRow = parameters.size / 2
-            val row = floor((chosenImage - 1) / imagesPerRow.toDouble()).toInt()
-            val col = (chosenImage - 1) % imagesPerRow
-            val imageWidth = quilt.width / imagesPerRow
-            val imageHeight = quilt.height / imagesPerRow
-            val sliceImage = quilt.getSubimage(row * imageWidth, col * imageHeight, imageWidth, imageHeight)
-            val batch = parameters.map { parameter ->
-                val base64Init = bufferedImageToDataURI(sliceImage)
-                println("base64Init: $base64Init")
-                parameter.copy(
-                    seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
-                    artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
-                    stableDiffusionParameters = parameter.stableDiffusionParameters!!.copy(
-                        initImage = base64Init
-                    )
-                )
-            }
-            val fqe = FairQueueEntry(
-                "Generating Image",
-                FairQueueType.StableDiffusion,
-                event.member!!.id,
-                batch,
-                event.hook,
-                usingChapter
-            )
-            event.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
+        val latestEntry = usingChapter.getLatestEntry()
+        val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
+
+        if (chosenImage < 1 || chosenImage > parameters.size) {
+            event
+                .reply_("Index should be between 1 and ${parameters.size}!")
+                .setEphemeral(true).queue()
+            return@onCommand
         }
+
+        val parameterToVariate = parameters[chosenImage - 1]
+        val quilt = ImageIO.read(URL(latestEntry.imageURL))
+        val imagesPerRow = ceil(parameters.size / 2.toDouble()).toInt()
+        val row = floor((chosenImage - 1) / imagesPerRow.toDouble()).toInt()
+        val col = (chosenImage - 1) % imagesPerRow
+        val imageWidth = quilt.width / imagesPerRow
+        val imageHeight = quilt.height / imagesPerRow
+        val sliceImage = quilt.getSubimage(row * imageWidth, col * imageHeight, imageWidth, imageHeight)
+        val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
+            val base64Init = bufferedImageToDataURI(sliceImage)
+            parameterToVariate.copy(
+                seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
+                artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
+                stableDiffusionParameters = parameterToVariate.stableDiffusionParameters!!.copy(
+                    initImage = base64Init,
+                    steps = 5
+                )
+            )
+        }
+        val fqe = FairQueueEntry(
+            "Generating Images",
+            FairQueueType.StableDiffusion,
+            event.member!!.id,
+            batch,
+            event.hook,
+            usingChapter
+        )
+        event.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
     }
 }

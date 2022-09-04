@@ -177,6 +177,7 @@ class Client(
 
     private fun addDefaultStableDiffusionParameters(params: DiffusionParameters, builder: Builder) {
         val stableParams = params.stableDiffusionParameters!!
+        builder.putFields("steps",  value { numberValue = stableParams.steps.toDouble() })
     }
 
     private fun addDefaultDiscoDiffusionParameters(params: DiffusionParameters, builder: Builder) {

@@ -1,10 +1,14 @@
 package database.models
 
+import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
 import database.chapterDao
+import database.chapterEntryDao
 import database.userDao
 import org.jetbrains.annotations.NotNull
+import utils.peterDate
+import java.util.*
 
 @DatabaseTable(tableName = "user_chapter")
 class UserChapter {
@@ -12,39 +16,36 @@ class UserChapter {
     var id: Long = 0
 
     @NotNull
+    @DatabaseField(index = true)
+    var creationTimestamp: Long = peterDate()
+
+    @NotNull
+    var updateTimestamp: Long = peterDate()
+
+    @NotNull
     @DatabaseField()
-    var userScopedID: Long? = null
+    var userScopedID: Long = 0
 
     @NotNull
     @DatabaseField(index = true)
-    var userID: Long? = null
-
-    @NotNull
-    @DatabaseField(index = true)
-    var serverID: String? = null
-
-    @NotNull
-    @DatabaseField()
-    var channelID: String? = null
-
-    @NotNull
-    @DatabaseField()
-    var parameters: String? = null
-
-    @NotNull
-    @DatabaseField()
-    var messageID: String? = null
+    var userID: Long = 0
 
     // ORMLite needs a no-arg constructor
     constructor() {
     }
 
-    constructor(userID: Long, serverID: String, channelID: String, messageID: String, userScopedID: Long, parameters: String) {
+    constructor(userID: Long, userScopedID: Long) {
         this.userID = userID
-        this.serverID = serverID
-        this.channelID = channelID
-        this.messageID = messageID
         this.userScopedID = userScopedID
-        this.parameters = parameters
+    }
+
+    fun getEntries(): Array<ChapterEntry> {
+        return chapterEntryDao.queryBuilder().orderBy("creationTimestamp", false).selectColumns().where()
+            .eq("chapterID", this.id).query().toTypedArray()
+    }
+
+    fun getLatestEntry(): ChapterEntry {
+        return chapterEntryDao.queryBuilder().limit(1).orderBy("creationTimestamp", false).selectColumns().where()
+            .eq("chapterID", this.id).query().first()
     }
 }

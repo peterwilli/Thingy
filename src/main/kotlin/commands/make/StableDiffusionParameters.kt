@@ -15,7 +15,8 @@ import kotlin.random.Random
 data class StableDiffusionParameters(
     val prompt: String,
     var initImage: URI? = null,
-    var ratio: Ratio = Ratio()
+    var ratio: Ratio = Ratio(),
+    var steps: Int = 1
 )
 
 fun optionsToStableDiffusionParams(

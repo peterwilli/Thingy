@@ -107,7 +107,6 @@ fun initCommands(jda: JDA) {
         slash("cancel", "Cancel latest item (by you) in the queue")
 
         slash("chapters", "Show your previous work!") {
-            option<Boolean>("all", "Whether or not to show all your work or from this server", required = false)
         }
 
         slash("variate", "Make variations of your previous prompt!") {

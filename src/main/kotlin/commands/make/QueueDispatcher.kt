@@ -5,7 +5,9 @@ import commands.make.FairQueueEntry
 import commands.make.FairQueueType
 import commands.make.makeQuiltFromByteArrayList
 import database.chapterDao
+import database.chapterEntryDao
 import database.connectionSource
+import database.models.ChapterEntry
 import database.models.User
 import database.models.UserChapter
 import database.userDao
@@ -22,6 +24,8 @@ import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
+import utils.peterDate
+import java.net.URL
 import kotlin.math.max
 
 
@@ -223,20 +227,37 @@ class QueueDispatcher(private val jda: JDA) {
                             user.currentChapterId = userScopedID
                             val chapter = UserChapter(
                                 userID = user.id,
-                                serverID = finishMsg.guild!!.id,
-                                channelID = finishMsg.channel.id,
-                                messageID = finishMsg.id,
-                                userScopedID = userScopedID,
-                                parameters = gson.toJson(entry.parameters)
+                                userScopedID = userScopedID
                             )
                             userDao.update(user)
                             chapterDao.create(chapter)
+                            val chapterID = chapterDao.queryBuilder().selectColumns("id").countOf()
+                            val chapterEntry = ChapterEntry(
+                                chapterID = chapterID,
+                                serverID = finishMsg.guild!!.id,
+                                channelID = finishMsg.channel.id,
+                                messageID = finishMsg.id,
+                                imageURL = URL(finishMsg.attachments.first().url),
+                                parameters = gson.toJson(entry.parameters)
+                            )
+                            chapterEntryDao.create(chapterEntry)
                         }
                     } else {
-                        val updateBuilder = chapterDao.updateBuilder()
-                        updateBuilder.where().eq("id", entry.chapter.id)
-                        updateBuilder.updateColumnValue("messageID", finishMsg.id)
-                        updateBuilder.update()
+                        TransactionManager.callInTransaction(connectionSource) {
+                            val chapterEntry = ChapterEntry(
+                                chapterID = entry.chapter.id,
+                                serverID = finishMsg.guild!!.id,
+                                channelID = finishMsg.channel.id,
+                                messageID = finishMsg.id,
+                                imageURL = URL(finishMsg.attachments.first().url),
+                                parameters = gson.toJson(entry.parameters)
+                            )
+                            chapterEntryDao.create(chapterEntry)
+                            val updateBuilder = chapterDao.updateBuilder()
+                            updateBuilder.where().eq("id", entry.chapter.id)
+                            updateBuilder.updateColumnValue("updateTimestamp", peterDate())
+                            updateBuilder.update()
+                        }
                     }
                 }
             }
