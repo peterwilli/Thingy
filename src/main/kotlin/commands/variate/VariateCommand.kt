@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.entities.TextChannel
 import queueDispatcher
 import randomString
 import utils.bufferedImageToDataURI
+import utils.takeSlice
 import java.net.URL
 import javax.imageio.ImageIO
 import kotlin.math.ceil
@@ -35,7 +36,7 @@ fun variateCommand(jda: JDA) {
             return@onCommand
         }
 
-        val usingChapter = chapterDao.queryBuilder().selectColumns("id", "messageID", "channelID", "parameters").where().eq("userScopedID", user.currentChapterId).and().eq("userID", user.id).queryForFirst()
+        val usingChapter = chapterDao.queryBuilder().selectColumns().where().eq("userScopedID", user.currentChapterId).and().eq("userID", user.id).queryForFirst()
         if(usingChapter == null) {
             event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                 .setEphemeral(true).queue()
@@ -52,16 +53,11 @@ fun variateCommand(jda: JDA) {
             return@onCommand
         }
 
+
         val parameterToVariate = parameters[chosenImage - 1]
-        val quilt = ImageIO.read(URL(latestEntry.imageURL))
-        val imagesPerRow = ceil(parameters.size / 2.toDouble()).toInt()
-        val row = floor((chosenImage - 1) / imagesPerRow.toDouble()).toInt()
-        val col = (chosenImage - 1) % imagesPerRow
-        val imageWidth = quilt.width / imagesPerRow
-        val imageHeight = quilt.height / imagesPerRow
-        val sliceImage = quilt.getSubimage(row * imageWidth, col * imageHeight, imageWidth, imageHeight)
+        val imageSlice = takeSlice(latestEntry, parameters, chosenImage - 1)
         val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
-            val base64Init = bufferedImageToDataURI(sliceImage)
+            val base64Init = bufferedImageToDataURI(imageSlice)
             parameterToVariate.copy(
                 seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
                 artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",

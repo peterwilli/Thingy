@@ -31,4 +31,5 @@ data class Config(
     val grpcServer: GRPCServer,
     val imagesFolder: String,
     val timeouts: Timeouts,
+    val shareChannelID: String,
 )
