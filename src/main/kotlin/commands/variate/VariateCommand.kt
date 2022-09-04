@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.entities.TextChannel
 import queueDispatcher
 import randomString
 import utils.bufferedImageToDataURI
+import utils.makeSelectImageFromQuilt
 import utils.takeSlice
 import java.net.URL
 import javax.imageio.ImageIO
@@ -28,16 +29,19 @@ import kotlin.random.Random
 
 fun variateCommand(jda: JDA) {
     jda.onCommand("variate") { event ->
-        val chosenImage = event.getOption("index")!!.asInt
-        val user = userDao.queryBuilder().selectColumns("id", "currentChapterId").where().eq("discordUserID", event.user.id).queryForFirst()
-        if(user == null) {
+        val user =
+            userDao.queryBuilder().selectColumns("id", "currentChapterId").where().eq("discordUserID", event.user.id)
+                .queryForFirst()
+        if (user == null) {
             event.reply_("User '${event.user.id}' not found! Did you make art yet? $miniManual")
                 .setEphemeral(true).queue()
             return@onCommand
         }
 
-        val usingChapter = chapterDao.queryBuilder().selectColumns().where().eq("userScopedID", user.currentChapterId).and().eq("userID", user.id).queryForFirst()
-        if(usingChapter == null) {
+        val usingChapter =
+            chapterDao.queryBuilder().selectColumns().where().eq("userScopedID", user.currentChapterId).and()
+                .eq("userID", user.id).queryForFirst()
+        if (usingChapter == null) {
             event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                 .setEphemeral(true).queue()
             return@onCommand
@@ -45,35 +49,37 @@ fun variateCommand(jda: JDA) {
 
         val latestEntry = usingChapter.getLatestEntry()
         val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
-
-        if (chosenImage < 1 || chosenImage > parameters.size) {
-            event
-                .reply_("Index should be between 1 and ${parameters.size}!")
-                .setEphemeral(true).queue()
-            return@onCommand
-        }
-
-//        val parameterToVariate = parameters[chosenImage - 1]
-//        val imageSlice = takeSlice(latestEntry, parameters, chosenImage - 1)
-//        val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
-//            val base64Init = bufferedImageToDataURI(imageSlice)
-//            parameterToVariate.copy(
-//                seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
-//                artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
-//                stableDiffusionParameters = parameterToVariate.stableDiffusionParameters!!.copy(
-//                    initImage = base64Init,
-//                    steps = 5
-//                )
-//            )
-//        }
-//        val fqe = FairQueueEntry(
-//            "Generating Images",
-//            FairQueueType.StableDiffusion,
-//            event.member!!.id,
-//            batch,
-//            event.hook,
-//            usingChapter
-//        )
-//        event.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
+        val image = ImageIO.read(URL(latestEntry.imageURL))
+        makeSelectImageFromQuilt(
+            event,
+            event.user,
+            "Select your favorite to variate!",
+            image,
+            parameters.size
+        ) { chosenImage ->
+            val parameterToVariate = parameters[chosenImage]
+            val imageSlice = takeSlice(image, parameters.size, chosenImage)
+            val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
+                val base64Init = bufferedImageToDataURI(imageSlice)
+                parameterToVariate.copy(
+                    seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
+                    artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
+                    stableDiffusionParameters = parameterToVariate.stableDiffusionParameters!!.copy(
+                        initImage = base64Init,
+                        steps = 50
+                    )
+                )
+            }
+            val fqe = FairQueueEntry(
+                "Variating Image",
+                FairQueueType.StableDiffusion,
+                event.member!!.id,
+                batch,
+                event.hook,
+                usingChapter
+            )
+            event.hook.editOriginal(queueDispatcher.queue.addToQueue(fqe)).setComponents().setEmbeds().setAttachments()
+                .queue()
+        }.setEphemeral(true).queue()
     }
 }

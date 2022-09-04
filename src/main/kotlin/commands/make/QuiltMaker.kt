@@ -12,14 +12,6 @@ fun makeQuiltFromByteArrayList(images: List<ByteArray>, formatName: String = "jp
     val bufferedImages = images.mapIndexed { i, bytes ->
         val inputStream = ByteArrayInputStream(bytes)
         val image = ImageIO.read(inputStream)
-        val font = Font("Arial", Font.BOLD, 60)
-        val g: Graphics = image.graphics
-        g.font = font
-        g.color = Color.WHITE
-        g.drawString(i.toString(), 10, 70)
-        g.font = font
-        g.color = Color.BLACK
-        g.drawString(i.toString(), 10, 85)
         image
     }
     val quilt = makeQuilt(bufferedImages)

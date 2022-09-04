@@ -3,9 +3,21 @@ package utils
 import Paginator
 import commands.make.DiffusionParameters
 import database.models.ChapterEntry
+import database.userDao
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
+import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
+import net.dv8tion.jda.api.utils.FileUpload
 import paginator
+import replyPaginator
+import sendPaginator
 import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.time.Duration.Companion.minutes
@@ -29,19 +41,30 @@ fun sendImageSlider(title: String, items: List<ImageSliderEntry>): Paginator {
     return paginator(*messages, expireAfter = 10.minutes)
 }
 
-//fun sendSelectImageFromQuilt(title: String, quilt: BufferedImage, totalImages: Int) {
-//    val messages = (0 until totalImages).map { index ->
-//        val imageSlice = takeSlice(quilt, totalImages, index)
-//        val page = EmbedBuilder()
-//        page.setTitle(title)
-//        page.setFooter("Image ${index + 1} / $pagesAmount")
-//        page.setImage(imageSlice)
-//        page.setDescription(entry.description)
-//        page.setColor(0x33cc33)
-//        page.build()
-//    }.toTypedArray()
-//    val imageSelector = paginator(*messages, expireAfter = 10.minutes)
-//}
+fun makeSelectImageFromQuilt(event: GenericCommandInteractionEvent, user: User, title: String, quilt: BufferedImage, totalImages: Int, callback: (index: Int) -> Unit): ReplyCallbackAction {
+    val messages = (0 until totalImages).map { index ->
+        val page = EmbedBuilder()
+        page.setTitle(title)
+        page.setFooter("Image ${index + 1} / $totalImages")
+        page.setImage("attachment://${index + 1}.jpg")
+        page.setColor(0x33cc33)
+        page.build()
+    }.toTypedArray()
+    val imageSelector = paginator(*messages, expireAfter = 10.minutes)
+    imageSelector.injectMessageCallback = { idx, msgEdit ->
+        val imageSlice = takeSlice(quilt, totalImages, idx)
+        msgEdit.setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice, "jpg"), "${idx + 1}.jpg"))
+    }
+    imageSelector.customActionComponents = listOf(user.jda.button(
+        label = "Select",
+        style = ButtonStyle.PRIMARY,
+        user = user
+    ) {
+        callback(imageSelector.getIndex())
+    })
+    val firstSlice = takeSlice(quilt, totalImages, 0)
+    return event.replyPaginator(imageSelector).setFiles(FileUpload.fromData(bufferedImageToByteArray(firstSlice, "jpg"), "1.jpg"))
+}
 
 fun sendPagination(
     event: GenericCommandInteractionEvent,

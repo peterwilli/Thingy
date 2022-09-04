@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction
 import net.dv8tion.jda.api.requests.ErrorResponse
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction
 import net.dv8tion.jda.api.requests.restaction.interactions.MessageEditCallbackAction
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import net.dv8tion.jda.api.utils.messages.MessageEditData
@@ -61,6 +62,7 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
     private val prevPage: MessageCreateData get() = pageCache[--index]
     var customActionComponents: List<ActionComponent>? = null
     var filter: (ButtonInteraction) -> Boolean = { true }
+    var injectMessageCallback: ((index: Int, messageEdit: MessageEditCallbackAction) -> Unit)? = null
 
     fun filterBy(filter: (ButtonInteraction) -> Boolean): Paginator {
         this.filter = filter
@@ -114,7 +116,11 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
                 event.editMessage(MessageEditData.fromCreateData(nextPage))
             }
         }
-        message.setComponents(getControls()).queue(null, ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE) { unregister(event.jda) })
+        var messageEdit = message.setComponents(getControls())
+        if(injectMessageCallback != null) {
+            injectMessageCallback!!(index, messageEdit)
+        }
+        messageEdit.queue(null, ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE) { unregister(event.jda) })
     }
 
     private fun unregister(jda: JDA) {

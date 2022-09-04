@@ -14,15 +14,15 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.User
-import net.dv8tion.jda.api.interactions.Interaction
-import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import utils.bufferedImageToByteArray
+import utils.makeSelectImageFromQuilt
 import utils.messageToURL
 import utils.takeSlice
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.net.URL
 import javax.imageio.ImageIO
 
 private val imageFilename = "final.png"
@@ -60,7 +60,6 @@ private fun makeShareEmbed(img: BufferedImage, author: User, parameters: Array<D
 fun shareCommand(jda: JDA) {
     jda.onCommand("share") { event ->
         try {
-            val chosenImage = event.getOption("index")!!.asInt
             val user = userDao.queryBuilder().selectColumns("id", "currentChapterId").where()
                 .eq("discordUserID", event.user.id).queryForFirst()
             if (user == null) {
@@ -77,47 +76,48 @@ fun shareCommand(jda: JDA) {
                     .setEphemeral(true).queue()
                 return@onCommand
             }
+
             val latestEntry = usingChapter.getLatestEntry()
+            val image = ImageIO.read(URL(latestEntry.imageURL))
             val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
-            if (chosenImage < 1 || chosenImage > parameters.size) {
-                event
-                    .reply_("Index should be between 1 and ${parameters.size}!")
-                    .setEphemeral(true).queue()
-                return@onCommand
-            }
-//            val image = ImageIO.getImage
-//            val imageSlice = takeSlice(late, chosenImage - 1)
-//            val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
-//            val embed = makeShareEmbed(imageSlice, event.user, parameters)
-//            val okButton = jda.button(
-//                label = "Fire away!",
-//                style = ButtonStyle.PRIMARY,
-//                user = event.user
-//            ) {
-//                try {
-//                    it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
-//                        shareChannel.sendMessageEmbeds(embed).setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename)).queue { sharedMsg ->
-//                            shareMsg.editOriginal("**Shared!** ${messageToURL(sharedMsg)}").queue()
-//                        }
-//                    }
-//                } catch (e: Exception) {
-//                    e.printStackTrace()
-//                    it.reply_("Error! $e").setEphemeral(true).queue()
-//                }
-//            }
-//            val cancelButton = jda.button(
-//                label = "Don't share!",
-//                style = ButtonStyle.DANGER,
-//                user = event.user
-//            ) {
-//                try {
-//                    it.editMessage("*Share canceled*").setComponents().setEmbeds().setAttachments().queue()
-//                } catch (e: Exception) {
-//                    e.printStackTrace()
-//                    it.reply_("Error! $e").setEphemeral(true).queue()
-//                }
-//            }
-//            event.reply_("**Preview!**", listOf(embed)).setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename)).setActionRow(okButton, cancelButton).setEphemeral(true).queue()
+            makeSelectImageFromQuilt(event, event.user, "Select image for sharing", image, parameters.size) { chosenImage ->
+                val imageSlice = takeSlice(image, parameters.size, chosenImage)
+                val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
+                val embed = makeShareEmbed(imageSlice, event.user, parameters)
+                val okButton = jda.button(
+                    label = "Fire away!",
+                    style = ButtonStyle.PRIMARY,
+                    user = event.user
+                ) {
+                    try {
+                        it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
+                            shareChannel.sendMessageEmbeds(embed)
+                                .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
+                                .queue { sharedMsg ->
+                                    shareMsg.editOriginal("**Shared!** ${messageToURL(sharedMsg)}").queue()
+                                }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        it.reply_("Error! $e").setEphemeral(true).queue()
+                    }
+                }
+                val cancelButton = jda.button(
+                    label = "Don't share!",
+                    style = ButtonStyle.DANGER,
+                    user = event.user
+                ) {
+                    try {
+                        it.editMessage("*Share canceled*").setComponents().setEmbeds().setAttachments().queue()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        it.reply_("Error! $e").setEphemeral(true).queue()
+                    }
+                }
+                event.hook.editMessage(content = "**Preview!**", embeds = listOf(embed))
+                    .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
+                    .setActionRow(okButton, cancelButton).queue()
+            }.setEphemeral(true).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()

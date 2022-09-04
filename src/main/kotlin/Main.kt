@@ -1,6 +1,7 @@
 import com.sksamuel.hoplite.ConfigLoader
 import commands.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
+import commands.make.QueueDispatcher
 import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.social.shareCommand
 import commands.update.updateCommand
@@ -111,10 +112,8 @@ fun initCommands(jda: JDA) {
         slash("chapters", "Show your previous work!") {
         }
         slash("variate", "Make variations of your previous prompt!") {
-            option<Int>("index", "The number out of your set you want to variate! (1-${config.hostConstraints.maxSimultaneousMakeRequests})", required = true)
         }
         slash("share", "Share your favorite image!") {
-            option<Int>("index", "The number out of your set you want to variate! (1-${config.hostConstraints.maxSimultaneousMakeRequests})", required = true)
         }
     }.queue()
 }
