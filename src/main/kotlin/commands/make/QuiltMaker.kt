@@ -1,14 +1,26 @@
 package commands.make
 
+import java.awt.Color
+import java.awt.Font
+import java.awt.Graphics
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 fun makeQuiltFromByteArrayList(images: List<ByteArray>, formatName: String = "jpg"): ByteArray {
-    val bufferedImages = images.map {
-        val inputStream = ByteArrayInputStream(it)
-        ImageIO.read(inputStream)
+    val bufferedImages = images.mapIndexed { i, bytes ->
+        val inputStream = ByteArrayInputStream(bytes)
+        val image = ImageIO.read(inputStream)
+        val font = Font("Arial", Font.BOLD, 60)
+        val g: Graphics = image.graphics
+        g.font = font
+        g.color = Color.WHITE
+        g.drawString(i.toString(), 10, 70)
+        g.font = font
+        g.color = Color.BLACK
+        g.drawString(i.toString(), 10, 85)
+        image
     }
     val quilt = makeQuilt(bufferedImages)
     val baos = ByteArrayOutputStream()

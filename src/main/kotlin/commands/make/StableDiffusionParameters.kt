@@ -16,7 +16,7 @@ data class StableDiffusionParameters(
     val prompt: String,
     var initImage: URI? = null,
     var ratio: Ratio = Ratio(),
-    var steps: Int = 1
+    var steps: Int = 50
 )
 
 fun optionsToStableDiffusionParams(

@@ -51,7 +51,7 @@ fun listChaptersCommand(jda: JDA) {
                     image = URL(latestEntry.imageURL)
                 )
             }
-            val slider = sendImageSlider(event, "My Chapters", chapterEntries)
+            val slider = sendImageSlider("My Chapters", chapterEntries)
             slider.customActionComponents = listOf(jda.button(
                 label = "Select",
                 style = ButtonStyle.PRIMARY,

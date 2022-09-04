@@ -23,6 +23,7 @@ import utils.messageToURL
 import utils.takeSlice
 import java.awt.Color
 import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 
 private val imageFilename = "final.png"
 
@@ -84,38 +85,39 @@ fun shareCommand(jda: JDA) {
                     .setEphemeral(true).queue()
                 return@onCommand
             }
-            val imageSlice = takeSlice(latestEntry, parameters, chosenImage - 1)
-            val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
-            val embed = makeShareEmbed(imageSlice, event.user, parameters)
-            val okButton = jda.button(
-                label = "Fire away!",
-                style = ButtonStyle.PRIMARY,
-                user = event.user
-            ) {
-                try {
-                    it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
-                        shareChannel.sendMessageEmbeds(embed).setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename)).queue { sharedMsg ->
-                            shareMsg.editOriginal("**Shared!** ${messageToURL(sharedMsg)}").queue()
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    it.reply_("Error! $e").setEphemeral(true).queue()
-                }
-            }
-            val cancelButton = jda.button(
-                label = "Don't share!",
-                style = ButtonStyle.DANGER,
-                user = event.user
-            ) {
-                try {
-                    it.editMessage("*Share canceled*").setComponents().setEmbeds().setAttachments().queue()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    it.reply_("Error! $e").setEphemeral(true).queue()
-                }
-            }
-            event.reply_("**Preview!**", listOf(embed)).setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename)).setActionRow(okButton, cancelButton).setEphemeral(true).queue()
+//            val image = ImageIO.getImage
+//            val imageSlice = takeSlice(late, chosenImage - 1)
+//            val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
+//            val embed = makeShareEmbed(imageSlice, event.user, parameters)
+//            val okButton = jda.button(
+//                label = "Fire away!",
+//                style = ButtonStyle.PRIMARY,
+//                user = event.user
+//            ) {
+//                try {
+//                    it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
+//                        shareChannel.sendMessageEmbeds(embed).setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename)).queue { sharedMsg ->
+//                            shareMsg.editOriginal("**Shared!** ${messageToURL(sharedMsg)}").queue()
+//                        }
+//                    }
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                    it.reply_("Error! $e").setEphemeral(true).queue()
+//                }
+//            }
+//            val cancelButton = jda.button(
+//                label = "Don't share!",
+//                style = ButtonStyle.DANGER,
+//                user = event.user
+//            ) {
+//                try {
+//                    it.editMessage("*Share canceled*").setComponents().setEmbeds().setAttachments().queue()
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                    it.reply_("Error! $e").setEphemeral(true).queue()
+//                }
+//            }
+//            event.reply_("**Preview!**", listOf(embed)).setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename)).setActionRow(okButton, cancelButton).setEphemeral(true).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()

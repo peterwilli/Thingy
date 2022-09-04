@@ -53,28 +53,27 @@ fun variateCommand(jda: JDA) {
             return@onCommand
         }
 
-
-        val parameterToVariate = parameters[chosenImage - 1]
-        val imageSlice = takeSlice(latestEntry, parameters, chosenImage - 1)
-        val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
-            val base64Init = bufferedImageToDataURI(imageSlice)
-            parameterToVariate.copy(
-                seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
-                artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
-                stableDiffusionParameters = parameterToVariate.stableDiffusionParameters!!.copy(
-                    initImage = base64Init,
-                    steps = 5
-                )
-            )
-        }
-        val fqe = FairQueueEntry(
-            "Generating Images",
-            FairQueueType.StableDiffusion,
-            event.member!!.id,
-            batch,
-            event.hook,
-            usingChapter
-        )
-        event.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
+//        val parameterToVariate = parameters[chosenImage - 1]
+//        val imageSlice = takeSlice(latestEntry, parameters, chosenImage - 1)
+//        val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
+//            val base64Init = bufferedImageToDataURI(imageSlice)
+//            parameterToVariate.copy(
+//                seed = Random.nextInt(0, 2.toDouble().pow(32).toInt()),
+//                artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
+//                stableDiffusionParameters = parameterToVariate.stableDiffusionParameters!!.copy(
+//                    initImage = base64Init,
+//                    steps = 5
+//                )
+//            )
+//        }
+//        val fqe = FairQueueEntry(
+//            "Generating Images",
+//            FairQueueType.StableDiffusion,
+//            event.member!!.id,
+//            batch,
+//            event.hook,
+//            usingChapter
+//        )
+//        event.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
     }
 }

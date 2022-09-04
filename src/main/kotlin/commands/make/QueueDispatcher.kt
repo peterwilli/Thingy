@@ -1,9 +1,7 @@
 import com.j256.ormlite.misc.TransactionManager
 import com.j256.ormlite.stmt.UpdateBuilder
-import commands.make.FairQueue
-import commands.make.FairQueueEntry
-import commands.make.FairQueueType
-import commands.make.makeQuiltFromByteArrayList
+import commands.make.*
+import commands.social.getAverageColor
 import database.chapterDao
 import database.chapterEntryDao
 import database.connectionSource
@@ -21,13 +19,25 @@ import io.grpc.StatusException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import utils.peterDate
+import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.math.max
 
+fun createImageEmbeds(title: String): Array<MessageEmbed> {
+    val imageEmbeds = (0 until config.hostConstraints.totalImagesInMakeCommand).map { idx ->
+        val embed = EmbedBuilder()
+        embed.setTitle("test", "https://google.nl")
+        embed.setImage("attachment://${idx + 1}.jpg")
+        embed.build()
+    }
+    return imageEmbeds.toTypedArray()
+}
 
 class QueueDispatcher(private val jda: JDA) {
     val queue = FairQueue(config.maxEntriesPerOwner)
@@ -197,8 +207,12 @@ class QueueDispatcher(private val jda: JDA) {
                     } else {
                         lastPercentCompleted = avgPercentCompleted
                         ticksWithoutUpdate = 0
+                        val embeds = createImageEmbeds("Test")
+                        entry.progressHook.editOriginalEmbeds(*embeds).setFiles(newImages.mapIndexed { idx, bytes ->
+                            FileUpload.fromData(bytes, "${idx + 1}.jpg")
+                        }).queue()
                         val quilt = makeQuiltFromByteArrayList(newImages)
-                        entry.progressUpdate(entry.getHumanReadableOverview(), quilt, "${config.bot.name}_progress.jpg")
+//                        entry.progressUpdate(entry.getHumanReadableOverview(), quilt, "${config.bot.name}_progress.jpg")
                     }
                     delay(1000 * 5)
                 }

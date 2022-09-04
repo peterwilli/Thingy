@@ -20,6 +20,7 @@ class UserChapter {
     var creationTimestamp: Long = peterDate()
 
     @NotNull
+    @DatabaseField(index = true)
     var updateTimestamp: Long = peterDate()
 
     @NotNull

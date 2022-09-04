@@ -1,9 +1,12 @@
 package utils
 
 import Paginator
+import commands.make.DiffusionParameters
+import database.models.ChapterEntry
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import paginator
+import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.time.Duration.Companion.minutes
 
@@ -12,9 +15,8 @@ data class ImageSliderEntry(
     val image: URL
 )
 
-fun sendImageSlider(event: GenericCommandInteractionEvent, title: String, items: List<ImageSliderEntry>): Paginator {
+fun sendImageSlider(title: String, items: List<ImageSliderEntry>): Paginator {
     val pagesAmount = items.size
-    println("pagesAmount: $pagesAmount")
     val messages = items.mapIndexed { index, entry ->
         val page = EmbedBuilder()
         page.setTitle(title)
@@ -26,6 +28,20 @@ fun sendImageSlider(event: GenericCommandInteractionEvent, title: String, items:
     }.toTypedArray()
     return paginator(*messages, expireAfter = 10.minutes)
 }
+
+//fun sendSelectImageFromQuilt(title: String, quilt: BufferedImage, totalImages: Int) {
+//    val messages = (0 until totalImages).map { index ->
+//        val imageSlice = takeSlice(quilt, totalImages, index)
+//        val page = EmbedBuilder()
+//        page.setTitle(title)
+//        page.setFooter("Image ${index + 1} / $pagesAmount")
+//        page.setImage(imageSlice)
+//        page.setDescription(entry.description)
+//        page.setColor(0x33cc33)
+//        page.build()
+//    }.toTypedArray()
+//    val imageSelector = paginator(*messages, expireAfter = 10.minutes)
+//}
 
 fun sendPagination(
     event: GenericCommandInteractionEvent,
