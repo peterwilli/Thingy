@@ -3,6 +3,8 @@ package commands.social
 import commands.make.DiffusionParameters
 import config
 import database.chapterDao
+import database.models.SharedArtCacheEntry
+import database.sharedArtCacheEntryDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
@@ -80,7 +82,20 @@ fun shareCommand(jda: JDA) {
             val latestEntry = usingChapter.getLatestEntry()
             val image = ImageIO.read(URL(latestEntry.imageURL))
             val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
-            makeSelectImageFromQuilt(event, event.user, "Select image for sharing", image, parameters.size) { chosenImage ->
+            makeSelectImageFromQuilt(
+                event,
+                event.user,
+                "Select image for sharing",
+                image,
+                parameters.size
+            ) { chosenImage ->
+                val possibleCacheEntry =
+                    sharedArtCacheEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
+                        .and().eq("imageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()
+                if (possibleCacheEntry != null) {
+                    event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}").queue()
+                    return@makeSelectImageFromQuilt
+                }
                 val imageSlice = takeSlice(image, parameters.size, chosenImage)
                 val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
                 val embed = makeShareEmbed(imageSlice, event.user, parameters)
@@ -94,7 +109,11 @@ fun shareCommand(jda: JDA) {
                             shareChannel.sendMessageEmbeds(embed)
                                 .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
                                 .queue { sharedMsg ->
-                                    shareMsg.editOriginal("**Shared!** ${messageToURL(sharedMsg)}").queue()
+                                    val messageLink = messageToURL(sharedMsg)
+                                    shareMsg.editOriginal("**Shared!** $messageLink").queue()
+                                    val cacheEntry =
+                                        SharedArtCacheEntry(usingChapter.userID, URL(latestEntry.imageURL), chosenImage, messageLink)
+                                    sharedArtCacheEntryDao.create(cacheEntry)
                                 }
                         }
                     } catch (e: Exception) {
