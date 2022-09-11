@@ -7,12 +7,13 @@ import config
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import org.atteo.evo.inflector.English
 import queueDispatcher
 import kotlin.math.min
 
 fun img2imgCommand(jda: JDA) {
-    jda.onCommand("img2img") { event ->
+    fun onCommand(event: GenericCommandInteractionEvent) {
         val strength = if (event.getOption("strength") != null) {
             event.getOption("strength")!!.asDouble
         } else {
@@ -30,6 +31,7 @@ fun img2imgCommand(jda: JDA) {
         } else {
             50
         }
+
         var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
             val initialParams = optionsToStableDiffusionParams(event, it)
             initialParams.copy(
@@ -49,5 +51,12 @@ fun img2imgCommand(jda: JDA) {
             null
         )
         event.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
+    }
+
+    jda.onCommand("img2img") { event ->
+        onCommand(event)
+    }
+    jda.onCommand("link2img") { event ->
+        onCommand(event)
     }
 }

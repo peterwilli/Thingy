@@ -9,7 +9,6 @@ import database.models.ChapterEntry
 import database.models.User
 import database.models.UserChapter
 import database.userDao
-import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
@@ -23,7 +22,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import net.dv8tion.jda.api.utils.FileUpload
 import queueDispatcher
 import utils.peterDate
 import java.net.URL
@@ -167,12 +165,12 @@ class QueueDispatcher(private val jda: JDA) {
                             imageNotAppearing = max(timeout.imageNotAppearing, imageNotAppearing)
                             imageNotUpdating = max(timeout.imageNotUpdating, imageNotUpdating)
                         }
-                        val updateThresHold = if (newImages.isEmpty()) {
+                        val updateThreshold = if (newImages.isEmpty()) {
                             imageNotAppearing
                         } else {
                             imageNotUpdating
                         }
-                        if (ticksWithoutUpdate > updateThresHold) {
+                        if (ticksWithoutUpdate > updateThreshold) {
                             inProgress.clear()
                             cancelled = true
                             val tryAgainButton = jda.button(
@@ -209,7 +207,7 @@ class QueueDispatcher(private val jda: JDA) {
                 val finishMsg = entry.progressUpdate(entry.getHumanReadableOverview(),  quilt,
                     "${config.bot.name}_final.jpg")
                 finishMsg.reply_("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*").queue()
-                var userScopedID: Long = 0
+                var chapterID: Long = 0
                 if (entry.chapter == null) {
                     val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)
                     val user = if (userQuery.countOf() == 0L) {
@@ -220,13 +218,12 @@ class QueueDispatcher(private val jda: JDA) {
                         userQuery.query().first()!!
                     }
                     TransactionManager.callInTransaction(connectionSource) {
-                        userScopedID = chapterDao.queryBuilder().where().eq("userID", user.id).countOf()
+                        chapterID = chapterDao.queryBuilder().selectColumns("id").orderBy("creationTimestamp", false).limit(1).queryForFirst().id + 1
                         val chapter = UserChapter(
-                            userID = user.id,
-                            userScopedID = userScopedID
+                            userID = user.id
                         )
                         chapterDao.create(chapter)
-                        val chapterID = chapterDao.queryBuilder().selectColumns("id").countOf()
+                        chapterID = chapterDao.queryBuilder().selectColumns("id").countOf()
                         val chapterEntry = ChapterEntry(
                             chapterID = chapterID,
                             serverID = finishMsg.guild!!.id,
@@ -238,7 +235,7 @@ class QueueDispatcher(private val jda: JDA) {
                         chapterEntryDao.create(chapterEntry)
                     }
                 } else {
-                    userScopedID = entry.chapter.userScopedID
+                    chapterID = entry.chapter.id
                     TransactionManager.callInTransaction(connectionSource) {
                         val chapterEntry = ChapterEntry(
                             chapterID = entry.chapter.id,
@@ -261,7 +258,7 @@ class QueueDispatcher(private val jda: JDA) {
                     val updateBuilder = userDao.updateBuilder()
                     updateBuilder.where().eq("id", user.id)
                     updateBuilder.updateColumnValue("generationsDone", user.generationsDone + 1L)
-                    updateBuilder.updateColumnValue("currentChapterId", userScopedID)
+                    updateBuilder.updateColumnValue("currentChapterId", chapterID)
                     updateBuilder.update()
                 }
             }

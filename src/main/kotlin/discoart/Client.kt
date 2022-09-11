@@ -188,10 +188,10 @@ class Client(
             }
         })
         if(stableParams.strength != null) {
-            builder.putFields("strength",  value { numberValue = stableParams.strength })
+            builder.putFields("strength",  value { numberValue = stableParams.strength.coerceIn(0.0..1.0) })
         }
         if(stableParams.guidanceScale != null) {
-            builder.putFields("guidance_scale",  value { numberValue = stableParams.guidanceScale })
+            builder.putFields("guidance_scale",  value { numberValue = stableParams.guidanceScale.coerceIn(0.0..50.0) })
         }
     }
 

@@ -74,8 +74,27 @@ fun initCommands(jda: JDA) {
             )
         }
         slash("img2img", "Make an existing image into your prompt!") {
-            option<Attachment>("input_image", "Initial image", required = true)
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<Attachment>("input_image", "Initial image", required = true)
+            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
+            option<Int>(
+                "seed",
+                "Entropy for the random number generator, use the same seed to replicate results!",
+                required = false
+            )
+            option<Double>("strength", "How strong the change needs to be?", required = false)
+            option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
+            option<Int>("steps", "How much steps from the original image?", required = false)
+        }
+        slash("link2img", "Make an existing image into your prompt!") {
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<String>("input_image_url", "Link to initial image", required = true)
+            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
+            option<Int>(
+                "seed",
+                "Entropy for the random number generator, use the same seed to replicate results!",
+                required = false
+            )
             option<Double>("strength", "How strong the change needs to be?", required = false)
             option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)

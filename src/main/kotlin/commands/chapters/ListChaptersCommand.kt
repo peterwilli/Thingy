@@ -5,6 +5,7 @@ import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.editMessage
 import dev.minn.jda.ktx.messages.reply_
 import gson
 import miniManual
@@ -52,10 +53,35 @@ fun listChaptersCommand(jda: JDA) {
 
                 val updateBuilder = userDao.updateBuilder()
                 updateBuilder.where().eq("id", chapter.userID)
-                updateBuilder.updateColumnValue("currentChapterId", chapter.userScopedID)
+                updateBuilder.updateColumnValue("currentChapterId", chapter.id)
                 updateBuilder.update()
 
                 it.reply_("${parameters.first().getPrompt()} is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!").setEphemeral(true).queue()
+            }, jda.button(
+                label = "\uD83D\uDDD1️",
+                style = ButtonStyle.DANGER,
+                user = event.user
+            ) { deleteEvent ->
+                val chapter = possibleChapters[slider.getIndex()]
+                val parameters = gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+
+                deleteEvent.reply_("**Are you sure to delete this chapter?** *${parameters.first().getPrompt()}*").setEphemeral(true).addActionRow(listOf(
+                    jda.button(
+                        label = "Delete!",
+                        style = ButtonStyle.DANGER,
+                        user = event.user
+                    ) {
+                        chapter.delete()
+                        deleteEvent.hook.editMessage(content = "*Delete!*").setComponents().queue()
+                    },
+                    jda.button(
+                        label = "Keep!",
+                        style = ButtonStyle.PRIMARY,
+                        user = event.user
+                    ) {
+                        deleteEvent.hook.editMessage(content = "*Delete canceled*").setComponents().queue()
+                    }
+                )).queue()
             })
             event.replyPaginator(slider).setEphemeral(true).queue()
         } catch (e: Exception) {

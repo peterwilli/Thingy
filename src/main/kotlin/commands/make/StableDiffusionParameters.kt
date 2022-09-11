@@ -64,5 +64,12 @@ fun optionsToStableDiffusionParams(
         params.stableDiffusionParameters!!.initImage = base64Init
     }
 
+    val initImageURLOption = event.getOption("input_image_url")
+    if (initImageURLOption != null) {
+        val image = ImageIO.read(URL(initImageURLOption.asString))
+        val base64Init = bufferedImageToDataURI(image)
+        params.stableDiffusionParameters!!.initImage = base64Init
+    }
+
     return params
 }
