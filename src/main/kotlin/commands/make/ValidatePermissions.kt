@@ -3,7 +3,6 @@ package commands.make
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
-import net.dv8tion.jda.internal.utils.PermissionUtil
 
 fun validatePermissions(event: GenericCommandInteractionEvent): Boolean {
     val permsToCheck = listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)

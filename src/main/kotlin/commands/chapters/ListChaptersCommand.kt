@@ -1,29 +1,19 @@
 package commands.chapters
 
 import commands.make.DiffusionParameters
-import commands.make.upscale
 import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
-import dev.minn.jda.ktx.interactions.components.paginator
-import dev.minn.jda.ktx.interactions.components.replyPaginator
 import dev.minn.jda.ktx.messages.reply_
 import gson
 import miniManual
-import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.emoji.Emoji
-import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import replyPaginator
 import utils.ImageSliderEntry
-import utils.peterDate
 import utils.sendImageSlider
-import utils.sendPagination
 import java.net.URL
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 fun listChaptersCommand(jda: JDA) {
     jda.onCommand("chapters") { event ->

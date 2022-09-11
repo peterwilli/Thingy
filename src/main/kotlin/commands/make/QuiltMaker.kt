@@ -1,8 +1,5 @@
 package commands.make
 
-import java.awt.Color
-import java.awt.Font
-import java.awt.Graphics
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream

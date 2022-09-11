@@ -1,14 +1,10 @@
 package database.models
 
-import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
-import database.chapterDao
 import database.chapterEntryDao
-import database.userDao
 import org.jetbrains.annotations.NotNull
 import utils.peterDate
-import java.util.*
 
 @DatabaseTable(tableName = "user_chapter")
 class UserChapter {

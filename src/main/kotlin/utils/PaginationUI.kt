@@ -1,23 +1,15 @@
 package utils
 
 import Paginator
-import commands.make.DiffusionParameters
-import database.models.ChapterEntry
-import database.userDao
 import dev.minn.jda.ktx.interactions.components.button
-import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
 import net.dv8tion.jda.api.utils.FileUpload
 import paginator
 import replyPaginator
-import sendPaginator
 import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.time.Duration.Companion.minutes

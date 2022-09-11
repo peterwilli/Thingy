@@ -1,12 +1,10 @@
 package database.models
 
-import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
 import org.jetbrains.annotations.NotNull
 import utils.peterDate
 import java.net.URL
-import java.util.*
 
 @DatabaseTable(tableName = "chapter_entry")
 class ChapterEntry {

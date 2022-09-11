@@ -2,7 +2,6 @@ package database.models
 
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
-import net.dv8tion.jda.api.entities.User
 import org.jetbrains.annotations.NotNull
 
 @DatabaseTable(tableName = "user")

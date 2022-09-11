@@ -5,7 +5,6 @@ import config
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import randomString
 import utils.bufferedImageToDataURI
-import java.awt.image.BufferedImage
 import java.net.URI
 import java.net.URL
 import javax.imageio.ImageIO
@@ -16,7 +15,9 @@ data class StableDiffusionParameters(
     val prompt: String,
     var initImage: URI? = null,
     var ratio: Ratio = Ratio(),
-    var steps: Int = 50
+    var steps: Int = 50,
+    val guidanceScale: Double? = null,
+    val strength: Double? = null
 )
 
 fun optionsToStableDiffusionParams(

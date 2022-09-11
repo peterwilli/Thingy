@@ -4,17 +4,14 @@ import alphanumericCharPool
 import commands.make.DiffusionParameters
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
-import commands.make.optionsToStableDiffusionParams
 import config
 import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.generics.getChannel
 import dev.minn.jda.ktx.messages.reply_
 import gson
 import miniManual
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.TextChannel
 import queueDispatcher
 import randomString
 import utils.bufferedImageToDataURI
@@ -22,8 +19,7 @@ import utils.makeSelectImageFromQuilt
 import utils.takeSlice
 import java.net.URL
 import javax.imageio.ImageIO
-import kotlin.math.ceil
-import kotlin.math.floor
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -50,6 +46,25 @@ fun variateCommand(jda: JDA) {
         val latestEntry = usingChapter.getLatestEntry()
         val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
         val image = ImageIO.read(URL(latestEntry.imageURL))
+
+        val strength = if (event.getOption("strength") != null) {
+            event.getOption("strength")!!.asDouble
+        } else {
+            0.75
+        }
+
+        val guidanceScale = if (event.getOption("guidance_scale") != null) {
+            event.getOption("guidance_scale")!!.asDouble
+        } else {
+            7.5
+        }
+
+        val steps = if (event.getOption("steps") != null) {
+            min(event.getOption("steps")!!.asInt, 50)
+        } else {
+            50
+        }
+
         makeSelectImageFromQuilt(
             event,
             event.user,
@@ -66,7 +81,9 @@ fun variateCommand(jda: JDA) {
                     artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
                     stableDiffusionParameters = parameterToVariate.stableDiffusionParameters!!.copy(
                         initImage = base64Init,
-                        steps = 50
+                        steps = steps,
+                        guidanceScale = guidanceScale,
+                        strength = strength
                     )
                 )
             }

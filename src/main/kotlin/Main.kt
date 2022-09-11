@@ -1,6 +1,7 @@
 import com.sksamuel.hoplite.ConfigLoader
 import commands.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
+import commands.chapters.rollbackChapterCommand
 import commands.make.QueueDispatcher
 import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.social.shareCommand
@@ -56,6 +57,7 @@ fun initCommands(jda: JDA) {
     listChaptersCommand(jda)
     variateCommand(jda)
     shareCommand(jda)
+    rollbackChapterCommand(jda)
 
     jda.updateCommands {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
@@ -111,7 +113,12 @@ fun initCommands(jda: JDA) {
 
         slash("chapters", "Show your previous work!") {
         }
+        slash("rollback", "Like your old results better? Use this to bring them back!") {
+        }
         slash("variate", "Make variations of your previous prompt!") {
+            option<Double>("strength", "How strong the change needs to be?", required = false)
+            option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
+            option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("share", "Share your favorite image!") {
         }

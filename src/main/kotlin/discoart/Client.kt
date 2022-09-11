@@ -12,7 +12,6 @@ import io.grpc.ManagedChannel
 import jina.*
 import kotlinx.coroutines.flow.asFlow
 import randomString
-import utils.bufferedImageToDataURI
 import utils.camelToSnakeCase
 import java.io.Closeable
 import java.util.*
@@ -178,6 +177,22 @@ class Client(
     private fun addDefaultStableDiffusionParameters(params: DiffusionParameters, builder: Builder) {
         val stableParams = params.stableDiffusionParameters!!
         builder.putFields("steps",  value { numberValue = stableParams.steps.toDouble() })
+        builder.putFields("seed", value { stringValue = params.seed.toString() })
+        builder.putFields("width_height", value {
+            listValue = listValue {
+                val (w, h) = stableParams.ratio.calculateSize(512)
+                values.addAll(listOf(
+                    value { numberValue = w.toDouble() },
+                    value { numberValue = h.toDouble() }
+                ))
+            }
+        })
+        if(stableParams.strength != null) {
+            builder.putFields("strength",  value { numberValue = stableParams.strength })
+        }
+        if(stableParams.guidanceScale != null) {
+            builder.putFields("guidance_scale",  value { numberValue = stableParams.guidanceScale })
+        }
     }
 
     private fun addDefaultDiscoDiffusionParameters(params: DiffusionParameters, builder: Builder) {
@@ -247,7 +262,6 @@ class Client(
     suspend fun createStableDiffusionArt(params: DiffusionParameters): List<ByteArray> {
         val builder = Struct.newBuilder()
         addDefaultStableDiffusionParameters(params, builder)
-
         val dataReq = if (params.stableDiffusionParameters!!.initImage == null) {
              dataRequestProto {
                 parameters = builder.build()

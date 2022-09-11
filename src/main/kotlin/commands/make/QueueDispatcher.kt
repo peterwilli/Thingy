@@ -1,7 +1,6 @@
 package commands.make
 
 import com.j256.ormlite.misc.TransactionManager
-import commands.make.*
 import config
 import database.chapterDao
 import database.chapterEntryDao
@@ -21,14 +20,11 @@ import io.grpc.StatusException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import queueDispatcher
 import utils.peterDate
-import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.math.max
 

@@ -1,11 +1,6 @@
 package utils
 
-import commands.make.DiffusionParameters
-import database.models.ChapterEntry
-import gson
 import java.awt.image.BufferedImage
-import java.net.URL
-import javax.imageio.ImageIO
 import kotlin.math.ceil
 import kotlin.math.floor
 
