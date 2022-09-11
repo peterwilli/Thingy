@@ -5,6 +5,9 @@ import commands.chapters.rollbackChapterCommand
 import commands.img2img.img2imgCommand
 import commands.make.QueueDispatcher
 import commands.make.diffusion_configs.disco.discoDiffusionConfigs
+import commands.social.profileCommand
+import commands.social.serverStatsCommand
+import commands.social.setBackgroundCommand
 import commands.social.shareCommand
 import commands.update.updateCommand
 import commands.variate.variateCommand
@@ -20,6 +23,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Message.Attachment
+import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import kotlin.time.Duration
@@ -61,6 +65,9 @@ fun initCommands(jda: JDA) {
     shareCommand(jda)
     rollbackChapterCommand(jda)
     img2imgCommand(jda)
+    profileCommand(jda)
+    setBackgroundCommand(jda)
+    serverStatsCommand(jda)
 
     jda.updateCommands {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
@@ -99,43 +106,6 @@ fun initCommands(jda: JDA) {
             option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
-        /*
-        slash("disco_diffusion", "Making things with Disco Diffusion!") {
-            option<String>(
-                "prompts",
-                "prompts to make (weighted prompts can be separated by |, i.e 'Landscape:100|JPEG artifacts:-50')",
-                required = true
-            )
-            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<String>("init_image", "A link to an image you wish to use as start!", required = false)
-            option<Int>(
-                "skip_steps",
-                "Use with init_image. Number of steps to skip. More skips means closer to your init image.",
-                required = false
-            )
-            option<String>(
-                "preset",
-                "A custom configuration pack (any other parameters will override the preset!)",
-                required = false
-            ) {
-                for (k in discoDiffusionConfigs.keys) {
-                    choice(discoDiffusionConfigs[k]!!.second, k)
-                }
-            }
-            option<Boolean>("horizontal_symmetry", "Make the image horizontally symmetric!", required = false)
-            option<Boolean>("vertical_symmetry", "Make the image vertically symmetric!", required = false)
-            option<Double>(
-                "symmetry_intensity",
-                "100% means fully symmetric, anything below that will reduce the effect.",
-                required = false
-            )
-            option<Int>(
-                "seed",
-                "Entropy for the random number generator, use the same seed to replicate results!",
-                required = false
-            )
-        }
-        */
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)
         }
@@ -151,6 +121,14 @@ fun initCommands(jda: JDA) {
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("share", "Share your favorite image!") {
+        }
+        slash("profile", "Get someone's (Or your!) stats!") {
+            option<User>("user", "Get stats by user (you if not defined)", required = false)
+            option<Boolean>("ephemeral", "Send only to you?", required = false)
+        }
+        slash("stats", "See server and bot stats!") {
+        }
+        slash("set_background", "Set profile background!") {
         }
     }.queue()
 }

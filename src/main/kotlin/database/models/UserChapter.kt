@@ -30,7 +30,8 @@ class UserChapter {
     constructor() {
     }
 
-    constructor(userID: Long) {
+    constructor(id: Long, userID: Long) {
+        this.id = id
         this.userID = userID
     }
 

@@ -218,15 +218,20 @@ class QueueDispatcher(private val jda: JDA) {
                         userQuery.query().first()!!
                     }
                     TransactionManager.callInTransaction(connectionSource) {
-                        chapterID = chapterDao.queryBuilder().selectColumns("id").orderBy("creationTimestamp", false).limit(1).queryForFirst().id + 1
+                        val possibleLastChapter = chapterDao.queryBuilder().selectColumns("id").orderBy("creationTimestamp", false).limit(1).queryForFirst()
+                        chapterID = if(possibleLastChapter == null) {
+                            0
+                        } else {
+                            possibleLastChapter.id + 1
+                        }
                         val chapter = UserChapter(
+                            id = chapterID,
                             userID = user.id
                         )
                         chapterDao.create(chapter)
-                        chapterID = chapterDao.queryBuilder().selectColumns("id").countOf()
                         val chapterEntry = ChapterEntry(
                             chapterID = chapterID,
-                            serverID = finishMsg.guild!!.id,
+                            serverID = finishMsg.guild.id,
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
                             imageURL = URL(finishMsg.attachments.first().url),
@@ -239,7 +244,7 @@ class QueueDispatcher(private val jda: JDA) {
                     TransactionManager.callInTransaction(connectionSource) {
                         val chapterEntry = ChapterEntry(
                             chapterID = entry.chapter.id,
-                            serverID = finishMsg.guild!!.id,
+                            serverID = finishMsg.guild.id,
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
                             imageURL = URL(finishMsg.attachments.first().url),

@@ -53,7 +53,7 @@ fun shareCommand(jda: JDA) {
 
             val usingChapter =
                 chapterDao.queryBuilder().selectColumns().where()
-                    .eq("userScopedID", user.currentChapterId).and().eq("userID", user.id).queryForFirst()
+                    .eq("id", user.currentChapterId).and().eq("userID", user.id).queryForFirst()
             if (usingChapter == null) {
                 event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                     .setEphemeral(true).queue()

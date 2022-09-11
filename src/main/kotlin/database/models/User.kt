@@ -18,6 +18,12 @@ class User {
     var generationsDone: Long = 0
 
     @DatabaseField()
+    var backgroundURL: String? = null
+
+    @DatabaseField()
+    var profileTextColor: String? = null
+
+    @DatabaseField()
     var currentChapterId: Long = 0
 
     // ORMLite needs a no-arg constructor
