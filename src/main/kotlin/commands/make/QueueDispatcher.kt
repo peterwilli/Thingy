@@ -47,7 +47,7 @@ class QueueDispatcher(private val jda: JDA) {
                     e.printStackTrace()
                     entry.progressDelete()
                     entry.getChannel()
-                        .sendMessage("${entry.getMember().asMention} Connection to the DiscoArt server has failed, it's likely that the bot is offline, we're sorry, please try again later!")
+                        .sendMessage("${entry.getMember().asMention} Connection to the AI server has failed, it's likely that the bot is offline, we're sorry, please try again later!")
                         .queue()
                 } catch (e: Exception) {
                     try {
@@ -150,7 +150,6 @@ class QueueDispatcher(private val jda: JDA) {
                         }
                     }
                     avgPercentCompleted /= batch.size
-                    println("completedCount: $completedCount, batch.size: ${batch.size}")
                     if (completedCount == batch.size) {
                         finalImages = newImages
                         break
@@ -206,7 +205,6 @@ class QueueDispatcher(private val jda: JDA) {
             }
             imageProgress.await()
             if (finalImages != null) {
-                println("SJfdsJFD")
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
                 val finishMsg = entry.progressUpdate(entry.getHumanReadableOverview(),  quilt,
                     "${config.bot.name}_final.jpg")

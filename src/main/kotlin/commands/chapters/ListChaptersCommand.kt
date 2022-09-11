@@ -11,8 +11,8 @@ import miniManual
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import replyPaginator
-import utils.ImageSliderEntry
-import utils.sendImageSlider
+import ui.ImageSliderEntry
+import ui.sendImageSlider
 import java.net.URL
 
 fun listChaptersCommand(jda: JDA) {

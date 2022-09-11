@@ -1,7 +1,8 @@
-package utils
+package ui
 
 import Paginator
 import dev.minn.jda.ktx.interactions.components.button
+import getAverageColor
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
@@ -11,6 +12,8 @@ import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
 import net.dv8tion.jda.api.utils.FileUpload
 import paginator
 import replyPaginator
+import utils.bufferedImageToByteArray
+import utils.takeSlice
 import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.time.Duration.Companion.minutes
@@ -40,7 +43,9 @@ fun makeSelectImageFromQuilt(event: GenericCommandInteractionEvent, user: User, 
         page.setTitle(title)
         page.setFooter("Image ${index + 1} / $totalImages")
         page.setImage("attachment://${index + 1}.jpg")
-        page.setColor(0x33cc33)
+        val imageSlice = takeSlice(quilt, totalImages, index)
+        val avgColor = getAverageColor(imageSlice, 0, 0, imageSlice.width, imageSlice.height)
+        page.setColor(avgColor)
         page.build()
     }.toTypedArray()
     val imageSelector = paginator(*messages, expireAfter = 10.minutes)

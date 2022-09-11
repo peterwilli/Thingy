@@ -57,14 +57,12 @@ fun optionsToStableDiffusionParams(
         }
     }
 
-    val initImageOption = event.getOption("init_image")
-    if (initImageOption != null) {
-        try {
-            val imageURL = URL(initImageOption.asString)
-            params.stableDiffusionParameters!!.initImage = bufferedImageToDataURI(ImageIO.read(imageURL))
-        } catch (e: Exception) {
-            throw Exception("Image URL is invalid! Make sure init_image is set to a valid link!")
-        }
+    val attachmentOption = event.getOption("input_image")
+    if (attachmentOption != null) {
+        val image = ImageIO.read(URL(attachmentOption.asAttachment.url))
+        val base64Init = bufferedImageToDataURI(image)
+        params.stableDiffusionParameters!!.initImage = base64Init
     }
+
     return params
 }

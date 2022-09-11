@@ -31,6 +31,7 @@ dependencies {
     implementation("com.j256.ormlite:ormlite-core:6.1")
     implementation("com.j256.ormlite:ormlite-jdbc:6.1")
     implementation("org.xerial:sqlite-jdbc:3.39.2.1")
+    implementation("org.atteo:evo-inflector:1.3")
     implementation("com.google.code.gson:gson:2.9.1")
     implementation(kotlin("reflect"))
 }

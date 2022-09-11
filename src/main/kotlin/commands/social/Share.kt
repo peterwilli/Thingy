@@ -10,6 +10,7 @@ import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.editMessage
 import dev.minn.jda.ktx.messages.reply_
+import getAverageColor
 import gson
 import miniManual
 import net.dv8tion.jda.api.EmbedBuilder
@@ -18,8 +19,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
+import ui.makeSelectImageFromQuilt
 import utils.bufferedImageToByteArray
-import utils.makeSelectImageFromQuilt
 import utils.messageToURL
 import utils.takeSlice
 import java.awt.Color
@@ -28,26 +29,6 @@ import java.net.URL
 import javax.imageio.ImageIO
 
 private val imageFilename = "final.png"
-
-fun getAverageColor(
-    bi: BufferedImage, x0: Int, y0: Int, w: Int, h: Int
-): Color {
-    val x1 = x0 + w
-    val y1 = y0 + h
-    var sumr: Long = 0
-    var sumg: Long = 0
-    var sumb: Long = 0
-    for (x in x0 until x1) {
-        for (y in y0 until y1) {
-            val pixel = Color(bi.getRGB(x, y))
-            sumr += pixel.getRed()
-            sumg += pixel.getGreen()
-            sumb += pixel.getBlue()
-        }
-    }
-    val num = w * h
-    return Color((sumr / num).toInt(), (sumg / num).toInt(), (sumb / num).toInt())
-}
 
 private fun makeShareEmbed(img: BufferedImage, author: User, parameters: Array<DiffusionParameters>): MessageEmbed {
     val embed = EmbedBuilder()
@@ -88,7 +69,7 @@ fun shareCommand(jda: JDA) {
                 "Select image for sharing",
                 image,
                 parameters.size
-            ) { btnEvent, chosenImage ->
+            ) { _, chosenImage ->
                 val possibleCacheEntry =
                     sharedArtCacheEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
                         .and().eq("imageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()

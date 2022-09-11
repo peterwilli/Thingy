@@ -2,6 +2,7 @@ import com.sksamuel.hoplite.ConfigLoader
 import commands.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
+import commands.img2img.img2imgCommand
 import commands.make.QueueDispatcher
 import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.social.shareCommand
@@ -18,6 +19,7 @@ import kotlinx.coroutines.coroutineScope
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
+import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import kotlin.time.Duration
@@ -58,6 +60,7 @@ fun initCommands(jda: JDA) {
     variateCommand(jda)
     shareCommand(jda)
     rollbackChapterCommand(jda)
+    img2imgCommand(jda)
 
     jda.updateCommands {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
@@ -70,7 +73,14 @@ fun initCommands(jda: JDA) {
                 required = false
             )
         }
-
+        slash("img2img", "Make an existing image into your prompt!") {
+            option<Attachment>("input_image", "Initial image", required = true)
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<Double>("strength", "How strong the change needs to be?", required = false)
+            option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
+            option<Int>("steps", "How much steps from the original image?", required = false)
+        }
+        /*
         slash("disco_diffusion", "Making things with Disco Diffusion!") {
             option<String>(
                 "prompts",
@@ -106,6 +116,7 @@ fun initCommands(jda: JDA) {
                 required = false
             )
         }
+        */
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)
         }

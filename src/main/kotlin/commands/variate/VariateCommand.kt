@@ -14,8 +14,8 @@ import miniManual
 import net.dv8tion.jda.api.JDA
 import queueDispatcher
 import randomString
+import ui.makeSelectImageFromQuilt
 import utils.bufferedImageToDataURI
-import utils.makeSelectImageFromQuilt
 import utils.takeSlice
 import java.net.URL
 import javax.imageio.ImageIO
