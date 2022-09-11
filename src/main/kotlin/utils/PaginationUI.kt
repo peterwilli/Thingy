@@ -5,6 +5,7 @@ import dev.minn.jda.ktx.interactions.components.button
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
 import net.dv8tion.jda.api.utils.FileUpload
@@ -33,7 +34,7 @@ fun sendImageSlider(title: String, items: List<ImageSliderEntry>): Paginator {
     return paginator(*messages, expireAfter = 10.minutes)
 }
 
-fun makeSelectImageFromQuilt(event: GenericCommandInteractionEvent, user: User, title: String, quilt: BufferedImage, totalImages: Int, callback: (index: Int) -> Unit): ReplyCallbackAction {
+fun makeSelectImageFromQuilt(event: GenericCommandInteractionEvent, user: User, title: String, quilt: BufferedImage, totalImages: Int, callback: (btnEvent: ButtonInteractionEvent, index: Int) -> Unit): ReplyCallbackAction {
     val messages = (0 until totalImages).map { index ->
         val page = EmbedBuilder()
         page.setTitle(title)
@@ -51,8 +52,8 @@ fun makeSelectImageFromQuilt(event: GenericCommandInteractionEvent, user: User, 
         label = "Select",
         style = ButtonStyle.PRIMARY,
         user = user
-    ) {
-        callback(imageSelector.getIndex())
+    ) { btnEvent ->
+        callback(btnEvent, imageSelector.getIndex())
     })
     val firstSlice = takeSlice(quilt, totalImages, 0)
     return event.replyPaginator(imageSelector).setFiles(FileUpload.fromData(bufferedImageToByteArray(firstSlice, "jpg"), "1.jpg"))

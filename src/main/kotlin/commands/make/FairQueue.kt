@@ -3,9 +3,13 @@ package commands.make
 import commands.make.diffusion_configs.disco.discoDiffusionConfigInstanceToName
 import config
 import database.models.UserChapter
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import net.dv8tion.jda.api.utils.FileUpload
 import updateMode
 
@@ -45,8 +49,8 @@ data class FairQueueEntry(
         progressHook.editOriginal(message).queue()
     }
 
-    fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String) {
-        progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).queue()
+    suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {
+        return progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
     }
 
     fun progressDelete() {

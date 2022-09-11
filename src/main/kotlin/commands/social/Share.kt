@@ -88,7 +88,7 @@ fun shareCommand(jda: JDA) {
                 "Select image for sharing",
                 image,
                 parameters.size
-            ) { chosenImage ->
+            ) { btnEvent, chosenImage ->
                 val possibleCacheEntry =
                     sharedArtCacheEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
                         .and().eq("imageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()

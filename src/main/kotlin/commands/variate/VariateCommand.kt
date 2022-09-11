@@ -50,13 +50,13 @@ fun variateCommand(jda: JDA) {
         val strength = if (event.getOption("strength") != null) {
             event.getOption("strength")!!.asDouble
         } else {
-            0.75
+            0.5
         }
 
         val guidanceScale = if (event.getOption("guidance_scale") != null) {
             event.getOption("guidance_scale")!!.asDouble
         } else {
-            7.5
+            0.5
         }
 
         val steps = if (event.getOption("steps") != null) {
@@ -71,7 +71,7 @@ fun variateCommand(jda: JDA) {
             "Select your favorite to variate!",
             image,
             parameters.size
-        ) { chosenImage ->
+        ) { btnEvent, chosenImage ->
             val parameterToVariate = parameters[chosenImage]
             val imageSlice = takeSlice(image, parameters.size, chosenImage)
             val batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { _ ->
@@ -92,11 +92,10 @@ fun variateCommand(jda: JDA) {
                 FairQueueType.StableDiffusion,
                 event.member!!.id,
                 batch,
-                event.hook,
+                btnEvent.hook,
                 usingChapter
             )
-            event.hook.editOriginal(queueDispatcher.queue.addToQueue(fqe)).setComponents().setEmbeds().setAttachments()
-                .queue()
+            btnEvent.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
         }.setEphemeral(true).queue()
     }
 }
