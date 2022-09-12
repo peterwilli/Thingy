@@ -5,7 +5,8 @@ data class HostConstraints(
 
 data class GRPCServer(
     val host: String,
-    val port: Int
+    val port: Int,
+    val plainText: Boolean
 )
 
 data class Bot(

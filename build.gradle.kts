@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "1.6.21"
     application
     id("com.google.protobuf") version "0.8.19"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "org.example"
@@ -48,13 +49,17 @@ application {
     mainClass.set("MainKt")
 }
 
+tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+    mergeServiceFiles()
+}
+
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.21.3"
+        artifact = "com.google.protobuf:protoc:3.21.5"
     }
     plugins {
         id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.47.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:1.49.0"
         }
         id("grpckt") {
             artifact = "io.grpc:protoc-gen-grpc-kotlin:1.3.0:jdk8@jar"

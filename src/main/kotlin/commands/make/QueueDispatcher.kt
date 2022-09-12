@@ -30,9 +30,16 @@ import kotlin.math.max
 class QueueDispatcher(private val jda: JDA) {
     val queue = FairQueue(config.maxEntriesPerOwner)
     private var queueStarted = false
-    val channel: ManagedChannel = ManagedChannelBuilder.forAddress(config.grpcServer.host, config.grpcServer.port)
-        .maxInboundMessageSize(1024 * 1024 * 1024).usePlaintext().build()
-    val client = Client(channel)
+    val client: Client
+
+    init {
+        val channelBuilder = ManagedChannelBuilder.forAddress(config.grpcServer.host, config.grpcServer.port)
+            .maxInboundMessageSize(1024 * 1024 * 1024)
+        if (config.grpcServer.plainText) {
+            channelBuilder.usePlaintext()
+        }
+        client = Client(channelBuilder.build())
+    }
 
     suspend fun startQueueDispatcher() {
         queueStarted = true

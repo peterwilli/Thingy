@@ -1,12 +1,10 @@
 # Thingy
 
-Discord bot that integrates with DiscoArt, adding a slick user interface to play around with you and your friends!
+Discord bot to enerate images based on a text prompt - way more than just that! Through a wide variety of tools, you can alter your generated images and share them with friends.
+
+Integrates with DiscoArt, Stable Diffusion and other peculiarities, all rolled up in a single, sexy user interface that allows one to mix and match different configurations without a steeper learning curve!
 
 [Demo video + dev journey](https://www.youtube.com/watch?v=epLF0OXTp-A)
-
-# DiscoArt?!
-
-Check out the [DiscoArt repo](https://github.com/jina-ai/discoart) for what this is all about!
 
 In short: this bot allows you to generate images based on a text prompt, but can do way more than just that - offering a wide variety of tools to make alter your generated images.
 
