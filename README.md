@@ -8,8 +8,8 @@ Integrates with DiscoArt, Stable Diffusion and other peculiarities, all rolled u
 - Fairness queue: Making sure everyone gets to make art!
 - Social features: Sharing, profiles and stats
 - Advanced Profile customization
-- Chapters: Work on your pieces, and switch back to previous works of art!
-  - Every "creation" command (`/stable_diffusion`, `/disco_diffusion`) results in a new chapter.
+- **Chapters**: Work on your pieces, and switch back to previous works of art!
+  - Every "creation" command (`/stable_diffusion`, `/disco_diffusion`) results in a new chapter
   - Users can use variation commands (`/upscale`, `/variate`, ~~more to come~~) to alter said chapters as they wish
   - Don't like a change? Just do `/rollback`! There's unlimited undo!
   - Users can instantly swap back to previous chapters with `/chapters`
@@ -20,17 +20,17 @@ In short: this bot allows you to generate images based on a text prompt, but can
 
 # Credits and special thanks
 
- - First and foremost Han Xiao for being around in DMs helping me with what I struggled with but also putting me on the right direction in various moments.
- - [DiscoArt](https://github.com/jina-ai/discoart): without this project, I was never able to cook this up in a weekend.
- - [Jina](https://jina.ai) which has some incredible tooling I got familiar with.
+ - First and foremost Han Xiao for being around in DMs helping me with what I struggled with but also putting me on the right direction in various moments
+ - [DiscoArt](https://github.com/jina-ai/discoart): without this project, I was never able to cook this up in a weekend
+ - [Jina](https://jina.ai) which has some incredible tooling I got familiar with
 
 # Demo
 
-[My discord server](https://discord.gg/j4wQYhhvVd) has the bot running, however, keep in mind that currently, it runs on a single RTX3080, so it might be slow in busy times.
+[My discord server](https://discord.gg/j4wQYhhvVd) has the bot running, both alpha and production bots are up!
 
 # Run it yourself!
 
-As this bot is open-source, anyone can run it. Depending on the method, you need different specs. The easiest is through Jina Cloud.
+As this bot is open-source, anyone can run it. Depending on the method, you need different specs. The easiest is through Jina Cloud
 
 ## Installing via Jina Cloud
 
@@ -57,24 +57,24 @@ What you need:
 ## Setting up the bot
 
 - Create a Discord application on their [developer portal](https://discord.com/developers/applications/me)
-- Make a discord bot by clicking on the Bot menu, and click "Add Bot". Name it as you like.
-- Click "Reset Token" to reveal the bot token. Make note of this token, you need it in the next step.
-- In the config.yml, change the bot name and token to your bot token.
-- Assuming you run the Jina Flow server as well as the Discord bot on the same machine, you don't need to do anything.
+- Make a discord bot by clicking on the Bot menu, and click "Add Bot". Name it as you like
+- Click "Reset Token" to reveal the bot token. Make note of this token, you need it in the next step
+- In the config.yml, change the bot name and token to your bot token
+- Assuming you run the Jina Flow server as well as the Discord bot on the same machine, you don't need to do anything
     - If your Jina server is remote, you have to change `host` and `port` under `grpcServer`
     - If you run on JCLoud, make sure to set `port` to `443` and `plainText` to `false`!
-- Save the config.
-- Go to the OAuth2 menu, and click the URL Generator submenu. Check off the Bot checkbox.
+- Save the config
+- Go to the OAuth2 menu, and click the URL Generator submenu. Check off the Bot checkbox
 - In bot permissions, you only need the following:
     ![Bot permissions checkboxes](./extras/bot_perms.png)
-- After you have done this, you can copy the link and invite the bot into your server.
-  - The first time, the bot may be triggering a timeout error, this is because it has to download all the model files. After it's done, it'll run properly.
+- After you have done this, you can copy the link and invite the bot into your server
+  - The first time, the bot may be triggering a timeout error, this is because it has to download all the model files. After it's done, it'll run properly
 - You can now resume the previous steps (wherever you were forwarded from)
 
 ### How to enable the Share feature (optional)
 
 - [Make sure Discord is in developer mode](https://www.howtogeek.com/714348/how-to-enable-or-disable-developer-mode-on-discord)
 - Make a channel, any place you like (bot needs to be able to post to it, so make sure has write permissions there). Name it something like `gallery`
-- Right-click on the channel and click "Copy ID".
+- Right-click on the channel and click "Copy ID"
 - Paste the channel ID in `shareChannelID` in the bot's `config.yml`. Restart bot if its running!
 - Now you and your members can use `/share` for showcasing your fine art!
