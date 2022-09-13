@@ -35,6 +35,8 @@ fun img2imgCommand(jda: JDA) {
                 50
             }
 
+            event.deferReply().queue()
+
             var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
                 val initialParams = optionsToStableDiffusionParams(event, it)
                 initialParams.copy(
@@ -53,7 +55,7 @@ fun img2imgCommand(jda: JDA) {
                 event.hook,
                 null
             )
-            event.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
+            event.hook.editOriginal(queueDispatcher.queue.addToQueue(entry)).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("Error! $e").setEphemeral(true).queue()
