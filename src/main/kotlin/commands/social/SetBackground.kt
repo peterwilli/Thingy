@@ -14,8 +14,14 @@ import miniManual
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.entities.emoji.Emoji
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction
 import net.dv8tion.jda.api.utils.FileUpload
 import org.atteo.evo.inflector.English
@@ -27,6 +33,27 @@ import java.awt.Graphics
 import java.awt.image.BufferedImage
 import java.net.URL
 import javax.imageio.ImageIO
+
+object DropdownBot : ListenerAdapter() {
+    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
+        if (event.name == "food") {
+            val selectMenu = SelectMenu.create("choose-food")
+                .addOption("Pizza", "pizza", "Classic") // SelectOption with only the label, value, and description
+                .addOptions(
+                    SelectOption.of("Hamburger", "hamburger") // another way to create a SelectOption
+                        .withDescription("Tasty") // this time with a description
+                        .withEmoji(Emoji.fromUnicode("\uD83C\uDF54")) // and an emoji
+                        .withDefault(true)) // while also being the default option
+                .build()
+        }
+    }
+
+    override fun onSelectMenuInteraction(event: SelectMenuInteractionEvent) {
+        if (event.componentId == "choose-food") {
+            event.reply("You chose " + event.values[0]).queue()
+        }
+    }
+}
 
 fun setBackgroundCommand(jda: JDA) {
     jda.onCommand("set_background") { event ->
@@ -67,6 +94,9 @@ fun setBackgroundCommand(jda: JDA) {
                     val card = makeProfileCard(event.user, getSlicedBG())
                     return event.hook.editMessage(content = "**Preview!**")
                         .setFiles(FileUpload.fromData(bufferedImageToByteArray(card), "profile.png"))
+                }
+                fun getFontDropdown() {
+
                 }
                 fun getButtons(): Array<Button> {
                     val upButton = jda.button(

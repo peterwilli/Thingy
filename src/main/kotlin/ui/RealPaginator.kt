@@ -55,8 +55,17 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
 
     private var index = 0
     private val pageCache = mutableListOf<MessageCreateData>()
-    private val nextPage: MessageCreateData get() = pageCache[++index]
-    private val prevPage: MessageCreateData get() = pageCache[--index]
+    private val nextPage: MessageCreateData get() {
+        index = (index + 1) % pageCache.size
+        return pageCache[index]
+    }
+    private val prevPage: MessageCreateData get() {
+        index = (index - 1)
+        if(index < 0) {
+            index = pageCache.size - 1
+        }
+        return pageCache[index]
+    }
     var customActionComponents: List<ActionComponent>? = null
     var filter: (ButtonInteraction) -> Boolean = { true }
     var injectMessageCallback: ((index: Int, messageEdit: MessageEditCallbackAction) -> Unit)? = null
@@ -72,8 +81,8 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
 
     internal fun getControls(): ActionRow {
         val controls: MutableList<ActionComponent> = mutableListOf(
-            prev.withDisabled(index == 0).withId("$nonce:prev"),
-            next.withDisabled(index == pageCache.size - 1).withId("$nonce:next")
+            prev.withId("$nonce:prev"),
+            next.withId("$nonce:next")
         )
         if(customActionComponents != null) {
             controls.addAll(customActionComponents!!)
