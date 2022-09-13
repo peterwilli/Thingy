@@ -7,9 +7,15 @@ hostConstraints:
   maxSimultaneousMakeRequests: 1
   totalImagesInMakeCommand: 4
 timeouts:
-  imageNotAppearing: 10
-  imageNotUpdating: 10
+  discoDiffusion:
+    imageNotAppearing: 10
+    imageNotUpdating: 10
+  stableDiffusion:
+    imageNotAppearing: 30
+    imageNotUpdating: 30
 grpcServer:
-  host: "localhost"
-  port: 51001
+  host: "xxxx.wolf.jina.ai"
+  port: 443
+  plainText: false
 imagesFolder: "/app"
+shareChannelID: "1015964690800726158"
