@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 fun discoDiffusionCommand(jda: JDA) {
     jda.onCommand("disco_diffusion") { event ->
         try {
-            if (!validatePermissions(event)) {
+            if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
             }
             val prompts = event.getOption("prompts")!!.asString

@@ -81,8 +81,8 @@ fun initCommands(jda: JDA) {
             )
         }
         slash("img2img", "Make an existing image into your prompt!") {
-            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<Attachment>("input_image", "Initial image", required = true)
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             option<Int>(
                 "seed",
@@ -94,8 +94,8 @@ fun initCommands(jda: JDA) {
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("link2img", "Make an existing image into your prompt!") {
-            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("input_image_url", "Link to initial image", required = true)
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             option<Int>(
                 "seed",

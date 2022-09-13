@@ -1,7 +1,4 @@
-import commands.make.FairQueueEntry
-import commands.make.FairQueueType
-import commands.make.optionsToStableDiffusionParams
-import commands.make.validatePermissions
+import commands.make.*
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
@@ -10,7 +7,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook
 fun stableDiffusionCommand(jda: JDA) {
     jda.onCommand("stable_diffusion") { event ->
         try {
-            if (!validatePermissions(event)) {
+            if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
             }
 
