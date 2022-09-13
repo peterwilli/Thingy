@@ -1,0 +1,18 @@
+jtype: Flow
+with:
+  protocol: grpc
+monitoring: true
+executors:
+  # Stable Diffusion
+  - name: stable_diffusion_txt2img
+    uses: jinahub+docker://Txt2ImgExecutor/0.1.2
+    jcloud:
+      resources:
+        gpu: 1
+        cpu: 1
+  - name: stable_diffusion_img2img
+    uses: jinahub+docker://Img2ImgExecutor/0.1.1
+    jcloud:
+      resources:
+        gpu: 1
+        cpu: 1

@@ -45,32 +45,12 @@ What you need:
 
  - Follow the tutorial to install JCloud: https://docs.jina.ai/fundamentals/jcloud
  - Create a directory where we will set up our bot
- - Write the following file in the directory and call it `flow.yml`:
-    ```yml
-    jtype: Flow
-    with:
-      protocol: grpc
-    monitoring: true
-    executors:
-      # Stable Diffusion
-      - name: stable_diffusion_txt2img
-        uses: jinahub+docker://Txt2ImgExecutor/0.1.2
-        jcloud:
-          resources:
-            gpu: 1
-            cpu: 1
-      - name: stable_diffusion_img2img
-        uses: jinahub+docker://Img2ImgExecutor/0.1.1
-        jcloud:
-          resources:
-            gpu: 1
-            cpu: 1
-    ```
- - In the directory, run `jc deploy flow.yml` to launch your own bot server! This may take a while
+ - Download [the following](/flow_server.yml) file in the directory
+ - In the directory, run `jc deploy flow_server.yml` to launch your own bot server! This may take a while
    - You should get a URL similar to `xxxxx.wolf.jina.ai`, make note of that URL as you need it in the bot configuration!
- - Download [This file](/config.example.yml) and name it `config.yml`, put it into the bot directory. 
+ - Download [this file](/config.example.yml) and name it `config.yml`, put it into the bot directory. 
  - Once done, follow "Setting up the bot" and then go back here
- - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-1) and put it in the bot directory.
+ - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-1) and put it in the bot directory
  - In a terminal in the bot directory, now type `java -jar DiscordArtBot-1.0-SNAPSHOT-all.jar`
  - In a bit, it should be up and running. Congrats, you can use `/stable_diffusion` and other peculiarities!
 
