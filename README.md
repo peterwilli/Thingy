@@ -78,3 +78,9 @@ What you need:
 - Right-click on the channel and click "Copy ID"
 - Paste the channel ID in `shareChannelID` in the bot's `config.yml`. Restart bot if its running!
 - Now you and your members can use `/share` for showcasing your fine art!
+
+# Sister projects
+
+These are co-developed with Thingy!
+
+- [Diffusers executor](https://github.com/peterwilli/DiffusersExecutor)
