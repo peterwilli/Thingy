@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import dev.minn.jda.ktx.messages.MessageCreate
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.MessageChannel
-import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -50,25 +48,26 @@ object PaginatorDefaults {
     var NEXT: Button = Button.secondary("next", Emoji.fromUnicode("➡️"))
 }
 
-class Paginator internal constructor(private val nonce: String, private val ttl: Duration): EventListener {
+typealias GetPageCallback = ((index: Long) -> MessageCreateData)
+
+class Paginator internal constructor(private val nonce: String, private val amountOfPages: Long, internal val getPage: GetPageCallback, private val ttl: Duration): EventListener {
     private var expiresAt: Long = Math.addExact(System.currentTimeMillis(), ttl.inWholeMilliseconds)
 
-    private var index = 0
-    private val pageCache = mutableListOf<MessageCreateData>()
+    private var index = 0L
     private val nextPage: MessageCreateData get() {
-        index = (index + 1) % pageCache.size
-        return pageCache[index]
+        index = (index + 1) % amountOfPages
+        return getPage(index)
     }
     private val prevPage: MessageCreateData get() {
         index = (index - 1)
         if(index < 0) {
-            index = pageCache.size - 1
+            index = amountOfPages - 1
         }
-        return pageCache[index]
+        return getPage(index)
     }
     var customActionComponents: List<ActionComponent>? = null
     var filter: (ButtonInteraction) -> Boolean = { true }
-    var injectMessageCallback: ((index: Int, messageEdit: MessageEditCallbackAction) -> Unit)? = null
+    var injectMessageCallback: ((index: Long, messageEdit: MessageEditCallbackAction) -> Unit)? = null
 
     fun filterBy(filter: (ButtonInteraction) -> Boolean): Paginator {
         this.filter = filter
@@ -77,7 +76,6 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
 
     var prev: Button = PaginatorDefaults.PREV
     var next: Button = PaginatorDefaults.NEXT
-    val pages: List<MessageCreateData> get() = pageCache.toList()
 
     internal fun getControls(): ActionRow {
         val controls: MutableList<ActionComponent> = mutableListOf(
@@ -90,15 +88,7 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
         return ActionRow.of(controls)
     }
 
-    fun addPages(vararg page: MessageCreateData) {
-        pageCache.addAll(page)
-    }
-
-    fun addPages(vararg page: MessageEmbed) {
-        addPages(*page.map { MessageCreate(embeds=listOf(it)) }.toTypedArray())
-    }
-
-    fun getIndex(): Int {
+    fun getIndex(): Long {
         return this.index
     }
 
@@ -134,53 +124,17 @@ class Paginator internal constructor(private val nonce: String, private val ttl:
     }
 }
 
-fun paginator(vararg pages: MessageCreateData, expireAfter: Duration): Paginator {
+fun paginator(amountOfPages: Long, getPage: GetPageCallback, expireAfter: Duration): Paginator {
     val nonce = ByteArray(32)
     SecureRandom().nextBytes(nonce)
-    return Paginator(Base64.getEncoder().encodeToString(nonce), expireAfter).also { it.addPages(*pages) }
+    return Paginator(Base64.getEncoder().encodeToString(nonce), amountOfPages, getPage, expireAfter)
 }
 
-fun paginator(vararg pages: MessageEmbed, expireAfter: Duration): Paginator
-        = paginator(*pages.map { MessageCreate(embeds=listOf(it)) }.toTypedArray(), expireAfter=expireAfter)
-
 fun MessageChannel.sendPaginator(paginator: Paginator)
-        = sendMessage(paginator.also { jda.addEventListener(it) }.pages[0]).setComponents(paginator.getControls())
+        = sendMessage(paginator.also { jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
 
 fun InteractionHook.sendPaginator(paginator: Paginator)
-        = sendMessage(paginator.also { jda.addEventListener(it) }.pages[0]).setComponents(paginator.getControls())
+        = sendMessage(paginator.also { jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
 
 fun IReplyCallback.replyPaginator(paginator: Paginator)
-        = reply(paginator.also { user.jda.addEventListener(it) }.pages[0]).setComponents(paginator.getControls())
-
-fun MessageChannel.sendPaginator(
-    vararg pages: MessageCreateData,
-    expireAfter: Duration,
-    filter: (ButtonInteraction) -> Boolean = {true}
-) = sendPaginator(paginator(*pages, expireAfter=expireAfter).filterBy(filter))
-fun MessageChannel.sendPaginator(
-    vararg pages: MessageEmbed,
-    expireAfter: Duration,
-    filter: (ButtonInteraction) -> Boolean = {true}
-) = sendPaginator(paginator(*pages, expireAfter=expireAfter).filterBy(filter))
-
-fun InteractionHook.sendPaginator(
-    vararg pages: MessageCreateData,
-    expireAfter: Duration,
-    filter: (ButtonInteraction) -> Boolean = {true}
-) = sendPaginator(paginator(*pages, expireAfter=expireAfter).filterBy(filter))
-fun InteractionHook.sendPaginator(
-    vararg pages: MessageEmbed,
-    expireAfter: Duration,
-    filter: (ButtonInteraction) -> Boolean = {true}
-) = sendPaginator(paginator(*pages, expireAfter=expireAfter).filterBy(filter))
-
-fun IReplyCallback.replyPaginator(
-    vararg pages: MessageCreateData,
-    expireAfter: Duration,
-    filter: (ButtonInteraction) -> Boolean = {true}
-) = replyPaginator(paginator(*pages, expireAfter=expireAfter).filterBy(filter))
-fun IReplyCallback.replyPaginator(
-    vararg pages: MessageEmbed,
-    expireAfter: Duration,
-    filter: (ButtonInteraction) -> Boolean = {true}
-) = replyPaginator(paginator(*pages, expireAfter=expireAfter).filterBy(filter))
+        = reply(paginator.also { user.jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())

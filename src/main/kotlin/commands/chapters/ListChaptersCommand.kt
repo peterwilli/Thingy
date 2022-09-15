@@ -2,6 +2,7 @@ package commands.chapters
 
 import commands.make.DiffusionParameters
 import database.chapterDao
+import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.messages.MessageEditData
 import replyPaginator
+import ui.GetImageCallback
 import ui.ImageSliderEntry
 import ui.sendImageSlider
 import java.net.URL
@@ -27,36 +29,37 @@ fun listChaptersCommand(jda: JDA) {
                     .setEphemeral(true).queue()
                 return@onCommand
             }
-            event.deferReply(true).queue()
-            val possibleChapters =
-                chapterDao.queryBuilder().orderBy("creationTimestamp", false).selectColumns().where()
-                    .eq("userID", user.id).query()
-            if (possibleChapters.isEmpty()) {
+            val chaptersCount =
+                chapterDao.queryBuilder().selectColumns("id").where()
+                    .eq("userID", user.id).countOf()
+            if (chaptersCount == 0L) {
                 event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                     .setEphemeral(true).queue()
                 return@onCommand
             }
-            val chapterEntries = possibleChapters.map {
-                val latestEntry = it.getLatestEntry()
+            var lastSelectedChapter: UserChapter? = null
+            val onImage: GetImageCallback = { index ->
+                lastSelectedChapter = chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false).where()
+                    .eq("userID", user.id).queryForFirst()
+                val latestEntry = lastSelectedChapter!!.getLatestEntry()
                 val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
                 ImageSliderEntry(
                     description = parameters.first().getPrompt() ?: "No prompt",
                     image = URL(latestEntry.imageURL)
                 )
             }
-            val slider = sendImageSlider("My Chapters", chapterEntries)
+            val slider = sendImageSlider("My Chapters", chaptersCount, onImage)
             slider.customActionComponents = listOf(jda.button(
                 label = "Select",
                 style = ButtonStyle.PRIMARY,
                 user = event.user
             ) {
-                val chapter = possibleChapters[slider.getIndex()]
                 val parameters =
-                    gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+                    gson.fromJson(lastSelectedChapter!!.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
 
                 val updateBuilder = userDao.updateBuilder()
-                updateBuilder.where().eq("id", chapter.userID)
-                updateBuilder.updateColumnValue("currentChapterId", chapter.id)
+                updateBuilder.where().eq("id", lastSelectedChapter!!.userID)
+                updateBuilder.updateColumnValue("currentChapterId", lastSelectedChapter!!.id)
                 updateBuilder.update()
 
                 it.reply_(
@@ -69,9 +72,8 @@ fun listChaptersCommand(jda: JDA) {
                 style = ButtonStyle.DANGER,
                 user = event.user
             ) { deleteEvent ->
-                val chapter = possibleChapters[slider.getIndex()]
                 val parameters =
-                    gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+                    gson.fromJson(lastSelectedChapter!!.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
 
                 deleteEvent.reply_("**Are you sure to delete this chapter?** *${parameters.first().getPrompt()}*")
                     .setEphemeral(true).addActionRow(listOf(
@@ -80,8 +82,8 @@ fun listChaptersCommand(jda: JDA) {
                         style = ButtonStyle.DANGER,
                         user = event.user
                     ) {
-                        chapter.delete()
-                        deleteEvent.hook.editMessage(content = "*Delete!*").setComponents().queue()
+                        lastSelectedChapter!!.delete()
+                        deleteEvent.hook.editMessage(content = "*Deleted!*").setComponents().queue()
                     },
                     jda.button(
                         label = "Keep!",
@@ -92,8 +94,7 @@ fun listChaptersCommand(jda: JDA) {
                     }
                 )).queue()
             })
-            event.hook.editOriginal(MessageEditData.fromCreateData(slider.also { jda.addEventListener(it) }.pages[0]))
-                .setComponents(slider.getControls()).queue()
+            event.replyPaginator(slider).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()

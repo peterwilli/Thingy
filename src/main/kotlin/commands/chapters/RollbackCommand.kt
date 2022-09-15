@@ -3,6 +3,7 @@ package commands.chapters
 import commands.make.DiffusionParameters
 import database.chapterDao
 import database.chapterEntryDao
+import database.models.ChapterEntry
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
@@ -12,6 +13,7 @@ import miniManual
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import replyPaginator
+import ui.GetImageCallback
 import ui.ImageSliderEntry
 import ui.sendImageSlider
 import java.net.URL
@@ -38,21 +40,23 @@ fun rollbackChapterCommand(jda: JDA) {
                 return@onCommand
             }
 
-            val chapterEntries = usingChapter.getEntries()
-            val slides = chapterEntries.map { entry ->
-                val parameters = gson.fromJson(entry.parameters, Array<DiffusionParameters>::class.java)
+            val entryCount = usingChapter.getEntryCount()
+            var lastEntry: ChapterEntry? = null
+            val onImage: GetImageCallback = { index ->
+                lastEntry = usingChapter.getEntryAtIndex(index)
+                val parameters = gson.fromJson(lastEntry!!.parameters, Array<DiffusionParameters>::class.java)
                 ImageSliderEntry(
                     description = parameters.first().getPrompt() ?: "No prompt",
-                    image = URL(entry.imageURL)
+                    image = URL(lastEntry!!.imageURL)
                 )
             }
-            val slider = sendImageSlider("Rollback to", slides)
+            val slider = sendImageSlider("Rollback to", entryCount, onImage)
             slider.customActionComponents = listOf(jda.button(
                 label = "Rollback",
                 style = ButtonStyle.PRIMARY,
                 user = event.user
             ) {
-                val entryToRollBackTo = chapterEntries[slider.getIndex()]
+                val entryToRollBackTo = lastEntry!!
                 val db = chapterEntryDao.deleteBuilder()
                 db.where().eq("chapterID", entryToRollBackTo.chapterID).and().gt("creationTimestamp", entryToRollBackTo.creationTimestamp)
                 chapterEntryDao.delete(db.prepare())

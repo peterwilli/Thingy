@@ -35,9 +35,14 @@ class UserChapter {
         this.userID = userID
     }
 
-    fun getEntries(): Array<ChapterEntry> {
-        return chapterEntryDao.queryBuilder().orderBy("creationTimestamp", false).selectColumns().where()
-            .eq("chapterID", this.id).query().toTypedArray()
+    fun getEntryAtIndex(index: Long): ChapterEntry {
+        return chapterEntryDao.queryBuilder().offset(index).limit(1).orderBy("creationTimestamp", false).selectColumns().where()
+            .eq("chapterID", this.id).queryForFirst()
+    }
+
+    fun getEntryCount(): Long {
+        return chapterEntryDao.queryBuilder().selectColumns().where()
+            .eq("chapterID", this.id).countOf()
     }
 
     fun getLatestEntry(): ChapterEntry {
