@@ -50,7 +50,7 @@ What you need:
    - You should get a URL similar to `xxxxx.wolf.jina.ai`, make note of that URL as you need it in the bot configuration!
  - Download [this file](https://raw.githubusercontent.com/peterwilli/Thingy/main/config.example.yml) and name it `config.yml`, put it into the bot directory. 
  - Once done, follow "Setting up the bot" and then go back here
- - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-2) and put it in the bot directory
+ - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-3) and put it in the bot directory
  - In a terminal in the bot directory, now type `java -jar Thingy-2.0-all.jar`
  - In a bit, it should be up and running. Congrats, you can use `/stable_diffusion` and other peculiarities!
 
