@@ -94,7 +94,7 @@ fun listChaptersCommand(jda: JDA) {
                     }
                 )).queue()
             })
-            event.replyPaginator(slider).queue()
+            event.replyPaginator(slider).setEphemeral(true).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()
