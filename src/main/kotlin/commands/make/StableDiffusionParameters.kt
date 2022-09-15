@@ -16,7 +16,7 @@ data class StableDiffusionParameters(
     var initImage: URI? = null,
     var ratio: Ratio = Ratio(),
     var steps: Int = 50,
-    val guidanceScale: Double? = null,
+    val guidanceScale: Double = 7.5,
     val strength: Double? = null
 )
 
@@ -42,7 +42,12 @@ fun optionsToStableDiffusionParams(
         seed = seed,
         artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
         stableDiffusionParameters = StableDiffusionParameters(
-            prompt = prompt
+            prompt = prompt,
+            guidanceScale = if(event.getOption("guidance_scale") == null) {
+                7.5
+            } else {
+                event.getOption("guidance_scale")!!.asDouble
+            }
         ),
         discoDiffusionParameters = null
     )
@@ -71,5 +76,11 @@ fun optionsToStableDiffusionParams(
         params.stableDiffusionParameters!!.initImage = base64Init
     }
 
+    val guidanceScaleOption = event.getOption("guidance_scale")
+    if (initImageURLOption != null) {
+        val image = ImageIO.read(URL(initImageURLOption.asString))
+        val base64Init = bufferedImageToDataURI(image)
+        params.stableDiffusionParameters!!.initImage = base64Init
+    }
     return params
 }

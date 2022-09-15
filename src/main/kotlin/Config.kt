@@ -12,7 +12,8 @@ data class GRPCServer(
 data class Bot(
     val name: String,
     val ownerId: String,
-    val token: String
+    val token: String,
+    val hfToken: String
 )
 
 data class Timeout(

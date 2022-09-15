@@ -8,8 +8,8 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "org.thingy"
+version = "2.0"
 
 repositories {
     mavenCentral()

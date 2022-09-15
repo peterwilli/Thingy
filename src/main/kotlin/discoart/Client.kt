@@ -6,6 +6,7 @@ import com.google.protobuf.*
 import com.google.protobuf.Struct.Builder
 import commands.make.DiffusionParameters
 import commands.make.DiscoDiffusionConfig
+import config
 import docarray.documentArrayProto
 import docarray.documentProto
 import io.grpc.ManagedChannel
@@ -176,6 +177,9 @@ class Client(
 
     private fun addDefaultStableDiffusionParameters(params: DiffusionParameters, builder: Builder) {
         val stableParams = params.stableDiffusionParameters!!
+        builder.putFields("hf_auth_token", value {
+            stringValue = config.bot.hfToken
+        })
         builder.putFields("steps",  value { numberValue = stableParams.steps.toDouble() })
         builder.putFields("seed", value { stringValue = params.seed.toString() })
         builder.putFields("width_height", value {
@@ -190,9 +194,7 @@ class Client(
         if(stableParams.strength != null) {
             builder.putFields("strength",  value { numberValue = stableParams.strength.coerceIn(0.0..1.0) })
         }
-        if(stableParams.guidanceScale != null) {
-            builder.putFields("guidance_scale",  value { numberValue = stableParams.guidanceScale.coerceIn(0.0..50.0) })
-        }
+        builder.putFields("guidance_scale",  value { numberValue = stableParams.guidanceScale.coerceIn(0.0..50.0) })
     }
 
     private fun addDefaultDiscoDiffusionParameters(params: DiffusionParameters, builder: Builder) {

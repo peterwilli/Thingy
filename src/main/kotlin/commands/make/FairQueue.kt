@@ -45,8 +45,8 @@ data class FairQueueEntry(
         return stringBuilder.toString()
     }
 
-    fun progressUpdate(message: String) {
-        progressHook.editOriginal(message).queue()
+    suspend fun progressUpdate(message: String): Message {
+        return progressHook.editOriginal(message).await()
     }
 
     suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {

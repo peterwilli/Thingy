@@ -45,13 +45,13 @@ What you need:
 
  - Follow the tutorial to install JCloud: https://docs.jina.ai/fundamentals/jcloud
  - Create a directory where we will set up our bot
- - Download [the following](/flow_server.yml) file in the directory
+ - Download [the following](https://raw.githubusercontent.com/peterwilli/Thingy/main/flow_server.yml) file in the directory
  - In the directory, run `jc deploy flow_server.yml` to launch your own bot server! This may take a while
    - You should get a URL similar to `xxxxx.wolf.jina.ai`, make note of that URL as you need it in the bot configuration!
- - Download [this file](/config.example.yml) and name it `config.yml`, put it into the bot directory. 
+ - Download [this file](https://raw.githubusercontent.com/peterwilli/Thingy/main/config.example.yml) and name it `config.yml`, put it into the bot directory. 
  - Once done, follow "Setting up the bot" and then go back here
- - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-1) and put it in the bot directory
- - In a terminal in the bot directory, now type `java -jar DiscordArtBot-1.0-SNAPSHOT-all.jar`
+ - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-2) and put it in the bot directory
+ - In a terminal in the bot directory, now type `java -jar Thingy-2.0-all.jar`
  - In a bit, it should be up and running. Congrats, you can use `/stable_diffusion` and other peculiarities!
 
 ## Setting up the bot
@@ -60,9 +60,13 @@ What you need:
 - Make a discord bot by clicking on the Bot menu, and click "Add Bot". Name it as you like
 - Click "Reset Token" to reveal the bot token. Make note of this token, you need it in the next step
 - In the config.yml, change the bot name and token to your bot token
+- Go to [Hugginface Tokens](https://huggingface.co/settings/tokens) (make an account if you don't have one yet) and create a token
+  - Replace `token_from_hf` in config.yml with the token you just created
+  - This token allows you access to the Stable Diffusion model!
 - Assuming you run the Jina Flow server as well as the Discord bot on the same machine, you don't need to do anything
     - If your Jina server is remote, you have to change `host` and `port` under `grpcServer`
     - If you run on JCLoud, make sure to set `port` to `443` and `plainText` to `false`!
+        - Make sure `host` does **not** include `grpcs://`!
 - Save the config
 - Go to the OAuth2 menu, and click the URL Generator submenu. Check off the Bot checkbox
 - In bot permissions, you only need the following:

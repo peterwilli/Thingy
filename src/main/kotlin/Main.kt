@@ -73,7 +73,7 @@ fun initCommands(jda: JDA) {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<String>("init_image", "A link to an image you wish to use as start!", required = false)
+            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
             option<Int>(
                 "seed",
                 "Entropy for the random number generator, use the same seed to replicate results!",
@@ -90,7 +90,7 @@ fun initCommands(jda: JDA) {
                 required = false
             )
             option<Double>("strength", "How strong the change needs to be?", required = false)
-            option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
+            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("link2img", "Make an existing image into your prompt!") {
@@ -103,7 +103,7 @@ fun initCommands(jda: JDA) {
                 required = false
             )
             option<Double>("strength", "How strong the change needs to be?", required = false)
-            option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
+            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
@@ -128,7 +128,7 @@ fun initCommands(jda: JDA) {
         }
         slash("stats", "See server and bot stats!") {
         }
-        slash("set_background", "Set profile background!") {
+        slash("edit_profile", "Set profile background!") {
         }
     }.queue()
 }

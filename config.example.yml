@@ -1,6 +1,7 @@
 bot:
   name: "My AI bot!"
   token: "my_bot_token_keep_secret"
+  hfToken: "token_from_hf"
   ownerId: "580050773522513920"
 maxEntriesPerOwner: 1
 hostConstraints:

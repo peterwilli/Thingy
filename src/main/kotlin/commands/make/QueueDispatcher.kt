@@ -50,21 +50,12 @@ class QueueDispatcher(private val jda: JDA) {
                     dispatch(entry)
                 } catch (e: StatusException) {
                     e.printStackTrace()
-                    entry.progressDelete()
-                    entry.getChannel()
-                        .sendMessage("${entry.getMember().asMention} Connection to the AI server has failed, it's likely that the bot is offline, we're sorry, please try again later!")
-                        .queue()
+                    val finishMsg = entry.progressUpdate("*Failed* :(")
+                    finishMsg.reply_("${entry.getMember().asMention} Connection to the AI server has failed, it's likely that the bot is offline, we're sorry, please try again later!").queue()
                 } catch (e: Exception) {
-                    try {
-                        e.printStackTrace()
-                        entry.progressDelete()
-                        entry.getChannel()
-                            .sendMessage("${entry.getMember().asMention} There's an error in the queue dispatcher: $e")
-                            .queue()
-                    } catch (e: Exception) {
-                        println("Error here means the bot most likely tries to post in a message it doesn't have access to!")
-                        e.printStackTrace()
-                    }
+                    e.printStackTrace()
+                    val finishMsg = entry.progressUpdate("*Failed* :(")
+                    finishMsg.reply_("${entry.getMember().asMention} There's an error in the queue dispatcher: $e").queue()
                 }
             }
             delay(1000)

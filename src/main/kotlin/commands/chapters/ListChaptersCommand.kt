@@ -11,6 +11,7 @@ import gson
 import miniManual
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import net.dv8tion.jda.api.utils.messages.MessageEditData
 import replyPaginator
 import ui.ImageSliderEntry
 import ui.sendImageSlider
@@ -26,6 +27,7 @@ fun listChaptersCommand(jda: JDA) {
                     .setEphemeral(true).queue()
                 return@onCommand
             }
+            event.deferReply(true).queue()
             val possibleChapters =
                 chapterDao.queryBuilder().orderBy("creationTimestamp", false).selectColumns().where()
                     .eq("userID", user.id).query()
@@ -49,23 +51,30 @@ fun listChaptersCommand(jda: JDA) {
                 user = event.user
             ) {
                 val chapter = possibleChapters[slider.getIndex()]
-                val parameters = gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+                val parameters =
+                    gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
 
                 val updateBuilder = userDao.updateBuilder()
                 updateBuilder.where().eq("id", chapter.userID)
                 updateBuilder.updateColumnValue("currentChapterId", chapter.id)
                 updateBuilder.update()
 
-                it.reply_("${parameters.first().getPrompt()} is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!").setEphemeral(true).queue()
+                it.reply_(
+                    "${
+                        parameters.first().getPrompt()
+                    } is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!"
+                ).setEphemeral(true).queue()
             }, jda.button(
                 label = "\uD83D\uDDD1️",
                 style = ButtonStyle.DANGER,
                 user = event.user
             ) { deleteEvent ->
                 val chapter = possibleChapters[slider.getIndex()]
-                val parameters = gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+                val parameters =
+                    gson.fromJson(chapter.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
 
-                deleteEvent.reply_("**Are you sure to delete this chapter?** *${parameters.first().getPrompt()}*").setEphemeral(true).addActionRow(listOf(
+                deleteEvent.reply_("**Are you sure to delete this chapter?** *${parameters.first().getPrompt()}*")
+                    .setEphemeral(true).addActionRow(listOf(
                     jda.button(
                         label = "Delete!",
                         style = ButtonStyle.DANGER,
@@ -83,7 +92,8 @@ fun listChaptersCommand(jda: JDA) {
                     }
                 )).queue()
             })
-            event.replyPaginator(slider).setEphemeral(true).queue()
+            event.hook.editOriginal(MessageEditData.fromCreateData(slider.also { jda.addEventListener(it) }.pages[0]))
+                .setComponents(slider.getControls()).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()
