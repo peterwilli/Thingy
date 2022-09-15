@@ -43,7 +43,7 @@ fun optionsToStableDiffusionParams(
         artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
         stableDiffusionParameters = StableDiffusionParameters(
             prompt = prompt,
-            guidanceScale = if(event.getOption("guidance_scale") == null) {
+            guidanceScale = if (event.getOption("guidance_scale") == null) {
                 7.5
             } else {
                 event.getOption("guidance_scale")!!.asDouble

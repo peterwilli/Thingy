@@ -10,6 +10,7 @@ import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.editMessage
 import dev.minn.jda.ktx.messages.reply_
+import editMessageToIncludePaginator
 import getAverageColor
 import gson
 import miniManual
@@ -20,10 +21,7 @@ import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
-import utils.bufferedImageToByteArray
-import utils.messageToURL
-import utils.takeSlice
-import java.awt.Color
+import utils.*
 import java.awt.image.BufferedImage
 import java.net.URL
 import javax.imageio.ImageIO
@@ -60,10 +58,11 @@ fun shareCommand(jda: JDA) {
                 return@onCommand
             }
 
+            event.deferReply(true).queue()
             val latestEntry = usingChapter.getLatestEntry()
             val image = ImageIO.read(URL(latestEntry.imageURL))
             val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
-            makeSelectImageFromQuilt(
+            val quiltSelector = makeSelectImageFromQuilt(
                 event,
                 event.user,
                 "Select image for sharing",
@@ -74,7 +73,8 @@ fun shareCommand(jda: JDA) {
                     sharedArtCacheEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
                         .and().eq("imageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()
                 if (possibleCacheEntry != null) {
-                    event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}").queue()
+                    event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}")
+                        .queue()
                     return@makeSelectImageFromQuilt
                 }
                 val imageSlice = takeSlice(image, parameters.size, chosenImage)
@@ -93,7 +93,12 @@ fun shareCommand(jda: JDA) {
                                     val messageLink = messageToURL(sharedMsg)
                                     shareMsg.editOriginal("**Shared!** $messageLink").queue()
                                     val cacheEntry =
-                                        SharedArtCacheEntry(usingChapter.userID, URL(latestEntry.imageURL), chosenImage, messageLink)
+                                        SharedArtCacheEntry(
+                                            usingChapter.userID,
+                                            URL(latestEntry.imageURL),
+                                            chosenImage,
+                                            messageLink
+                                        )
                                     sharedArtCacheEntryDao.create(cacheEntry)
                                 }
                         }
@@ -117,10 +122,11 @@ fun shareCommand(jda: JDA) {
                 event.hook.editMessage(content = "**Preview!**", embeds = listOf(embed))
                     .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
                     .setActionRow(okButton, cancelButton).queue()
-            }.setEphemeral(true).queue()
+            }
+            event.hook.editMessageToIncludePaginator(quiltSelector).queue()
         } catch (e: Exception) {
             e.printStackTrace()
-            event.reply_("**Error!** $e").setEphemeral(true).queue()
+            event.sendException(e)
         }
     }
 }

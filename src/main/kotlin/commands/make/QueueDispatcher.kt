@@ -14,7 +14,6 @@ import dev.minn.jda.ktx.messages.reply_
 import discoart.Client
 import discoart.RetrieveArtResult
 import gson
-import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusException
 import kotlinx.coroutines.async
@@ -51,11 +50,13 @@ class QueueDispatcher(private val jda: JDA) {
                 } catch (e: StatusException) {
                     e.printStackTrace()
                     val finishMsg = entry.progressUpdate("*Failed* :(")
-                    finishMsg.reply_("${entry.getMember().asMention} Connection to the AI server has failed, it's likely that the bot is offline, we're sorry, please try again later!").queue()
+                    finishMsg.reply_("${entry.getMember().asMention} Connection to the AI server has failed, it's likely that the bot is offline, we're sorry, please try again later!")
+                        .queue()
                 } catch (e: Exception) {
                     e.printStackTrace()
                     val finishMsg = entry.progressUpdate("*Failed* :(")
-                    finishMsg.reply_("${entry.getMember().asMention} There's an error in the queue dispatcher: $e").queue()
+                    finishMsg.reply_("${entry.getMember().asMention} There's an error in the queue dispatcher:\n```$e```")
+                        .queue()
                 }
             }
             delay(1000)
@@ -202,8 +203,10 @@ class QueueDispatcher(private val jda: JDA) {
             imageProgress.await()
             if (finalImages != null) {
                 val quilt = makeQuiltFromByteArrayList(finalImages!!)
-                val finishMsg = entry.progressUpdate(entry.getHumanReadableOverview(),  quilt,
-                    "${config.bot.name}_final.jpg")
+                val finishMsg = entry.progressUpdate(
+                    entry.getHumanReadableOverview(), quilt,
+                    "${config.bot.name}_final.jpg"
+                )
                 finishMsg.reply_("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*").queue()
                 var chapterID: Long = 0
                 if (entry.chapter == null) {
@@ -216,8 +219,10 @@ class QueueDispatcher(private val jda: JDA) {
                         userQuery.query().first()!!
                     }
                     TransactionManager.callInTransaction(connectionSource) {
-                        val possibleLastChapter = chapterDao.queryBuilder().selectColumns("id").orderBy("creationTimestamp", false).limit(1).queryForFirst()
-                        chapterID = if(possibleLastChapter == null) {
+                        val possibleLastChapter =
+                            chapterDao.queryBuilder().selectColumns("id").orderBy("creationTimestamp", false).limit(1)
+                                .queryForFirst()
+                        chapterID = if (possibleLastChapter == null) {
                             0
                         } else {
                             possibleLastChapter.id + 1

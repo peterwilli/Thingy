@@ -7,18 +7,13 @@ import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.editMessage
 import dev.minn.jda.ktx.messages.reply_
+import editMessageToIncludePaginator
 import gson
 import miniManual
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.emoji.Emoji
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction
 import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
@@ -47,10 +42,11 @@ fun setBackgroundCommand(jda: JDA) {
                 return@onCommand
             }
 
+            event.deferReply(true).queue()
             val latestEntry = usingChapter.getLatestEntry()
             val image = ImageIO.read(URL(latestEntry.imageURL))
             val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
-            makeSelectImageFromQuilt(
+            val quiltSelector = makeSelectImageFromQuilt(
                 event,
                 event.user,
                 "Select image for background use!",
@@ -62,14 +58,17 @@ fun setBackgroundCommand(jda: JDA) {
                 fun getSlicedBG(): BufferedImage {
                     return imageSlice.getSubimage(0, currentY, imageSlice.width, profileCardHeight)
                 }
+
                 fun getCroppedCardBGMessage(): WebhookMessageEditAction<Message> {
                     val card = makeProfileCard(event.user, getSlicedBG())
                     return event.hook.editMessage(content = "**Preview!**")
                         .setFiles(FileUpload.fromData(bufferedImageToByteArray(card), "profile.png"))
                 }
+
                 fun getFontDropdown() {
 
                 }
+
                 fun getButtons(): Array<Button> {
                     val upButton = jda.button(
                         label = "Up",
@@ -111,7 +110,8 @@ fun setBackgroundCommand(jda: JDA) {
                         user = event.user
                     ) {
                         try {
-                            it.editMessage("*Set profile canceled*").setComponents().setEmbeds().setAttachments().queue()
+                            it.editMessage("*Set profile canceled*").setComponents().setEmbeds().setAttachments()
+                                .queue()
                         } catch (e: Exception) {
                             e.printStackTrace()
                             it.reply_("Error! $e").setEphemeral(true).queue()
@@ -120,7 +120,8 @@ fun setBackgroundCommand(jda: JDA) {
                     return listOf(upButton, downButton, okButton, cancelButton).toTypedArray()
                 }
                 getCroppedCardBGMessage().setActionRow(*getButtons()).queue()
-            }.setEphemeral(true).queue()
+            }
+            event.hook.editMessageToIncludePaginator(quiltSelector).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()

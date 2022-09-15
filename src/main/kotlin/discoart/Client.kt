@@ -180,7 +180,7 @@ class Client(
         builder.putFields("hf_auth_token", value {
             stringValue = config.bot.hfToken
         })
-        builder.putFields("steps",  value { numberValue = stableParams.steps.toDouble() })
+        builder.putFields("steps", value { numberValue = stableParams.steps.toDouble() })
         builder.putFields("seed", value { stringValue = params.seed.toString() })
         builder.putFields("width_height", value {
             listValue = listValue {
@@ -191,10 +191,10 @@ class Client(
                 ))
             }
         })
-        if(stableParams.strength != null) {
-            builder.putFields("strength",  value { numberValue = stableParams.strength.coerceIn(0.0..1.0) })
+        if (stableParams.strength != null) {
+            builder.putFields("strength", value { numberValue = stableParams.strength.coerceIn(0.0..1.0) })
         }
-        builder.putFields("guidance_scale",  value { numberValue = stableParams.guidanceScale.coerceIn(0.0..50.0) })
+        builder.putFields("guidance_scale", value { numberValue = stableParams.guidanceScale.coerceIn(0.0..50.0) })
     }
 
     private fun addDefaultDiscoDiffusionParameters(params: DiffusionParameters, builder: Builder) {
@@ -265,7 +265,7 @@ class Client(
         val builder = Struct.newBuilder()
         addDefaultStableDiffusionParameters(params, builder)
         val dataReq = if (params.stableDiffusionParameters!!.initImage == null) {
-             dataRequestProto {
+            dataRequestProto {
                 parameters = builder.build()
                 header = headerProto {
                     execEndpoint = "/stable_diffusion/txt2img"
@@ -279,8 +279,7 @@ class Client(
                     }
                 }
             }
-        }
-        else {
+        } else {
             dataRequestProto {
                 parameters = builder.build()
                 header = headerProto {
@@ -301,6 +300,10 @@ class Client(
         val reqs = listOf(dataReq).asFlow()
         var result: List<ByteArray>? = null
         stub.withCompression("gzip").call(reqs).collect {
+            val status = it.header.status
+            if (status.code == Jina.StatusProto.StatusCode.ERROR) {
+                throw IllegalStateException("Error found in gateway response!\n${status.exception}")
+            }
             result = reqToByteArrayList(it)
         }
         return result!!

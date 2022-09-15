@@ -34,6 +34,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.39.2.1")
     implementation("org.atteo:evo-inflector:1.3")
     implementation("com.google.code.gson:gson:2.9.1")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation(kotlin("reflect"))
 }
 
@@ -42,7 +43,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "18"
 }
 
 application {

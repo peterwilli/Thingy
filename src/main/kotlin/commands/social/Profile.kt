@@ -9,8 +9,6 @@ import net.dv8tion.jda.api.utils.FileUpload
 import utils.bufferedImageToByteArray
 import utils.imageFromDataURL
 import utils.makeProfileCard
-import java.net.URL
-import javax.imageio.ImageIO
 
 fun profileCommand(jda: JDA) {
     jda.onCommand("profile") { event ->
@@ -26,7 +24,8 @@ fun profileCommand(jda: JDA) {
                 event.getOption("user")!!.asUser
             }
             val user =
-                userDao.queryBuilder().selectColumns("id", "backgroundURL").where().eq("discordUserID", userToGetProfileFrom.id)
+                userDao.queryBuilder().selectColumns("id", "backgroundURL").where()
+                    .eq("discordUserID", userToGetProfileFrom.id)
                     .queryForFirst()
             if (user == null) {
                 event.reply_("User not found! Did you make art yet? $miniManual")
@@ -39,7 +38,8 @@ fun profileCommand(jda: JDA) {
                 null
             }
             val card = makeProfileCard(userToGetProfileFrom, backgroundImage)
-            event.reply_("Profile of *${userToGetProfileFrom.asTag}*").setFiles(FileUpload.fromData(bufferedImageToByteArray(card, "png"), "profile.png"))
+            event.reply_("Profile of *${userToGetProfileFrom.asTag}*")
+                .setFiles(FileUpload.fromData(bufferedImageToByteArray(card, "png"), "profile.png"))
                 .setEphemeral(ephemeral).queue()
         } catch (e: Exception) {
             e.printStackTrace()

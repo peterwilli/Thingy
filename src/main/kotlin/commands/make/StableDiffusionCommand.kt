@@ -24,6 +24,7 @@ fun stableDiffusionCommand(jda: JDA) {
                     null
                 )
             }
+
             val entry = createEntry(event.hook)
             event.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
         } catch (e: Exception) {

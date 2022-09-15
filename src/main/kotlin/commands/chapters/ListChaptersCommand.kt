@@ -12,7 +12,6 @@ import gson
 import miniManual
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import net.dv8tion.jda.api.utils.messages.MessageEditData
 import replyPaginator
 import ui.GetImageCallback
 import ui.ImageSliderEntry
@@ -39,8 +38,10 @@ fun listChaptersCommand(jda: JDA) {
             }
             var lastSelectedChapter: UserChapter? = null
             val onImage: GetImageCallback = { index ->
-                lastSelectedChapter = chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false).where()
-                    .eq("userID", user.id).queryForFirst()
+                lastSelectedChapter =
+                    chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false)
+                        .where()
+                        .eq("userID", user.id).queryForFirst()
                 val latestEntry = lastSelectedChapter!!.getLatestEntry()
                 val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
                 ImageSliderEntry(
@@ -55,7 +56,10 @@ fun listChaptersCommand(jda: JDA) {
                 user = event.user
             ) {
                 val parameters =
-                    gson.fromJson(lastSelectedChapter!!.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+                    gson.fromJson(
+                        lastSelectedChapter!!.getLatestEntry().parameters,
+                        Array<DiffusionParameters>::class.java
+                    )
 
                 val updateBuilder = userDao.updateBuilder()
                 updateBuilder.where().eq("id", lastSelectedChapter!!.userID)
@@ -73,26 +77,29 @@ fun listChaptersCommand(jda: JDA) {
                 user = event.user
             ) { deleteEvent ->
                 val parameters =
-                    gson.fromJson(lastSelectedChapter!!.getLatestEntry().parameters, Array<DiffusionParameters>::class.java)
+                    gson.fromJson(
+                        lastSelectedChapter!!.getLatestEntry().parameters,
+                        Array<DiffusionParameters>::class.java
+                    )
 
                 deleteEvent.reply_("**Are you sure to delete this chapter?** *${parameters.first().getPrompt()}*")
                     .setEphemeral(true).addActionRow(listOf(
-                    jda.button(
-                        label = "Delete!",
-                        style = ButtonStyle.DANGER,
-                        user = event.user
-                    ) {
-                        lastSelectedChapter!!.delete()
-                        deleteEvent.hook.editMessage(content = "*Deleted!*").setComponents().queue()
-                    },
-                    jda.button(
-                        label = "Keep!",
-                        style = ButtonStyle.PRIMARY,
-                        user = event.user
-                    ) {
-                        deleteEvent.hook.editMessage(content = "*Delete canceled*").setComponents().queue()
-                    }
-                )).queue()
+                        jda.button(
+                            label = "Delete!",
+                            style = ButtonStyle.DANGER,
+                            user = event.user
+                        ) {
+                            lastSelectedChapter!!.delete()
+                            deleteEvent.hook.editMessage(content = "*Deleted!*").setComponents().queue()
+                        },
+                        jda.button(
+                            label = "Keep!",
+                            style = ButtonStyle.PRIMARY,
+                            user = event.user
+                        ) {
+                            deleteEvent.hook.editMessage(content = "*Delete canceled*").setComponents().queue()
+                        }
+                    )).queue()
             })
             event.replyPaginator(slider).setEphemeral(true).queue()
         } catch (e: Exception) {

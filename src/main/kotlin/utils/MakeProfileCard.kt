@@ -11,7 +11,8 @@ import javax.imageio.ImageIO
 
 val profileCardHeight = 128
 fun makeProfileCard(user: User, overrideBackground: BufferedImage?): BufferedImage {
-    val thingyUser = userDao.queryBuilder().selectColumns("id", "generationsDone").where().eq("discordUserID", user.id).queryForFirst()
+    val thingyUser = userDao.queryBuilder().selectColumns("id", "generationsDone").where().eq("discordUserID", user.id)
+        .queryForFirst()
     val pfp = ImageIO.read(URL(user.avatarUrl)).resize(64, 64)
     val card = BufferedImage(512, profileCardHeight, BufferedImage.TYPE_INT_RGB)
     val labelFont = Font("Arial", Font.PLAIN, 16)
@@ -36,6 +37,11 @@ fun makeProfileCard(user: User, overrideBackground: BufferedImage?): BufferedIma
         g.font = labelFont
         g.drawString(label, x + valWidth + 10, y)
     }
-    addLabelAndValue(pfpSideX + 10, 60, English.plural("Generation", if(thingyUser.generationsDone > 1) 2 else 1), thingyUser.generationsDone.toString())
+    addLabelAndValue(
+        pfpSideX + 10,
+        60,
+        English.plural("Generation", if (thingyUser.generationsDone > 1) 2 else 1),
+        thingyUser.generationsDone.toString()
+    )
     return card
 }

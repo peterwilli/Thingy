@@ -9,6 +9,7 @@ import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
+import editMessageToIncludePaginator
 import gson
 import miniManual
 import net.dv8tion.jda.api.JDA
@@ -43,6 +44,7 @@ fun variateCommand(jda: JDA) {
                 .setEphemeral(true).queue()
             return@onCommand
         }
+        event.deferReply(true).queue()
 
         val latestEntry = usingChapter.getLatestEntry()
         val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
@@ -66,7 +68,7 @@ fun variateCommand(jda: JDA) {
             50
         }
 
-        makeSelectImageFromQuilt(
+        val quiltSelector = makeSelectImageFromQuilt(
             event,
             event.user,
             "Select your favorite to variate!",
@@ -97,6 +99,7 @@ fun variateCommand(jda: JDA) {
                 usingChapter
             )
             btnEvent.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
-        }.setEphemeral(true).queue()
+        }
+        event.hook.editMessageToIncludePaginator(quiltSelector).queue()
     }
 }

@@ -36,7 +36,8 @@ class UserChapter {
     }
 
     fun getEntryAtIndex(index: Long): ChapterEntry {
-        return chapterEntryDao.queryBuilder().offset(index).limit(1).orderBy("creationTimestamp", false).selectColumns().where()
+        return chapterEntryDao.queryBuilder().offset(index).limit(1).orderBy("creationTimestamp", false).selectColumns()
+            .where()
             .eq("chapterID", this.id).queryForFirst()
     }
 

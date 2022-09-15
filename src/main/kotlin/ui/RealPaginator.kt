@@ -44,27 +44,35 @@ import kotlin.time.Duration
 object PaginatorDefaults {
     /** The default button to go to the previous page */
     var PREV: Button = Button.secondary("prev", Emoji.fromUnicode("⬅️"))
+
     /** The default button to go to the next page */
     var NEXT: Button = Button.secondary("next", Emoji.fromUnicode("➡️"))
 }
 
 typealias GetPageCallback = ((index: Long) -> MessageCreateData)
 
-class Paginator internal constructor(private val nonce: String, private val amountOfPages: Long, internal val getPage: GetPageCallback, private val ttl: Duration): EventListener {
+class Paginator internal constructor(
+    private val nonce: String,
+    private val amountOfPages: Long,
+    internal val getPage: GetPageCallback,
+    private val ttl: Duration
+) : EventListener {
     private var expiresAt: Long = Math.addExact(System.currentTimeMillis(), ttl.inWholeMilliseconds)
 
     private var index = 0L
-    private val nextPage: MessageCreateData get() {
-        index = (index + 1) % amountOfPages
-        return getPage(index)
-    }
-    private val prevPage: MessageCreateData get() {
-        index = (index - 1)
-        if(index < 0) {
-            index = amountOfPages - 1
+    private val nextPage: MessageCreateData
+        get() {
+            index = (index + 1) % amountOfPages
+            return getPage(index)
         }
-        return getPage(index)
-    }
+    private val prevPage: MessageCreateData
+        get() {
+            index = (index - 1)
+            if (index < 0) {
+                index = amountOfPages - 1
+            }
+            return getPage(index)
+        }
     var customActionComponents: List<ActionComponent>? = null
     var filter: (ButtonInteraction) -> Boolean = { true }
     var injectMessageCallback: ((index: Long, messageEdit: MessageEditCallbackAction) -> Unit)? = null
@@ -82,7 +90,7 @@ class Paginator internal constructor(private val nonce: String, private val amou
             prev.withId("$nonce:prev"),
             next.withId("$nonce:next")
         )
-        if(customActionComponents != null) {
+        if (customActionComponents != null) {
             controls.addAll(customActionComponents!!)
         }
         return ActionRow.of(controls)
@@ -105,15 +113,17 @@ class Paginator internal constructor(private val nonce: String, private val amou
             "prev" -> {
                 event.editMessage(MessageEditData.fromCreateData(prevPage))
             }
+
             "next" -> {
                 event.editMessage(MessageEditData.fromCreateData(nextPage))
             }
+
             else -> {
                 event.editMessage(MessageEditData.fromCreateData(nextPage))
             }
         }
         var messageEdit = message.setComponents(getControls())
-        if(injectMessageCallback != null) {
+        if (injectMessageCallback != null) {
             injectMessageCallback!!(index, messageEdit)
         }
         messageEdit.queue(null, ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE) { unregister(event.jda) })
@@ -130,11 +140,15 @@ fun paginator(amountOfPages: Long, getPage: GetPageCallback, expireAfter: Durati
     return Paginator(Base64.getEncoder().encodeToString(nonce), amountOfPages, getPage, expireAfter)
 }
 
-fun MessageChannel.sendPaginator(paginator: Paginator)
-        = sendMessage(paginator.also { jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
+fun MessageChannel.sendPaginator(paginator: Paginator) =
+    sendMessage(paginator.also { jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
 
-fun InteractionHook.sendPaginator(paginator: Paginator)
-        = sendMessage(paginator.also { jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
+fun InteractionHook.sendPaginator(paginator: Paginator) =
+    sendMessage(paginator.also { jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
 
-fun IReplyCallback.replyPaginator(paginator: Paginator)
-        = reply(paginator.also { user.jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())
+fun InteractionHook.editMessageToIncludePaginator(paginator: Paginator) =
+    this.editOriginal(MessageEditData.fromCreateData(paginator.also { jda.addEventListener(it) }.getPage(0)))
+        .setComponents(paginator.getControls())
+
+fun IReplyCallback.replyPaginator(paginator: Paginator) =
+    reply(paginator.also { user.jda.addEventListener(it) }.getPage(0)).setComponents(paginator.getControls())

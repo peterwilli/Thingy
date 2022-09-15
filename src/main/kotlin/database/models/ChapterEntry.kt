@@ -43,7 +43,14 @@ class ChapterEntry {
     constructor() {
     }
 
-    constructor(chapterID: Long, imageURL: URL, serverID: String, channelID: String, messageID: String, parameters: String) {
+    constructor(
+        chapterID: Long,
+        imageURL: URL,
+        serverID: String,
+        channelID: String,
+        messageID: String,
+        parameters: String
+    ) {
         this.chapterID = chapterID
         this.imageURL = imageURL.toString()
         this.serverID = serverID

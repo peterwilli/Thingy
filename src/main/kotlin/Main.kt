@@ -4,7 +4,6 @@ import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
 import commands.img2img.img2imgCommand
 import commands.make.QueueDispatcher
-import commands.make.diffusion_configs.disco.discoDiffusionConfigs
 import commands.social.profileCommand
 import commands.social.serverStatsCommand
 import commands.social.setBackgroundCommand
@@ -12,7 +11,6 @@ import commands.social.shareCommand
 import commands.update.updateCommand
 import commands.variate.variateCommand
 import database.initDatabase
-import dev.minn.jda.ktx.interactions.commands.choice
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
 import dev.minn.jda.ktx.interactions.commands.updateCommands

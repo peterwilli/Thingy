@@ -58,9 +58,11 @@ fun rollbackChapterCommand(jda: JDA) {
             ) {
                 val entryToRollBackTo = lastEntry!!
                 val db = chapterEntryDao.deleteBuilder()
-                db.where().eq("chapterID", entryToRollBackTo.chapterID).and().gt("creationTimestamp", entryToRollBackTo.creationTimestamp)
+                db.where().eq("chapterID", entryToRollBackTo.chapterID).and()
+                    .gt("creationTimestamp", entryToRollBackTo.creationTimestamp)
                 chapterEntryDao.delete(db.prepare())
-                it.reply_("Rolled back! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!").setEphemeral(true).queue()
+                it.reply_("Rolled back! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!")
+                    .setEphemeral(true).queue()
             })
             event.replyPaginator(slider).setEphemeral(true).queue()
         } catch (e: Exception) {
