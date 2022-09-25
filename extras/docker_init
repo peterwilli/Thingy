@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "Running JCloudKeeper"
+keep_my_jcloud --port=8000 --flow-yml-path=/opt/thingy/flow_server.yml &
+echo "Running thingy jar"
+java -jar Thingy.jar data/config.yml

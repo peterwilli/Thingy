@@ -1,12 +1,12 @@
+import java.net.URL
+
 data class HostConstraints(
     val maxSimultaneousMakeRequests: Int,
     val totalImagesInMakeCommand: Int
 )
 
-data class GRPCServer(
-    val host: String,
-    val port: Int,
-    val plainText: Boolean
+data class JCloudKeeper(
+    val url: URL
 )
 
 data class Bot(
@@ -28,9 +28,10 @@ data class Timeouts(
 
 data class Config(
     val bot: Bot,
+    val databasePath: String,
     val maxEntriesPerOwner: Int,
     val hostConstraints: HostConstraints,
-    val grpcServer: GRPCServer,
+    val jcloudKeeper: JCloudKeeper,
     val imagesFolder: String,
     val timeouts: Timeouts,
     val shareChannelID: String,

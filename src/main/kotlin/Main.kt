@@ -24,16 +24,19 @@ import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import utils.JCloudClient
 import kotlin.time.Duration
 
 lateinit var config: Config
 lateinit var queueDispatcher: QueueDispatcher
+lateinit var jcloudClient: JCloudClient
 var updateMode = false
 
 suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
         "./config.yml"
     })
+    jcloudClient = JCloudClient()
     initDatabase()
     val builder: JDABuilder = JDABuilder.createDefault(config.bot.token)
     builder.apply {

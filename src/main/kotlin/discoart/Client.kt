@@ -41,6 +41,10 @@ class Client(
 ) : Closeable {
     private val stub: JinaRPCGrpcKt.JinaRPCCoroutineStub = JinaRPCGrpcKt.JinaRPCCoroutineStub(channel)
 
+    fun isOnline(): Boolean {
+        return !(channel.isShutdown || channel.isTerminated)
+    }
+
     suspend fun retrieveUpscaleArt(artID: String): RetrieveArtResult {
         val dataReq = dataRequestProto {
             data = DataRequestProtoKt.dataContentProto {

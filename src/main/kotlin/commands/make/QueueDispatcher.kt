@@ -16,29 +16,22 @@ import discoart.RetrieveArtResult
 import gson
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusException
+import jcloudClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
 import utils.peterDate
+import utils.sendException
 import java.net.URL
 import kotlin.math.max
 
 class QueueDispatcher(private val jda: JDA) {
     val queue = FairQueue(config.maxEntriesPerOwner)
     private var queueStarted = false
-    val client: Client
-
-    init {
-        val channelBuilder = ManagedChannelBuilder.forAddress(config.grpcServer.host, config.grpcServer.port)
-            .maxInboundMessageSize(1024 * 1024 * 1024)
-        if (config.grpcServer.plainText) {
-            channelBuilder.usePlaintext()
-        }
-        client = Client(channelBuilder.build())
-    }
 
     suspend fun startQueueDispatcher() {
         queueStarted = true
@@ -55,8 +48,13 @@ class QueueDispatcher(private val jda: JDA) {
                 } catch (e: Exception) {
                     e.printStackTrace()
                     val finishMsg = entry.progressUpdate("*Failed* :(")
-                    finishMsg.reply_("${entry.getMember().asMention} There's an error in the queue dispatcher:\n```$e```")
-                        .queue()
+                    finishMsg.reply_(
+                        "**Error in queue dispatcher!**\nAuthor: ${entry.getMember().asMention}\n```${
+                            ExceptionUtils.getMessage(
+                                e
+                            )
+                        }\n${ExceptionUtils.getStackTrace(e)}```"
+                    ).queue()
                 }
             }
             delay(1000)
@@ -70,6 +68,7 @@ class QueueDispatcher(private val jda: JDA) {
         val batch = entry.parameters
         val mockRetrieveArtMap: MutableMap<String, ByteArray> = mutableMapOf()
         var cancelled = false
+        val client = jcloudClient.currentClient()
         coroutineScope {
             var finalImages: List<ByteArray>? = null
             async {

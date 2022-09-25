@@ -5,6 +5,7 @@ import com.j256.ormlite.dao.DaoManager
 import com.j256.ormlite.jdbc.JdbcConnectionSource
 import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.table.TableUtils
+import config
 import database.models.ChapterEntry
 import database.models.SharedArtCacheEntry
 import database.models.User
@@ -17,7 +18,7 @@ lateinit var sharedArtCacheEntryDao: Dao<SharedArtCacheEntry, String>
 lateinit var userDao: Dao<User, String>
 
 fun initDatabase() {
-    val databaseUrl = "jdbc:sqlite:db.sqlite"
+    val databaseUrl = "jdbc:sqlite:${config.databasePath}"
     // create a connection source to our database
     connectionSource = JdbcConnectionSource(databaseUrl)
     TableUtils.createTableIfNotExists(connectionSource, UserChapter::class.java)
