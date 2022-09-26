@@ -4,3 +4,6 @@ build/
 config.yml
 *.sqlite
 Dockerfile
+README.md
+.gitignore
+LICENSE

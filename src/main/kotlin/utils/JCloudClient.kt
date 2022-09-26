@@ -8,6 +8,7 @@ import gson
 import io.grpc.ManagedChannelBuilder
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.net.URI
 import java.net.URL
 
 data class URLResponse(
@@ -27,11 +28,11 @@ class JCloudClient {
         return client!!
     }
 
-    private fun getCurrentURL(): URL? {
+    private fun getCurrentURL(): URI? {
         val connection = config.jcloudKeeper.url.openConnection()
         BufferedReader(InputStreamReader(connection.getInputStream())).use { inp ->
             val response = gson.fromJson(inp.readText(), URLResponse::class.java)
-            return URL(response.endpoint)
+            return URI(response.endpoint)
         }
         return null
     }
@@ -41,7 +42,7 @@ class JCloudClient {
         if (url != null) {
             val channelBuilder = ManagedChannelBuilder.forAddress(url.host, url.port)
                 .maxInboundMessageSize(1024 * 1024 * 1024)
-            if (url.protocol == "grpc") {
+            if (url.scheme == "grpc") {
                 channelBuilder.usePlaintext()
             }
             return Client(channelBuilder.build())
