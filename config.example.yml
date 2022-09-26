@@ -14,9 +14,8 @@ timeouts:
   stableDiffusion:
     imageNotAppearing: 30
     imageNotUpdating: 30
-grpcServer:
-  host: "xxxx.wolf.jina.ai"
-  port: 443
-  plainText: false
+jcloudKeeper:
+  url: "http://localhost:8000"
+databasePath: "/opt/thingy/data/db.sqlite"
 imagesFolder: "/app"
-shareChannelID: "1015964690800726158"
+shareChannelID: "my_share_channel_id"

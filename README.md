@@ -30,29 +30,40 @@ In short: this bot allows you to generate images based on a text prompt, but can
 
 # Run it yourself!
 
-As this bot is open-source, anyone can run it. Depending on the method, you need different specs. The easiest is through Jina Cloud
+As this bot is open-source, anyone can run it. Depending on the method, you need different specs. The easiest is through Docker and Jina's JCloud
 
-## Installing via Jina Cloud
+## Installing via Docker
 
-**Note!** Free for now! As we evolved from a weekend project to a larger-scale bot, things have changed a lot, and I thank you all. Please, if you use this in your own server, do get in touch with me, so we can see what works and what doesn't. Any feedback is really appreciated! Feel free to join [Thingy's birthplace](https://discord.gg/j4wQYhhvVd) or shoot a line in the projects Issues page!
+**Note!** As we evolved from a weekend project to a larger-scale bot, things have changed a lot, and I thank you all. Please, if you use this in your own server, do get in touch with me, so we can see what works and what doesn't. Any feedback is really appreciated! Feel free to join [Thingy's birthplace](https://discord.gg/j4wQYhhvVd) or shoot a line in the projects Issues page!
 
-What you need:
- - Linux or Windows with at least Java 18
+**What you need**:
+
+ - Linux or Windows with Docker installed (Or [download here](https://docs.docker.com/get-docker/))
  - Discord account and bot (more on this later)
- - A python environment to launch your Jina deployment
 
 **Steps**:
 
- - Follow the tutorial to install JCloud: https://docs.jina.ai/fundamentals/jcloud
  - Create a directory where we will set up our bot
- - Download [the following](https://raw.githubusercontent.com/peterwilli/Thingy/main/flow_server.yml) file in the directory
- - In the directory, run `jc deploy flow_server.yml` to launch your own bot server! This may take a while
-   - You should get a URL similar to `xxxxx.wolf.jina.ai`, make note of that URL as you need it in the bot configuration!
+    - If you ran an older version of the bot, you can drop your `db.sqlite` here. Keep in mind the configuration has changed slightly. Otherwise, you can ignore this.
  - Download [this file](https://raw.githubusercontent.com/peterwilli/Thingy/main/config.example.yml) and name it `config.yml`, put it into the bot directory. 
  - Once done, follow "Setting up the bot" and then go back here
  - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-3) and put it in the bot directory
- - In a terminal in the bot directory, now type `java -jar Thingy-2.0-all.jar`
- - In a bit, it should be up and running. Congrats, you can use `/stable_diffusion` and other peculiarities!
+
+ - **The following steps are for running the AI remotely on JCloud! (Free for now!)**
+
+    - We need to start the Docker image:
+
+      - If you're starting fresh, you can use the following command in the bot directory: `docker run -v $(pwd):/opt/thingy/data -d --name=thingy peterwilli/thingy:latest`
+
+      - If you've ran the bot on JCloud before, chances are it's already up. Run `jc list` either in an already spawned container, or whatever your current setup is. If there's a link, you can run `jina status <id from jc list>` to see if it's the thingy flow (typically contains executors like `stable_diffusion_txt2img` and `stable_diffusion_img2img`)
+
+        You can now run `docker run -v $(pwd):/opt/thingy/data -it --name=thingy --env CURRENT_JCLOUD_URL=grpcs://xxxxx.wolf.jina.ai peterwilli/thingy:2.0-alpha3` where xxxxx is your Jina instance ID.
+
+    - Once it is running, log in to JCloud by running: `docker exec -it thingy jc login`. You should now get a link that you can copy-paste in your browser to login.
+
+    - You should now see a error about docker not being present, that's ok, it will still work.
+
+    - Now you should be able to run `/stable_diffusion` and other peculiarities in Discord! The first time it might take a while to run.
 
 ## Setting up the bot
 
@@ -88,3 +99,9 @@ What you need:
 These are co-developed with Thingy!
 
 - [Diffusers executor](https://github.com/peterwilli/DiffusersExecutor)
+
+- [Keep My JCloud](https://github.com/peterwilli/KeepMyJCloud)
+
+# Changelog
+
+ - 26 sept 2022: Added Keep My JCloud as sister project, integrated in the bot using Docker. It keeps JCloud instances running by re-deploying if it dissapears.
