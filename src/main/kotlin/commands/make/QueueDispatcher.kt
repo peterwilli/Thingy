@@ -11,21 +11,20 @@ import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
-import discoart.Client
 import discoart.RetrieveArtResult
 import gson
-import io.grpc.ManagedChannelBuilder
+import io.grpc.Status
 import io.grpc.StatusException
 import jcloudClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
 import utils.peterDate
-import utils.sendException
 import java.net.URL
 import kotlin.math.max
 
@@ -38,23 +37,38 @@ class QueueDispatcher(private val jda: JDA) {
         while (queueStarted) {
             val entry = queue.next()
             if (entry != null) {
-                try {
-                    dispatch(entry)
-                } catch (e: StatusException) {
-                    e.printStackTrace()
-                    val finishMsg = entry.progressUpdate("*Failed* :(")
-                    finishMsg.reply_("${entry.getMember().asMention} Connection to the AI server has failed, it's likely that the bot is offline, we're sorry, please try again later!")
-                        .queue()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    val finishMsg = entry.progressUpdate("*Failed* :(")
-                    finishMsg.reply_(
-                        "**Error in queue dispatcher!**\nAuthor: ${entry.getMember().asMention}\n```${
-                            ExceptionUtils.getMessage(
+                var tries = 0
+                val maxTries = 5
+                while (tries < maxTries) {
+                    tries++
+                    try {
+                        dispatch(entry)
+                        break
+                    } catch (e: StatusException) {
+                        if (e.status.code == Status.UNIMPLEMENTED.code) {
+                            println("Killing client, Jina must have been offline! Error: ${ExceptionUtils.getMessage(
                                 e
-                            )
-                        }\n${ExceptionUtils.getStackTrace(e)}```"
-                    ).queue()
+                            )}\n${ExceptionUtils.getStackTrace(e)}")
+                            jcloudClient.freeClient()
+                        }
+                        e.printStackTrace()
+                        val finishMsg = entry.progressUpdate("*Failed* :(")
+                        finishMsg.reply_("Connection to the AI server has failed, it's likely that the bot is offline. Trying again $tries / ${maxTries}")
+                            .queue()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        val finishMsg = entry.progressUpdate("*Failed* :(")
+                        val errorContent =
+                            "**Error in queue dispatcher!**\nAuthor: ${entry.getMember().asMention}\n```${
+                                ExceptionUtils.getMessage(
+                                    e
+                                )
+                            }\n${ExceptionUtils.getStackTrace(e)}```"
+                        finishMsg.reply_(
+                            errorContent.take(Message.MAX_CONTENT_LENGTH)
+                        ).queue()
+                        break
+                    }
                 }
             }
             delay(1000)

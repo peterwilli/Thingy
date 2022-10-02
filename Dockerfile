@@ -1,7 +1,7 @@
 FROM rust:1.64.0-slim as keep_my_jcloud_builder
 RUN cargo install \
     --git https://github.com/peterwilli/KeepMyJCloud.git \ 
-    --rev e0f6f390e1ead6f61a3dbd4d55b0d36c5c839d86
+    --rev 83e890a5f2da04b21353034c1c6235c9c7378e7e
 
 FROM gradle:jdk18-jammy as thingy_builder
 WORKDIR /usr/src/app
@@ -28,5 +28,5 @@ COPY --from=keep_my_jcloud_builder /usr/local/cargo/bin/keep_my_jcloud /usr/loca
 COPY --from=thingy_builder /usr/src/app/build/libs/Thingy-*-all.jar /opt/thingy/Thingy.jar
 COPY ./extras/docker_init /usr/local/bin/init
 COPY ./flow_server.yml /opt/thingy
-HEALTHCHECK CMD curl --fail http://localhost:8000/info --interval=30s || exit 1
+HEALTHCHECK --interval=30s --timeout=10s CMD curl --fail http://localhost:8000/info || exit 1
 CMD ["init"]

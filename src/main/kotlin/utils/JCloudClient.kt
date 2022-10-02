@@ -1,15 +1,13 @@
 package utils
 
-import commands.make.DiscoDiffusionParameters
-import commands.make.StableDiffusionParameters
 import config
 import discoart.Client
 import gson
 import io.grpc.ManagedChannelBuilder
+import org.apache.commons.lang3.exception.ExceptionUtils
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URI
-import java.net.URL
 
 data class URLResponse(
     val endpoint: String
@@ -19,13 +17,29 @@ class JCloudClient {
     private var client: Client? = null
 
     fun currentClient(): Client {
-        if (client == null || !client!!.isOnline()) {
+        if (client == null) {
+            client = newClient()
+        }
+        if (!client!!.isOnline()) {
+            println("Client is offline, making a new one!")
             client = newClient()
         }
         if (client == null) {
             throw IllegalAccessException("client is null!")
         }
         return client!!
+    }
+
+    fun freeClient() {
+        if (client != null) {
+            try {
+                client!!.close()
+            } catch (e: Exception) {
+                println("Exception in freeClient (Ignored):\n${ExceptionUtils.getMessage(e)}\n" +
+                        "${ExceptionUtils.getStackTrace(e)}")
+            }
+            client = null
+        }
     }
 
     private fun getCurrentURL(): URI? {
