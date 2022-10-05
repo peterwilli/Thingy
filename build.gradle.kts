@@ -21,21 +21,28 @@ dependencies {
     implementation("com.github.minndevelopment:jda-ktx:081a177281")
     implementation("net.dv8tion:JDA:5.0.0-alpha.18")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
-    implementation("io.grpc:grpc-protobuf:1.47.0")
-    implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("com.google.protobuf:protobuf-kotlin:3.21.3")
+    implementation("io.grpc:grpc-protobuf:1.49.1")
+    implementation("ch.qos.logback:logback-classic:1.4.1")
+    implementation("com.google.protobuf:protobuf-kotlin:3.21.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("io.grpc:grpc-netty:1.47.0")
+    implementation("io.grpc:grpc-netty:1.49.1")
     implementation("com.beust:klaxon:5.6")
-    implementation("com.sksamuel.hoplite:hoplite-core:2.4.0")
-    implementation("com.sksamuel.hoplite:hoplite-yaml:2.4.0")
+    implementation("com.sksamuel.hoplite:hoplite-core:2.6.4")
+    implementation("com.sksamuel.hoplite:hoplite-yaml:2.6.4")
     implementation("com.j256.ormlite:ormlite-core:6.1")
     implementation("com.j256.ormlite:ormlite-jdbc:6.1")
-    implementation("org.xerial:sqlite-jdbc:3.39.2.1")
+    implementation("org.xerial:sqlite-jdbc:3.39.3.0")
     implementation("org.atteo:evo-inflector:1.3")
     implementation("com.google.code.gson:gson:2.9.1")
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation(kotlin("reflect"))
+    implementation(kotlin("stdlib-jdk8"))
+
+    implementation("org.jetbrains.kotlin:kotlin-scripting-common")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven")
 }
 
 tasks.test {
@@ -44,6 +51,11 @@ tasks.test {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "18"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
 }
 
 application {

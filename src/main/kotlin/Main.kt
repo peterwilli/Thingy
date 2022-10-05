@@ -24,13 +24,31 @@ import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import script.ThingyExtensionScript
+import script.ThingyExtensionScriptEvaluationConfiguration
 import utils.JCloudClient
+import kotlin.script.experimental.api.ScriptDiagnostic
+import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
+import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
+import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.time.Duration
 
 lateinit var config: Config
 lateinit var queueDispatcher: QueueDispatcher
 lateinit var jcloudClient: JCloudClient
 var updateMode = false
+
+fun testScript(jda: JDA) {
+    val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<ThingyExtensionScript>()
+    val evaluationConfiguration = ThingyExtensionScriptEvaluationConfiguration(jda)
+    val result = BasicJvmScriptingHost().eval("println(jda)".toScriptSource("main.thingyextension.kts"), compilationConfiguration, evaluationConfiguration)
+    result.reports.forEach {
+        if (it.severity > ScriptDiagnostic.Severity.DEBUG) {
+            println(" : ${it.message}" + if (it.exception == null) "" else ": ${it.exception}")
+        }
+    }
+}
 
 suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
@@ -52,6 +70,7 @@ suspend fun main(args: Array<String>) {
         async {
             queueDispatcher.startQueueDispatcher()
         }
+        testScript(jda)
         initCommands(jda)
     }
 }
