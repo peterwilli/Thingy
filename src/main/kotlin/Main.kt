@@ -19,36 +19,27 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import script.ThingyExtensionScript
 import script.ThingyExtensionScriptEvaluationConfiguration
+import script.runScripts
 import utils.JCloudClient
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
-import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.time.Duration
 
 lateinit var config: Config
 lateinit var queueDispatcher: QueueDispatcher
 lateinit var jcloudClient: JCloudClient
 var updateMode = false
-
-fun testScript(jda: JDA) {
-    val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<ThingyExtensionScript>()
-    val evaluationConfiguration = ThingyExtensionScriptEvaluationConfiguration(jda)
-    val result = BasicJvmScriptingHost().eval("println(jda)".toScriptSource("main.thingyextension.kts"), compilationConfiguration, evaluationConfiguration)
-    result.reports.forEach {
-        if (it.severity > ScriptDiagnostic.Severity.DEBUG) {
-            println(" : ${it.message}" + if (it.exception == null) "" else ": ${it.exception}")
-        }
-    }
-}
 
 suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
@@ -70,7 +61,7 @@ suspend fun main(args: Array<String>) {
         async {
             queueDispatcher.startQueueDispatcher()
         }
-        testScript(jda)
+        runScripts(jda)
         initCommands(jda)
     }
 }
@@ -88,6 +79,7 @@ fun initCommands(jda: JDA) {
     profileCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
+    addThingyExtensionCommand(jda)
 
     jda.updateCommands {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
@@ -126,8 +118,9 @@ fun initCommands(jda: JDA) {
             option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
-        slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
+        slash("update", "[Mod only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)
+            defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)
         }
         slash("cancel", "Cancel latest item (by you) in the queue")
 
@@ -149,6 +142,10 @@ fun initCommands(jda: JDA) {
         slash("stats", "See server and bot stats!") {
         }
         slash("edit_profile", "Set profile background!") {
+        }
+        slash("add_extension", "[Admin only] Add an extension for more functionality!") {
+            option<Attachment>("script_file", "Script file", required = true)
+            defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
         }
     }.queue()
 }
