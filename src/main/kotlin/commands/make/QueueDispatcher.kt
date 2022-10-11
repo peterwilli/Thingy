@@ -202,7 +202,7 @@ class QueueDispatcher(private val jda: JDA) {
                                 .sendMessage("${entry.getMember().asMention}, Sorry, generation for this prompt has timed out!\n> *${prompts}*")
                                 .setActionRow(listOf(tryAgainButton))
                                 .queue()
-                            break
+                            return@async
                         }
                     } else {
                         lastPercentCompleted = avgPercentCompleted
