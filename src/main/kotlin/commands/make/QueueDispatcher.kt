@@ -53,7 +53,7 @@ class QueueDispatcher(private val jda: JDA) {
                         }
                         e.printStackTrace()
                         val finishMsg = entry.progressUpdate("*Failed* :(")
-                        finishMsg.reply_("Connection to the AI server has failed, it's likely that the bot is offline. Trying again $tries / ${maxTries}")
+                        finishMsg.reply_("Connection to the AI server has failed, it's likely that the bot is offline. Trying again $tries / $maxTries")
                             .queue()
                     } catch (e: Exception) {
                         e.printStackTrace()
