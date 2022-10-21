@@ -67,6 +67,7 @@ fun initCommands(jda: JDA) {
     rollbackChapterCommand(jda)
     img2imgCommand(jda)
     profileCommand(jda)
+    magicPromptCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
 
@@ -106,6 +107,10 @@ fun initCommands(jda: JDA) {
             option<Double>("strength", "How strong the change needs to be?", required = false)
             option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)
+        }
+        slash("magic_prompt", "Need help spicing up your prompt?") {
+            option<String>("start", "Beginning of your prompt!", required = true)
+            option<Int>("amount", "How many do you want? (Max 10, defaults 5)", required = false)
         }
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)

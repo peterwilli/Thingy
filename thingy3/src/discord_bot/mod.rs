@@ -1,12 +1,14 @@
-mod handler;
-
 use std::sync::Arc;
+
 use serenity::Client;
 use serenity::prelude::GatewayIntents;
 use tokio::sync::RwLock;
+
 use crate::discord_bot::handler::Handler;
 use crate::VM;
 use crate::vm::types::VmLock;
+
+mod handler;
 
 struct VMLockData;
 

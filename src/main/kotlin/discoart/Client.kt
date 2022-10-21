@@ -313,6 +313,41 @@ class Client(
         return result!!
     }
 
+    suspend fun magicPrompt(startPrompt: String, amount: Int): Array<String> {
+        val builder = Struct.newBuilder()
+        builder.putFields("amount", value {
+            numberValue = amount.toDouble()
+        })
+        val dataReq = dataRequestProto {
+            parameters = builder.build()
+            header = headerProto {
+                execEndpoint = "/magic_prompt/stable_diffusion"
+                requestId = randomString(alphanumericCharPool, 32)
+            }
+            data = DataRequestProtoKt.dataContentProto {
+                this.docs = documentArrayProto {
+                    this.docs.add(documentProto {
+                        text = startPrompt
+                    })
+                }
+            }
+        }
+        val reqs = listOf(dataReq).asFlow()
+        val result = mutableListOf<String>()
+        stub.withCompression("gzip").call(reqs).collect {
+            val status = it.header.status
+            if (status.code == Jina.StatusProto.StatusCode.ERROR) {
+                throw IllegalStateException("Error found in gateway response!\n${status.exception}")
+            }
+            if (it.data.docs.docsCount > 0) {
+                for(doc in it.data.docs.docsList) {
+                    result.add(doc.text)
+                }
+            }
+        }
+        return result.toTypedArray()
+    }
+
     suspend fun createDiscoDiffusionArt(params: DiffusionParameters) {
         val builder = Struct.newBuilder()
         addDiscoDiffusionConfig(params.discoDiffusionParameters!!.preset, builder)

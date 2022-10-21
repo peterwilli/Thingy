@@ -1,16 +1,20 @@
-mod command;
-pub mod types;
-
 use std::sync::Arc;
 use std::time::Duration;
-use rune::{Context, Diagnostics, FromValue, Source, Sources, Vm as RuneVM};
+use log::debug;
+
+use rune::{Context, Diagnostics, Source, Sources, Vm as RuneVM};
 use rune::termcolor::{ColorChoice, StandardStream};
-use tokio::{spawn, task};
-use tokio::sync::{mpsc, RwLock};
+use tokio::task;
+use tokio::sync::mpsc;
 use tokio::sync::mpsc::Sender;
 use tokio::task::spawn_local;
 use tokio::time::sleep;
-use crate::vm::command::{VMCommand, VMCommandType};
+
+pub use crate::vm::command::{VMCommand, VMCommandType, WValue};
+
+mod command;
+mod modules;
+pub mod types;
 
 #[derive(Default)]
 pub struct VM {
@@ -28,10 +32,15 @@ impl VM {
         let (command_tx, mut command_rx) = mpsc::channel(16);
         self.sender = Some(command_tx);
         let local = task::LocalSet::new();
+        debug!("VM start");
         local.run_until(async move {
+            debug!("VM start run_until");
+            // TODO: How to fix spawn local to run in background?
             spawn_local(async move {
+                debug!("VM start spawn_local");
                 let mut vm = Self::create_rune_vm().unwrap();
                 loop {
+                    debug!("VM start loop");
                     let msg = command_rx.recv().await;
                     if msg.is_none() {
                         break;
@@ -39,6 +48,7 @@ impl VM {
                     let command = msg.unwrap();
                     let script_result = match command.r#type {
                         VMCommandType::OnCommand(s) => {
+                            debug!("calling OnCommand");
                             vm.call(&["on_command"], (s, )).unwrap()
                         }
                         _ => {
@@ -46,7 +56,7 @@ impl VM {
                         }
                     };
                     if command.return_sender.is_some() {
-                        command.return_sender.unwrap().send(script_result).unwrap();
+                        command.return_sender.unwrap().send(WValue(script_result)).unwrap();
                     }
                     sleep(Duration::from_millis(250)).await;
                 }
@@ -63,8 +73,8 @@ impl VM {
         sources.insert(Source::new(
             "script",
             r#"
-        pub fn add(a, b) {
-            a + b
+        pub fn on_command(a) {
+            "test"
         }
         "#,
         ));

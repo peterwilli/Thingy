@@ -105,3 +105,4 @@ These are co-developed with Thingy!
 # Changelog
 
  - 26 sept 2022: Added Keep My JCloud as sister project, integrated in the bot using Docker. It keeps JCloud instances running by re-deploying if it dissapears.
+ - 21 oct 2022: Fixes for hanging cache system + sister projects updates + faster SD! + Magic Prompts!

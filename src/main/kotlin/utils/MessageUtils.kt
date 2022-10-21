@@ -10,7 +10,7 @@ fun GenericCommandInteractionEvent.replyOrEdit(message: String, ephemeral: Boole
     if (isAcknowledged) {
         this.hook.editMessage(content = message).queue()
     } else {
-        this.reply_(message).setEphemeral(ephemeral)
+        this.reply_(message).setEphemeral(ephemeral).queue()
     }
 }
 

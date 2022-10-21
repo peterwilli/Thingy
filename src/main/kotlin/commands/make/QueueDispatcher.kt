@@ -45,7 +45,7 @@ class QueueDispatcher(private val jda: JDA) {
                         dispatch(entry)
                         break
                     } catch (e: StatusException) {
-                        if (e.status.code == Status.UNIMPLEMENTED.code) {
+                        if (e.status.code == Status.UNIMPLEMENTED.code || e.status.code == Status.UNAVAILABLE.code) {
                             println("Killing client, Jina must have been offline! Error: ${ExceptionUtils.getMessage(
                                 e
                             )}\n${ExceptionUtils.getStackTrace(e)}")
@@ -85,7 +85,7 @@ class QueueDispatcher(private val jda: JDA) {
         val client = jcloudClient.currentClient()
         coroutineScope {
             var finalImages: List<ByteArray>? = null
-            async {
+            val paramsDispatcher = async {
                 for (params in batch) {
                     if (cancelled) {
                         break
@@ -185,12 +185,14 @@ class QueueDispatcher(private val jda: JDA) {
                         if (ticksWithoutUpdate > updateThreshold) {
                             inProgress.clear()
                             cancelled = true
+                            finalImages = null
                             val tryAgainButton = jda.button(
                                 label = "Try again",
                                 style = ButtonStyle.PRIMARY,
                                 user = entry.getMember().user
                             ) {
                                 try {
+                                    it.hook.editOriginal("Trying again...").setComponents(listOf()).queue()
                                     val tryAgainEntry = entry.copy(progressHook = it.hook)
                                     queueDispatcher.queue.addToQueue(tryAgainEntry)
                                 } catch (e: Exception) {
@@ -202,7 +204,8 @@ class QueueDispatcher(private val jda: JDA) {
                                 .sendMessage("${entry.getMember().asMention}, Sorry, generation for this prompt has timed out!\n> *${prompts}*")
                                 .setActionRow(listOf(tryAgainButton))
                                 .queue()
-                            return@async
+                            paramsDispatcher.cancel()
+                            break
                         }
                     } else {
                         lastPercentCompleted = avgPercentCompleted
