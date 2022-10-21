@@ -1,7 +1,7 @@
 FROM rust:1.64.0-slim as keep_my_jcloud_builder
 RUN cargo install \
     --git https://github.com/peterwilli/KeepMyJCloud.git \ 
-    --rev 7a0b30340359935a150987e2296141f05d8bd808
+    --rev 98391263d1c1ccfc14914d2adc908afa70c84089
 
 FROM gradle:jdk18-jammy as thingy_builder
 WORKDIR /usr/src/app

@@ -111,6 +111,7 @@ fun initCommands(jda: JDA) {
         slash("magic_prompt", "Need help spicing up your prompt?") {
             option<String>("start", "Beginning of your prompt!", required = true)
             option<Int>("amount", "How many do you want? (Max 10, defaults 5)", required = false)
+            option<Int>("variation", "How much variation %? (Next word will be less related to previous word) (Default: 30, max 100)", required = false)
         }
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)

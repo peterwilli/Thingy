@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
 import utils.*
 import java.awt.image.BufferedImage
+import java.lang.StringBuilder
 import java.net.URL
 import javax.imageio.ImageIO
 
@@ -31,8 +32,23 @@ private val imageFilename = "final.png"
 private fun makeShareEmbed(img: BufferedImage, author: User, parameters: Array<DiffusionParameters>): MessageEmbed {
     val embed = EmbedBuilder()
     embed.setImage("attachment://$imageFilename")
-    embed.setTitle(parameters.first().getPrompt())
-    embed.setDescription("by ${author.asMention}")
+    // Discord has a max title length for embeds of 256. We take 250 to be on the safe side.
+    val maxPromptLength = 250
+    val prompt = parameters.first().getPrompt()!!
+    val title = if (prompt.length > maxPromptLength) {
+         "${prompt.take(maxPromptLength)}..."
+    }
+    else {
+        prompt
+    }
+    embed.setTitle(title)
+    val description = StringBuilder()
+    if (prompt.length > maxPromptLength) {
+        // Add the remainder
+        description.append("...${prompt.substring(maxPromptLength until prompt.length)}\n")
+    }
+    description.append("by ${author.asMention}")
+    embed.setDescription(description.toString())
     val avgColor = getAverageColor(img, 0, 0, img.width, img.height)
     embed.setColor(avgColor)
     return embed.build()

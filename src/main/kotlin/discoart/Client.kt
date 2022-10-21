@@ -313,10 +313,13 @@ class Client(
         return result!!
     }
 
-    suspend fun magicPrompt(startPrompt: String, amount: Int): Array<String> {
+    suspend fun magicPrompt(startPrompt: String, amount: Int, variation: Double): Array<String> {
         val builder = Struct.newBuilder()
         builder.putFields("amount", value {
             numberValue = amount.toDouble()
+        })
+        builder.putFields("variation", value {
+            numberValue = variation
         })
         val dataReq = dataRequestProto {
             parameters = builder.build()

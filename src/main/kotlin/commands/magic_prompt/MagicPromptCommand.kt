@@ -18,9 +18,14 @@ fun magicPromptCommand(jda: JDA) {
             val amount = if (event.getOption("amount") == null) {
                 5
             } else {
-                max(min(event.getOption("amount")!!.asInt, 10), 1)
+                event.getOption("amount")!!.asInt.coerceIn(1..10)
             }
-            val result = client.magicPrompt(event.getOption("start")!!.asString, amount)
+            val variation = if (event.getOption("variation") == null) {
+                0.3
+            } else {
+                event.getOption("variation")!!.asInt.coerceIn(0..100) / 100.0
+            }
+            val result = client.magicPrompt(event.getOption("start")!!.asString, amount, variation)
             if (result.isEmpty()) {
                 event.hook.editOriginal("Failed :(").queue()
                 event.messageChannel.sendMessage("${event.user.asMention} Magic Prompt failed! Sorry! Please try again later...").queue()
