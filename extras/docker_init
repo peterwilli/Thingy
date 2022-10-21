@@ -1,13 +1,9 @@
 #!/bin/bash
-arguments="--port=8000 --flow-yml-path=/opt/thingy/flow_server.yml"
+arguments="--project-name=thingy --port=8000 --flow-yml-path=/opt/thingy/flow_server.yml"
 if [[ ! -z "$ALTERNATE_URL" ]]; then
     echo "Setting alternate URL to JCloudKeeper"
     arguments="$arguments --alternate-url=$ALTERNATE_URL"
 fi
-if [[ ! -z "$CURRENT_JCLOUD_URL" ]]; then
-    echo "Setting current JCloud URL to JCloudKeeper"
-    arguments="$arguments --current-jcloud-url=$CURRENT_JCLOUD_URL"
-fi  
 echo "Running JCloud with arguments: $arguments"
 keep_my_jcloud $(echo $arguments) &
 echo "Running thingy jar"

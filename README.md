@@ -55,13 +55,9 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
 
       - If you're starting fresh, you can use the following command in the bot directory: `docker run -v $(pwd):/opt/thingy/data -d --name=thingy peterwilli/thingy:latest`
 
-      - If you've ran the bot on JCloud before, chances are it's already up. Run `jc list` either in an already spawned container, or whatever your current setup is. If there's a link, you can run `jina status <id from jc list>` to see if it's the thingy flow (typically contains executors like `stable_diffusion_txt2img` and `stable_diffusion_img2img`)
-
-        You can now run `docker run -v $(pwd):/opt/thingy/data -it --name=thingy --env CURRENT_JCLOUD_URL=grpcs://xxxxx.wolf.jina.ai peterwilli/thingy:2.0-alpha3` where xxxxx is your Jina instance ID.
+      - If you used an older version of Thingy (before Oct 21 2022), chances are it's already up. Run `jc list` either in an already spawned container, or whatever your current setup is. If there's a link, you can run `jina status <id from jc list>` to see if it's the thingy flow (typically contains executors like `stable_diffusion_txt2img` and `stable_diffusion_img2img`). **Remove this instance!** The bot will make a new one.
 
     - Once it is running, log in to JCloud by running: `docker exec -it thingy jc login`. You should now get a link that you can copy-paste in your browser to login.
-
-    - You should now see a error about docker not being present, that's ok, it will still work.
 
     - Now you should be able to run `/stable_diffusion` and other peculiarities in Discord! The first time it might take a while to run.
 
@@ -91,7 +87,7 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
 - [Make sure Discord is in developer mode](https://www.howtogeek.com/714348/how-to-enable-or-disable-developer-mode-on-discord)
 - Make a channel, any place you like (bot needs to be able to post to it, so make sure has write permissions there). Name it something like `gallery`
 - Right-click on the channel and click "Copy ID"
-- Paste the channel ID in `shareChannelID` in the bot's `config.yml`. Restart bot if its running!
+- Paste the channel ID in `shareChannelID` in the bots `config.yml`. Restart bot if its running!
 - Now you and your members can use `/share` for showcasing your fine art!
 
 # Sister projects
