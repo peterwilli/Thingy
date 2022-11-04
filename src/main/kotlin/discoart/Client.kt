@@ -186,7 +186,7 @@ class Client(
         })
         builder.putFields("steps", value { numberValue = stableParams.steps.toDouble() })
         builder.putFields("seed", value { stringValue = params.seed.toString() })
-        builder.putFields("width_height", value {
+        builder.putFields("size", value {
             listValue = listValue {
                 val (w, h) = stableParams.ratio.calculateSize(512)
                 values.addAll(listOf(
