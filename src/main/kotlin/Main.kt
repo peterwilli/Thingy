@@ -1,4 +1,7 @@
 import com.sksamuel.hoplite.ConfigLoader
+import commands.art_contest.removeFromContestCommand
+import commands.art_contest.submitToContestCommand
+import commands.art_contest.voteReactionWatcher
 import commands.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
@@ -70,6 +73,9 @@ fun initCommands(jda: JDA) {
     magicPromptCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
+    removeFromContestCommand(jda)
+    submitToContestCommand(jda)
+    voteReactionWatcher(jda)
 
     jda.updateCommands {
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
@@ -136,6 +142,12 @@ fun initCommands(jda: JDA) {
         slash("stats", "See server and bot stats!") {
         }
         slash("edit_profile", "Set profile background!") {
+        }
+        if (config.artContestChannelID != null) {
+            slash("submit_to_contest", "Submit art to contest!") {
+            }
+            slash("remove_from_contest", "Remove (your) art from contest!") {
+            }
         }
     }.queue()
 }

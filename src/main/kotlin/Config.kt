@@ -35,4 +35,5 @@ data class Config(
     val imagesFolder: String,
     val timeouts: Timeouts,
     val shareChannelID: String,
+    val artContestChannelID: String?,
 )
