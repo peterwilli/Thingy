@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import org.atteo.evo.inflector.English
 
-val standardPermissionList = listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)
+val standardPermissionList = listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_HISTORY)
 
 fun validatePermissions(event: GenericCommandInteractionEvent, permsToCheck: List<Permission>): Boolean {
     val permsMissing = mutableListOf<Permission>()

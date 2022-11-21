@@ -36,6 +36,7 @@ fun voteReactionWatcher(jda: JDA) {
             }
             val entry = artContestEntryDao.queryBuilder().selectColumns("id").where().eq("messageID", it.messageIdLong)
                 .queryForFirst()
+
             val vote =
                 ArtContestVote(
                     it.user!!.idLong, entry.id

@@ -38,6 +38,10 @@ class ArtContestEntry {
 
     @NotNull
     @DatabaseField()
+    lateinit var originalImageURL: String
+
+    @NotNull
+    @DatabaseField()
     lateinit var messageLink: String
 
     @NotNull
@@ -48,9 +52,10 @@ class ArtContestEntry {
     constructor() {
     }
 
-    constructor(userID: Long, imageURL: URL, prompt: String, index: Int, messageLink: URL, messageID: Long) {
+    constructor(userID: Long, imageURL: URL, originalImageURL: URL, prompt: String, index: Int, messageLink: URL, messageID: Long) {
         this.userID = userID
         this.imageURL = imageURL.toString()
+        this.originalImageURL = originalImageURL.toString()
         this.prompt = prompt
         this.index = index
         this.messageLink = messageLink.toString()

@@ -36,4 +36,5 @@ data class Config(
     val timeouts: Timeouts,
     val shareChannelID: String,
     val artContestChannelID: String?,
+    val leaderboardChannelID: String?,
 )

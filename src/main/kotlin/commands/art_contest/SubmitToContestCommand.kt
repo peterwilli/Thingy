@@ -1,6 +1,8 @@
 package commands.art_contest
 
 import commands.make.DiffusionParameters
+import commands.make.standardPermissionList
+import commands.make.validatePermissions
 import config
 import database.artContestEntryDao
 import database.chapterDao
@@ -60,6 +62,9 @@ private fun makeShareEmbed(img: BufferedImage, author: User, parameters: Array<D
 
 fun submitToContestCommand(jda: JDA) {
     jda.onCommand("submit_to_contest") { event ->
+        if (!validatePermissions(event, standardPermissionList)) {
+            return@onCommand
+        }
         try {
             val user = userDao.queryBuilder().selectColumns("id", "currentChapterId").where()
                 .eq("discordUserID", event.user.id).queryForFirst()
@@ -98,7 +103,7 @@ fun submitToContestCommand(jda: JDA) {
                 }
                 val possibleCacheEntry =
                     artContestEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
-                        .and().eq("imageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()
+                        .and().eq("originalImageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()
                 if (possibleCacheEntry != null) {
                     event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}")
                         .setComponents().setEmbeds().setAttachments().queue()
@@ -124,6 +129,7 @@ fun submitToContestCommand(jda: JDA) {
                                         ArtContestEntry(
                                             usingChapter.userID,
                                             URL(sharedMsg.embeds.first().image!!.url),
+                                            URL(latestEntry.imageURL),
                                             parameters.first().getPrompt()!!,
                                             chosenImage,
                                             messageLink,

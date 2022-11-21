@@ -1,8 +1,6 @@
 import com.sksamuel.hoplite.ConfigLoader
-import commands.art_contest.removeFromContestCommand
-import commands.art_contest.submitToContestCommand
-import commands.art_contest.voteReactionWatcher
-import commands.cancel.cancelCommand
+import commands.art_contest.*
+import commands.art_contest.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
 import commands.img2img.img2imgCommand
@@ -22,9 +20,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import utils.JCloudClient
@@ -61,6 +61,7 @@ suspend fun main(args: Array<String>) {
 
 fun initCommands(jda: JDA) {
     discoDiffusionCommand(jda)
+    makeCommand(jda)
     stableDiffusionCommand(jda)
     cancelCommand(jda)
     updateCommand(jda)
@@ -77,7 +78,22 @@ fun initCommands(jda: JDA) {
     submitToContestCommand(jda)
     voteReactionWatcher(jda)
 
+    if (config.leaderboardChannelID != null) {
+        leaderboardScheduler(jda, 9)
+        testLeaderboardCommand(jda)
+    }
+
     jda.updateCommands {
+        slash("make", "The easiest way to get started! Just type some text and let it go! \uD83E\uDDCA") {
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
+            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
+            option<Int>(
+                "seed",
+                "Entropy for the random number generator, use the same seed to replicate results!",
+                required = false
+            )
+        }
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
@@ -147,6 +163,11 @@ fun initCommands(jda: JDA) {
             slash("submit_to_contest", "Submit art to contest!") {
             }
             slash("remove_from_contest", "Remove (your) art from contest!") {
+            }
+        }
+        if (config.leaderboardChannelID != null) {
+            slash("test_leaderboard", "Testing leaderboard! (Admin only)") {
+                defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)
             }
         }
     }.queue()

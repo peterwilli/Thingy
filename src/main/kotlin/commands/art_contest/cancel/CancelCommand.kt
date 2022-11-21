@@ -1,4 +1,4 @@
-package commands.cancel
+package commands.art_contest.cancel
 
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
