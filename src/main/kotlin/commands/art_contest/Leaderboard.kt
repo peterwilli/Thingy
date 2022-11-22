@@ -5,6 +5,7 @@ import database.artContestEntryDao
 import database.artContestVoteDao
 import database.models.ArtContestEntry
 import database.userDao
+import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.listener
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.emoji.Emoji
@@ -48,7 +49,7 @@ fun sendLeaderboard(jda: JDA) {
     for ((i, entry) in topNEntries.withIndex()) {
         val user = userDao.queryBuilder().selectColumns("discordUserID").where()
             .eq("id", entry.first.userID).queryForFirst()
-        val discordUser = jda.getUserById(user.discordUserID!!)!!
+        val discordUser = jda.retrieveUserById(user.discordUserID!!).complete()
         val place = when (i) {
             0 -> {
                 ":first_place:"

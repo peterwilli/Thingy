@@ -30,7 +30,7 @@ fun makeSelectArtContestEntry(jda: JDA, user: User, entries: List<ArtContestEntr
     val getPageCallback: GetPageCallback = { index ->
         val page = EmbedBuilder()
         val entry = entries[index.toInt()]
-        page.setTitle(entry.prompt)
+        page.setTitle(entry.prompt.take(255))
         page.setFooter("Entry ${index + 1} / ${entries.size}")
         page.setImage("attachment://${index + 1}.jpg")
         val image = ImageIO.read(URL(entry.imageURL))
@@ -69,7 +69,7 @@ fun removeFromContestCommand(jda: JDA) {
                     .setEphemeral(true).queue()
                 return@onCommand
             }
-            event.deferReply().queue()
+            event.deferReply().setEphemeral(true).queue()
             val imageSelector = makeSelectArtContestEntry(jda, event.user, memberEntries);
             imageSelector.customActionComponents = listOf(jda.button(
                 label = "Delete",
@@ -84,7 +84,6 @@ fun removeFromContestCommand(jda: JDA) {
                             user = event.user
                         ) {
                             val memberEntryToDelete = memberEntries[imageSelector.getIndex().toInt()]
-                            val messageToDelete = memberEntryToDelete.messageLink;
                             val channel = jda.getTextChannelById(config.artContestChannelID!!)
                             if (channel == null) {
                                 btnEvent.hook.editMessage(content = "Can't find art channel! Art entry not deleted.").setComponents().queue()

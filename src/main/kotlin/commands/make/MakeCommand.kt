@@ -3,6 +3,7 @@ import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
+import utils.sendException
 import kotlin.random.Random
 
 fun makeCommand(jda: JDA) {
@@ -11,7 +12,7 @@ fun makeCommand(jda: JDA) {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
             }
-
+            event.deferReply().queue()
             val client = jcloudClient.currentClient()
             val prompt = event.getOption("prompt")!!.asString
             val magicPromptResult = client.magicPrompt(prompt, config.hostConstraints.totalImagesInMakeCommand - 1, Random.nextDouble())
@@ -41,10 +42,10 @@ fun makeCommand(jda: JDA) {
             }
 
             val entry = createEntry(event.hook)
-            event.reply_(queueDispatcher.queue.addToQueue(entry)).queue()
+            event.hook.editOriginal(queueDispatcher.queue.addToQueue(entry)).queue()
         } catch (e: Exception) {
             e.printStackTrace()
-            event.reply_("Error! $e").setEphemeral(true).queue()
+            event.sendException(e)
         }
     }
 }

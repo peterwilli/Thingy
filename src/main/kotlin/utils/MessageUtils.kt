@@ -25,6 +25,6 @@ fun GenericCommandInteractionEvent.sendException(e: Exception) {
             ExceptionUtils.getMessage(
                 e
             )
-        }\n${ExceptionUtils.getStackTrace(e)}```"
+        }\n${ExceptionUtils.getStackTrace(e).take(1000)}```".take(2000)
     ).queue()
 }
