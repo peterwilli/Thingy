@@ -113,24 +113,29 @@ fun initCommands(jda: JDA) {
         }
     }
 
+    fun sdSteps(data: SlashCommandData): SlashCommandData {
+        return data.option<Int>("steps", "Higher steps typically lead to a better image", required = false) {
+            this.setMinValue(1)
+            this.setMaxValue(100)
+        }
+    }
+
     jda.updateCommands {
         slash("make", "The easiest way to get started! Just type some text and let it go! \uD83E\uDDCA") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<Int>("steps", "Higher steps typically lead to a better image", required = false) {
-                this.setMinValue(1)
-                this.setMaxValue(100)
-            }
             sdSize(this)
             sdGuidanceScale(this)
+            sdSteps(this)
             seed(this)
         }
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            sdGuidanceScale(this)
-            seed(this)
             sdSize(this)
+            sdGuidanceScale(this)
+            sdSteps(this)
+            seed(this)
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)
