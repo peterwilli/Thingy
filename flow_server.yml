@@ -5,7 +5,7 @@ monitoring: true
 executors:
   # Stable Diffusion
   - name: stable_diffusion_txt2img
-    uses: jinahub+docker://Txt2ImgExecutor/0.1.6
+    uses: jinahub+docker://Txt2ImgExecutor/0.1.8
     jcloud:
       resources:
         gpu: 1
