@@ -2,15 +2,14 @@ package commands.art_contest
 
 import com.j256.ormlite.misc.TransactionManager
 import config
-import database.*
-import database.models.ArtContestEntry
+import database.artContestEntryDao
+import database.artContestVoteDao
+import database.connectionSource
 import database.models.ArtContestVote
-import database.models.SharedArtCacheEntry
 import dev.minn.jda.ktx.events.listener
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent
-import java.net.URL
 
 private const val maxVotes = 3;
 

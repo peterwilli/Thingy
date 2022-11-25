@@ -7,8 +7,6 @@ import config
 import database.artContestEntryDao
 import database.chapterDao
 import database.models.ArtContestEntry
-import database.models.SharedArtCacheEntry
-import database.sharedArtCacheEntryDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
@@ -28,7 +26,6 @@ import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
 import utils.*
 import java.awt.image.BufferedImage
-import java.lang.StringBuilder
 import java.net.URL
 import javax.imageio.ImageIO
 

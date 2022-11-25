@@ -5,14 +5,11 @@ import database.artContestEntryDao
 import database.artContestVoteDao
 import database.models.ArtContestEntry
 import database.userDao
-import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.listener
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.emoji.Emoji
-import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.session.ReadyEvent
 import org.slf4j.LoggerFactory
 import utils.sanitize
-import java.lang.StringBuilder
 import java.time.LocalTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit

@@ -18,9 +18,9 @@ fun img2imgCommand(jda: JDA) {
             }
 
             val strength = if (event.getOption("strength") != null) {
-                event.getOption("strength")!!.asDouble
+                event.getOption("strength")!!.asInt
             } else {
-                0.75
+                75
             }
 
             val guidanceScale = if (event.getOption("guidance_scale") != null) {

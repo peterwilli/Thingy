@@ -15,9 +15,10 @@ data class StableDiffusionParameters(
     val prompt: String,
     var initImage: URI? = null,
     var ratio: Ratio = Ratio(),
-    var steps: Int = 50,
-    val guidanceScale: Double = 7.5,
-    val strength: Double? = null
+    var steps: Int = 25,
+    var size: Int,
+    val guidanceScale: Double = 9.0,
+    var strength: Int? = null
 )
 
 fun optionsToStableDiffusionParams(
@@ -43,10 +44,20 @@ fun optionsToStableDiffusionParams(
         artID = "${config.bot.name}-${randomString(alphanumericCharPool, 32)}",
         stableDiffusionParameters = StableDiffusionParameters(
             prompt = prompt,
+            steps = if (event.getOption("steps") == null) {
+                25
+            } else {
+                event.getOption("steps")!!.asInt
+            },
             guidanceScale = if (event.getOption("guidance_scale") == null) {
-                7.5
+                9.0
             } else {
                 event.getOption("guidance_scale")!!.asDouble
+            },
+            size = if (event.getOption("size") == null) {
+                512
+            } else {
+                event.getOption("size")!!.asInt
             }
         ),
         discoDiffusionParameters = null
@@ -76,11 +87,9 @@ fun optionsToStableDiffusionParams(
         params.stableDiffusionParameters!!.initImage = base64Init
     }
 
-    val guidanceScaleOption = event.getOption("guidance_scale")
-    if (initImageURLOption != null) {
-        val image = ImageIO.read(URL(initImageURLOption.asString))
-        val base64Init = bufferedImageToDataURI(image)
-        params.stableDiffusionParameters!!.initImage = base64Init
+    val strengthOption = event.getOption("strength")
+    if (strengthOption != null) {
+        params.stableDiffusionParameters!!.strength = strengthOption.asInt!!
     }
     return params
 }

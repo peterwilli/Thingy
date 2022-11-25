@@ -188,7 +188,7 @@ class Client(
         builder.putFields("seed", value { stringValue = params.seed.toString() })
         builder.putFields("size", value {
             listValue = listValue {
-                val (w, h) = stableParams.ratio.calculateSize(512)
+                val (w, h) = stableParams.ratio.calculateSize(params.stableDiffusionParameters.size)
                 values.addAll(listOf(
                     value { numberValue = w.toDouble() },
                     value { numberValue = h.toDouble() }
@@ -196,9 +196,9 @@ class Client(
             }
         })
         if (stableParams.strength != null) {
-            builder.putFields("strength", value { numberValue = stableParams.strength.coerceIn(0.0..1.0) })
+            builder.putFields("strength", value { numberValue = stableParams.strength!! / 100.0 })
         }
-        builder.putFields("guidance_scale", value { numberValue = stableParams.guidanceScale.coerceIn(0.0..50.0) })
+        builder.putFields("guidance_scale", value { numberValue = stableParams.guidanceScale })
     }
 
     private fun addDefaultDiscoDiffusionParameters(params: DiffusionParameters, builder: Builder) {

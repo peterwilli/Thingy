@@ -1,14 +1,8 @@
-import config
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
-import okhttp3.internal.wait
-import updateMode
 import utils.messageToURL
-import utils.replyOrEdit
-import java.lang.Integer.max
-import java.lang.Integer.min
 
 fun magicPromptCommand(jda: JDA) {
     jda.onCommand("magic_prompt") { event ->
@@ -18,12 +12,12 @@ fun magicPromptCommand(jda: JDA) {
             val amount = if (event.getOption("amount") == null) {
                 5
             } else {
-                event.getOption("amount")!!.asInt.coerceIn(1..10)
+                event.getOption("amount")!!.asInt
             }
             val variation = if (event.getOption("variation") == null) {
                 0.3
             } else {
-                event.getOption("variation")!!.asInt.coerceIn(0..100) / 100.0
+                event.getOption("variation")!!.asInt / 100.0
             }
             val result = client.magicPrompt(event.getOption("start")!!.asString, amount, variation)
             if (result.isEmpty()) {

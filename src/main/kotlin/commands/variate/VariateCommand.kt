@@ -51,9 +51,9 @@ fun variateCommand(jda: JDA) {
         val image = ImageIO.read(URL(latestEntry.imageURL))
 
         val strength = if (event.getOption("strength") != null) {
-            event.getOption("strength")!!.asDouble
+            event.getOption("strength")!!.asInt
         } else {
-            0.5
+            50
         }
 
         val guidanceScale = if (event.getOption("guidance_scale") != null) {

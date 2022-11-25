@@ -5,7 +5,6 @@ import com.j256.ormlite.misc.TransactionManager
 import com.j256.ormlite.table.DatabaseTable
 import database.artContestEntryDao
 import database.artContestVoteDao
-import database.chapterDao
 import database.connectionSource
 import org.jetbrains.annotations.NotNull
 import utils.peterDate

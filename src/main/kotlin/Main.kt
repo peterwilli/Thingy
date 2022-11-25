@@ -12,6 +12,7 @@ import commands.social.shareCommand
 import commands.update.updateCommand
 import commands.variate.variateCommand
 import database.initDatabase
+import dev.minn.jda.ktx.interactions.commands.choice
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
 import dev.minn.jda.ktx.interactions.commands.updateCommands
@@ -25,9 +26,11 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import utils.JCloudClient
+import kotlin.math.pow
 import kotlin.time.Duration
 
 lateinit var config: Config
@@ -83,57 +86,89 @@ fun initCommands(jda: JDA) {
         testLeaderboardCommand(jda)
     }
 
+    fun seed(data: SlashCommandData): SlashCommandData {
+        return data.option<Int>(
+            "seed",
+            "Entropy for the random number generator, use the same seed to replicate results!",
+            required = false,
+            builder = {
+                this.setMaxValue(2.0.pow(32.0).toLong())
+                this.setMinValue(0)
+            }
+        )
+    }
+
+    fun sdGuidanceScale(data: SlashCommandData): SlashCommandData {
+        return data.option<Double>("guidance_scale", "How much guidance to the prompt?", required = false) {
+            this.setMinValue(0.0)
+            this.setMaxValue(100.0)
+        }
+    }
+
+    fun sdSize(data: SlashCommandData): SlashCommandData {
+        return data.option<Int>("size", "Image square size (Default: Normal)", required = false) {
+            choice("Small", 256)
+            choice("Normal", 512)
+            choice("Big", 768)
+        }
+    }
+
     jda.updateCommands {
         slash("make", "The easiest way to get started! Just type some text and let it go! \uD83E\uDDCA") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
-            option<Int>(
-                "seed",
-                "Entropy for the random number generator, use the same seed to replicate results!",
-                required = false
-            )
+            option<Int>("steps", "Higher steps typically lead to a better image", required = false) {
+                this.setMinValue(1)
+                this.setMaxValue(100)
+            }
+            sdSize(this)
+            sdGuidanceScale(this)
+            seed(this)
         }
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
-            option<Int>(
-                "seed",
-                "Entropy for the random number generator, use the same seed to replicate results!",
-                required = false
-            )
+            sdGuidanceScale(this)
+            seed(this)
+            sdSize(this)
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<Int>(
-                "seed",
-                "Entropy for the random number generator, use the same seed to replicate results!",
-                required = false
-            )
             option<Double>("strength", "How strong the change needs to be?", required = false)
-            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
-            option<Int>("steps", "How much steps from the original image?", required = false)
+            option<Int>("steps", "How much steps from the original image?", required = false) {
+                this.setMaxValue(100)
+                this.setMinValue(1)
+            }
+            sdGuidanceScale(this)
+            seed(this)
+            sdSize(this)
         }
         slash("link2img", "Make an existing image into your prompt!") {
             option<String>("input_image_url", "Link to initial image", required = true)
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<Int>(
-                "seed",
-                "Entropy for the random number generator, use the same seed to replicate results!",
-                required = false
-            )
-            option<Double>("strength", "How strong the change needs to be?", required = false)
-            option<Double>("guidance_scale", "How much guidance to the prompt?", required = false)
+            seed(this)
+            sdGuidanceScale(this)
+            sdSize(this)
+            option<Int>("strength", "How strong the change needs to be (In %)?", required = false) {
+                this.setMinValue(0)
+                this.setMaxValue(100)
+            }
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("magic_prompt", "Need help spicing up your prompt?") {
             option<String>("start", "Beginning of your prompt!", required = true)
-            option<Int>("amount", "How many do you want? (Max 10, defaults 5)", required = false)
-            option<Int>("variation", "How much variation %? (Next word will be less related to previous word) (Default: 30, max 100)", required = false)
+            option<Int>("amount", "How many do you want? (Default: 5)", required = false) {
+                this.setMaxValue(10)
+                this.setMinValue(1)
+            }
+            option<Int>("variation", "How much variation %? (Next word will be less related to previous word) (Default: 30)", required = false) {
+                this.setMaxValue(100)
+                this.setMinValue(1)
+            }
+            seed(this)
         }
         slash("update", "[Admin only] Update mode: Prevents new images from being created for updating the bot") {
             option<Boolean>("on", "Turn update mode on or off", required = true)

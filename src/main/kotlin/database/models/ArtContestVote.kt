@@ -1,15 +1,10 @@
 package database.models
 
 import com.j256.ormlite.field.DatabaseField
-import com.j256.ormlite.misc.TransactionManager
 import com.j256.ormlite.table.DatabaseTable
-import database.artContestEntryDao
 import database.artContestVoteDao
-import database.chapterDao
-import database.connectionSource
 import org.jetbrains.annotations.NotNull
 import utils.peterDate
-import java.net.URL
 
 @DatabaseTable(tableName = "art_contest_vote")
 class ArtContestVote {

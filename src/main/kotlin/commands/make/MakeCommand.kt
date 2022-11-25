@@ -1,6 +1,5 @@
 import commands.make.*
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import utils.sendException

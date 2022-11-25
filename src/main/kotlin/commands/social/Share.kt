@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
 import utils.*
 import java.awt.image.BufferedImage
-import java.lang.StringBuilder
 import java.net.URL
 import javax.imageio.ImageIO
 
