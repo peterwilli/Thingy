@@ -1,7 +1,10 @@
+import com.google.gson.JsonArray
 import commands.make.*
 import dev.minn.jda.ktx.events.onCommand
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
+import utils.optionsToJson
 import utils.sendException
 import kotlin.random.Random
 
@@ -17,24 +20,21 @@ fun makeCommand(jda: JDA) {
             val magicPromptResult = client.magicPrompt(prompt, config.hostConstraints.totalImagesInMakeCommand - 1, Random.nextDouble())
 
             fun createEntry(hook: InteractionHook): FairQueueEntry {
-                var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map { idx ->
-                    val params = optionsToStableDiffusionParams(event, idx)
-                    if (idx == 0) {
-                        params
+                var batch = JsonArray()
+                for (idx in 0 until config.hostConstraints.totalImagesInMakeCommand) {
+                    val params = event.optionsToJson()
+                    val seed = params["seed"].asLong
+                    params.addProperty("seed", seed + idx)
+                    if (idx > 0) {
+                        params.addProperty("prompt", magicPromptResult[idx - 1])
                     }
-                    else {
-                        params.copy(
-                            stableDiffusionParameters = params.stableDiffusionParameters!!.copy(
-                                prompt = magicPromptResult[idx - 1]
-                            )
-                        )
-                    }
+                    batch.add(params)
                 }
                 return FairQueueEntry(
                     "Making Images",
-                    FairQueueType.StableDiffusion,
                     event.member!!.id,
                     batch,
+                    getScriptForSize(event.getOption("size")!!.asInt),
                     hook,
                     null
                 )

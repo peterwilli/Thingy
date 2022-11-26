@@ -1,6 +1,7 @@
 package commands.make
 
-import commands.make.diffusion_configs.disco.discoDiffusionConfigInstanceToName
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import config
 import database.models.UserChapter
 import dev.minn.jda.ktx.coroutines.await
@@ -10,6 +11,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.utils.FileUpload
 import updateMode
+import utils.sanitize
 
 class MemberLimitExceededException(message: String) : Exception(message)
 
@@ -19,9 +21,9 @@ enum class FairQueueType {
 
 data class FairQueueEntry(
     val description: String,
-    val type: FairQueueType,
     val owner: String,
-    val parameters: List<DiffusionParameters>,
+    val parameters: JsonArray,
+    val script: String,
     val progressHook: InteractionHook,
     val chapter: UserChapter?
 ) {
@@ -34,12 +36,9 @@ data class FairQueueEntry(
             stringBuilder.append(withDescription)
         }
         stringBuilder.append("** | ")
-        if (parameters.first().discoDiffusionParameters != null) {
-            stringBuilder.append(
-                "**Preset**: ${discoDiffusionConfigInstanceToName[parameters.first().discoDiffusionParameters!!.preset]!!}\n"
-            )
+        for((k, v) in parameters[0].asJsonObject.asMap()) {
+            stringBuilder.append("$k: ${sanitize(v.asString)}")
         }
-        stringBuilder.append("> *${getHumanReadablePrompts()}*\n")
         return stringBuilder.toString()
     }
 
@@ -61,17 +60,6 @@ data class FairQueueEntry(
 
     fun getMember(): Member {
         return progressHook.interaction.member!!
-    }
-
-    fun getHumanReadablePrompts(): String {
-        val firstParams = parameters.first()
-        if (firstParams.discoDiffusionParameters != null) {
-            return firstParams.discoDiffusionParameters.prompts.joinToString("|")
-        }
-        if (firstParams.stableDiffusionParameters != null) {
-            return firstParams.stableDiffusionParameters.prompt
-        }
-        return "Invalid Diffusion type"
     }
 }
 

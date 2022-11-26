@@ -1,6 +1,6 @@
 package commands.social
 
-import commands.make.DiffusionParameters
+import com.google.gson.JsonArray
 import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
@@ -45,15 +45,15 @@ fun setBackgroundCommand(jda: JDA) {
             event.deferReply(true).queue()
             val latestEntry = usingChapter.getLatestEntry()
             val image = ImageIO.read(URL(latestEntry.imageURL))
-            val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
+            val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
             val quiltSelector = makeSelectImageFromQuilt(
                 event,
                 event.user,
                 "Select image for background use!",
                 image,
-                parameters.size
+                parameters.size()
             ) { _, chosenImage ->
-                val imageSlice = takeSlice(image, parameters.size, chosenImage)
+                val imageSlice = takeSlice(image, parameters.size(), chosenImage)
                 var currentY = 0
                 fun getSlicedBG(): BufferedImage {
                     return imageSlice.getSubimage(0, currentY, imageSlice.width, profileCardHeight)

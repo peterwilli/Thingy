@@ -1,7 +1,7 @@
 package utils
 
 import config
-import discoart.Client
+import Client
 import gson
 import io.grpc.ManagedChannelBuilder
 import org.apache.commons.lang3.exception.ExceptionUtils

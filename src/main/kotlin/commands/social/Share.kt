@@ -1,6 +1,7 @@
 package commands.social
 
-import commands.make.DiffusionParameters
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import config
 import database.chapterDao
 import database.models.SharedArtCacheEntry
@@ -28,12 +29,12 @@ import javax.imageio.ImageIO
 
 private val imageFilename = "final.png"
 
-private fun makeShareEmbed(img: BufferedImage, author: User, parameters: Array<DiffusionParameters>): MessageEmbed {
+private fun makeShareEmbed(img: BufferedImage, author: User, parameters: JsonObject): MessageEmbed {
     val embed = EmbedBuilder()
     embed.setImage("attachment://$imageFilename")
     // Discord has a max title length for embeds of 256. We take 250 to be on the safe side.
     val maxPromptLength = 250
-    val prompt = parameters.first().getPrompt()!!
+    val prompt = parameters.get("prompt").asString
     val title = if (prompt.length > maxPromptLength) {
          "${prompt.take(maxPromptLength)}..."
     }
@@ -76,13 +77,13 @@ fun shareCommand(jda: JDA) {
             event.deferReply(true).queue()
             val latestEntry = usingChapter.getLatestEntry()
             val image = ImageIO.read(URL(latestEntry.imageURL))
-            val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
+            val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
             val quiltSelector = makeSelectImageFromQuilt(
                 event,
                 event.user,
                 "Select image for sharing",
                 image,
-                parameters.size
+                parameters.size()
             ) { _, chosenImage ->
                 val possibleCacheEntry =
                     sharedArtCacheEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
@@ -92,9 +93,9 @@ fun shareCommand(jda: JDA) {
                         .queue()
                     return@makeSelectImageFromQuilt
                 }
-                val imageSlice = takeSlice(image, parameters.size, chosenImage)
+                val imageSlice = takeSlice(image, parameters.size(), chosenImage)
                 val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
-                val embed = makeShareEmbed(imageSlice, event.user, parameters)
+                val embed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject)
                 val okButton = jda.button(
                     label = "Fire away!",
                     style = ButtonStyle.PRIMARY,

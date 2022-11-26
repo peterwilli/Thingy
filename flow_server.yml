@@ -10,12 +10,6 @@ executors:
       resources:
         gpu: 1
         cpu: 1
-  - name: stable_diffusion_img2img
-    uses: jinahub+docker://Img2ImgExecutor/0.1.6
-    jcloud:
-      resources:
-        gpu: 1
-        cpu: 1
   - name: magic_prompt
     uses: jinahub+docker://MagicPromptExecutor/v1.1
     jcloud:

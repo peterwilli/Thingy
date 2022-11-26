@@ -1,6 +1,6 @@
 package commands.chapters
 
-import commands.make.DiffusionParameters
+import com.google.gson.JsonArray
 import database.chapterDao
 import database.chapterEntryDao
 import database.models.ChapterEntry
@@ -44,9 +44,9 @@ fun rollbackChapterCommand(jda: JDA) {
             var lastEntry: ChapterEntry? = null
             val onImage: GetImageCallback = { index ->
                 lastEntry = usingChapter.getEntryAtIndex(index)
-                val parameters = gson.fromJson(lastEntry!!.parameters, Array<DiffusionParameters>::class.java)
+                val parameters = gson.fromJson(lastEntry!!.parameters, JsonArray::class.java)
                 ImageSliderEntry(
-                    description = parameters.first().getPrompt() ?: "No prompt",
+                    description = parameters[0].asJsonObject.get("prompt").asString,
                     image = URL(lastEntry!!.imageURL)
                 )
             }

@@ -1,6 +1,6 @@
 package commands.chapters
 
-import commands.make.DiffusionParameters
+import com.google.gson.JsonArray
 import database.chapterDao
 import database.models.UserChapter
 import database.userDao
@@ -16,6 +16,7 @@ import replyPaginator
 import ui.GetImageCallback
 import ui.ImageSliderEntry
 import ui.sendImageSlider
+import utils.sanitize
 import java.net.URL
 
 fun listChaptersCommand(jda: JDA) {
@@ -43,9 +44,9 @@ fun listChaptersCommand(jda: JDA) {
                         .where()
                         .eq("userID", user.id).queryForFirst()
                 val latestEntry = lastSelectedChapter!!.getLatestEntry()
-                val parameters = gson.fromJson(latestEntry.parameters, Array<DiffusionParameters>::class.java)
+                val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
                 ImageSliderEntry(
-                    description = parameters.first().getPrompt() ?: "No prompt",
+                    description = parameters[0].asJsonObject.get("prompt").asString,
                     image = URL(latestEntry.imageURL)
                 )
             }
@@ -58,7 +59,7 @@ fun listChaptersCommand(jda: JDA) {
                 val parameters =
                     gson.fromJson(
                         lastSelectedChapter!!.getLatestEntry().parameters,
-                        Array<DiffusionParameters>::class.java
+                        JsonArray::class.java
                     )
 
                 val updateBuilder = userDao.updateBuilder()
@@ -68,7 +69,7 @@ fun listChaptersCommand(jda: JDA) {
 
                 it.reply_(
                     "${
-                        parameters.first().getPrompt()
+                        sanitize(parameters[0].asJsonObject.get("prompt").asString)
                     } is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!"
                 ).setEphemeral(true).queue()
             }, jda.button(
@@ -79,10 +80,10 @@ fun listChaptersCommand(jda: JDA) {
                 val parameters =
                     gson.fromJson(
                         lastSelectedChapter!!.getLatestEntry().parameters,
-                        Array<DiffusionParameters>::class.java
+                        JsonArray::class.java
                     )
 
-                deleteEvent.reply_("**Are you sure to delete this chapter?** *${parameters.first().getPrompt()}*")
+                deleteEvent.reply_("**Are you sure to delete this chapter?** *${sanitize(parameters[0].asJsonObject.get("prompt").asString)}*")
                     .setEphemeral(true).addActionRow(listOf(
                         jda.button(
                             label = "Delete!",

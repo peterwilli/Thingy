@@ -35,6 +35,8 @@ dependencies {
     implementation("org.atteo:evo-inflector:1.3")
     implementation("com.google.code.gson:gson:2.10")
     implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("org.apache.directory.studio:org.apache.commons.io:2.4")
+    implementation("com.google.protobuf:protobuf-java-util:3.21.9")
     implementation(kotlin("reflect"))
 }
 
@@ -63,7 +65,7 @@ protobuf {
             artifact = "io.grpc:protoc-gen-grpc-java:1.49.0"
         }
         id("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.3.0:jdk8@jar"
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.3.0:jdk18@jar"
         }
     }
     generateProtoTasks {

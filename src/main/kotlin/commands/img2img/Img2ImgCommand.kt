@@ -4,6 +4,7 @@ import commands.make.*
 import config
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
+import gson
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import org.atteo.evo.inflector.English
@@ -12,6 +13,7 @@ import kotlin.math.min
 
 fun img2imgCommand(jda: JDA) {
     fun onCommand(event: GenericCommandInteractionEvent) {
+        /*
         try {
             if (!validatePermissions(event, standardPermissionList)) {
                 return
@@ -39,13 +41,13 @@ fun img2imgCommand(jda: JDA) {
 
             var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
                 val initialParams = optionsToStableDiffusionParams(event, it)
-                initialParams.copy(
+                gson.toJson(initialParams.copy(
                     stableDiffusionParameters = initialParams.stableDiffusionParameters!!.copy(
                         steps = steps,
                         guidanceScale = guidanceScale,
                         strength = strength
                     )
-                )
+                ))
             }
             val entry = FairQueueEntry(
                 "Image to ${English.plural("Image", batch.size)}",
@@ -60,6 +62,7 @@ fun img2imgCommand(jda: JDA) {
             e.printStackTrace()
             event.reply_("Error! $e").setEphemeral(true).queue()
         }
+         */
     }
 
     jda.onCommand("img2img") { event ->

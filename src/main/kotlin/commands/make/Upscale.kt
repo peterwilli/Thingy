@@ -1,11 +1,12 @@
 package commands.make
 
+import com.google.gson.JsonObject
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 
 fun upscale(
     buttonInteractionEvent: ButtonInteractionEvent,
     imageIndex: Int,
-    params: DiscoDiffusionParameters
+    params: JsonObject
 ) {
 //    try {
 //        val upscaleParams = params.copy(

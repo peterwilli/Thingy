@@ -1,7 +1,6 @@
 package commands.variate
 
 import alphanumericCharPool
-import commands.make.DiffusionParameters
 import commands.make.FairQueueEntry
 import commands.make.FairQueueType
 import config
@@ -26,6 +25,7 @@ import kotlin.random.Random
 
 fun variateCommand(jda: JDA) {
     jda.onCommand("variate") { event ->
+        /*
         val user =
             userDao.queryBuilder().selectColumns("id", "currentChapterId").where().eq("discordUserID", event.user.id)
                 .queryForFirst()
@@ -101,5 +101,6 @@ fun variateCommand(jda: JDA) {
             btnEvent.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
         }
         event.hook.editMessageToIncludePaginator(quiltSelector).queue()
+         */
     }
 }

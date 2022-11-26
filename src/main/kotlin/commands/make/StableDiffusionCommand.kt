@@ -1,8 +1,10 @@
+import com.google.gson.JsonArray
 import commands.make.*
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
+import utils.optionsToJson
 
 fun stableDiffusionCommand(jda: JDA) {
     jda.onCommand("stable_diffusion") { event ->
@@ -12,14 +14,18 @@ fun stableDiffusionCommand(jda: JDA) {
             }
 
             fun createEntry(hook: InteractionHook): FairQueueEntry {
-                var batch = (0 until config.hostConstraints.totalImagesInMakeCommand).map {
-                    optionsToStableDiffusionParams(event, it)
+                var batch = JsonArray()
+                for (idx in 0 until config.hostConstraints.totalImagesInMakeCommand) {
+                    val params = event.optionsToJson()
+                    val seed = params["seed"].asLong
+                    params.addProperty("seed", seed + idx)
+                    batch.add(params)
                 }
                 return FairQueueEntry(
-                    "Generating Image",
-                    FairQueueType.StableDiffusion,
+                    "Making Images",
                     event.member!!.id,
                     batch,
+                    getScriptForSize(event.getOption("size")!!.asInt),
                     hook,
                     null
                 )

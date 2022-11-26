@@ -11,7 +11,6 @@ import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
-import discoart.RetrieveArtResult
 import gson
 import io.grpc.Status
 import io.grpc.StatusException
@@ -24,6 +23,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
+import utils.getResourceAsText
 import utils.peterDate
 import java.net.URL
 import kotlin.math.max
@@ -77,12 +77,12 @@ class QueueDispatcher(private val jda: JDA) {
 
     private suspend fun dispatch(entry: FairQueueEntry) {
         var inProgress: MutableList<Any> = mutableListOf()
-        val prompts = entry.getHumanReadablePrompts()
         entry.progressUpdate(entry.getHumanReadableOverview())
         val batch = entry.parameters
         val mockRetrieveArtMap: MutableMap<String, ByteArray> = mutableMapOf()
         var cancelled = false
         val client = jcloudClient.currentClient()
+        val scriptContents = getResourceAsText("/scripts/${entry.script}")
         coroutineScope {
             var finalImages: List<ByteArray>? = null
             val paramsDispatcher = async {
@@ -90,24 +90,7 @@ class QueueDispatcher(private val jda: JDA) {
                     if (cancelled) {
                         break
                     }
-                    when (entry.type) {
-                        FairQueueType.DiscoDiffusion -> {
-                            client.createDiscoDiffusionArt(params)
-                        }
-
-                        FairQueueType.StableDiffusion -> {
-                            val art = client.createStableDiffusionArt(params)
-                            mockRetrieveArtMap[params.artID] = art.first()
-                        }
-
-                        FairQueueType.Variate -> {
-                            client.variateArt(params)
-                        }
-
-                        FairQueueType.Upscale -> {
-                            client.upscaleArt(params)
-                        }
-                    }
+                    client.sendEntry(scriptContents, params.asJsonObject)
                     inProgress.add(params)
                     while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
                         delay(1000)
@@ -119,48 +102,20 @@ class QueueDispatcher(private val jda: JDA) {
             val imageProgress = async {
                 var ticksWithoutUpdate = 0
                 var lastPercentCompleted: Double = 0.0
+                var indexToCheck = 0
                 while (true) {
                     val newImages = mutableListOf<ByteArray>()
                     var completedCount = 0
                     var avgPercentCompleted: Double = 0.0
+                    val result = client.retrieveEntryStatus(indexToCheck)
 
-                    for (params in batch) {
-                        val retrieveArtResult = if (entry.type == FairQueueType.Upscale) {
-                            client.retrieveUpscaleArt(params.artID)
-                        } else {
-                            if (params.stableDiffusionParameters != null) {
-                                val art = mockRetrieveArtMap[params.artID]
-                                val result = RetrieveArtResult(
-                                    statusPercent = if (art == null) {
-                                        0.0
-                                    } else {
-                                        1.0
-                                    },
-                                    images = if (art == null) {
-                                        listOf()
-                                    } else {
-                                        listOf(art)
-                                    },
-                                    completed = art != null
-                                )
-                                result
-                            } else {
-                                client.retrieveArt(params.artID)
-                            }
-                        }
-                        if (retrieveArtResult.completed) {
-                            completedCount++
-                            inProgress.remove(params)
-                        }
-                        avgPercentCompleted += retrieveArtResult.statusPercent
-                        if (retrieveArtResult.images.isNotEmpty()) {
-                            // For now, we use one image per batch to make sure we can let users experiment with different variables simultaneously
-                            val image = retrieveArtResult.images.first()
-                            newImages.add(image)
-                        }
+                    if(result.docsCount > 0) {
+                        // We have a status
+                        // TODO: Check progress / remove from queue (completedCount)
                     }
-                    avgPercentCompleted /= batch.size
-                    if (completedCount == batch.size) {
+
+                    avgPercentCompleted /= batch.size()
+                    if (completedCount == batch.size()) {
                         finalImages = newImages
                         break
                     }
@@ -169,11 +124,7 @@ class QueueDispatcher(private val jda: JDA) {
                         var imageNotAppearing = 0
                         var imageNotUpdating = 0
                         for (params in batch) {
-                            val timeout = if (params.stableDiffusionParameters != null) {
-                                config.timeouts.stableDiffusion
-                            } else {
-                                config.timeouts.discoDiffusion
-                            }
+                            val timeout = config.timeouts.stableDiffusion
                             imageNotAppearing = max(timeout.imageNotAppearing, imageNotAppearing)
                             imageNotUpdating = max(timeout.imageNotUpdating, imageNotUpdating)
                         }
@@ -201,7 +152,7 @@ class QueueDispatcher(private val jda: JDA) {
                                 }
                             }
                             entry.getChannel()
-                                .sendMessage("${entry.getMember().asMention}, Sorry, generation for this prompt has timed out!\n> *${prompts}*")
+                                .sendMessage("${entry.getMember().asMention}, Sorry, generation has timed out!\n> *${entry.description}*")
                                 .setActionRow(listOf(tryAgainButton))
                                 .queue()
                             paramsDispatcher.cancel()
@@ -223,7 +174,7 @@ class QueueDispatcher(private val jda: JDA) {
                     entry.getHumanReadableOverview(), quilt,
                     "${config.bot.name}_final.jpg"
                 )
-                finishMsg.reply_("${entry.getMember().asMention}, we finished your image!\n> *${prompts}*").queue()
+                finishMsg.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*").queue()
                 var chapterID: Long = 0
                 if (entry.chapter == null) {
                     val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)

@@ -63,7 +63,6 @@ suspend fun main(args: Array<String>) {
 }
 
 fun initCommands(jda: JDA) {
-    discoDiffusionCommand(jda)
     makeCommand(jda)
     stableDiffusionCommand(jda)
     cancelCommand(jda)
