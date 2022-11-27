@@ -45,7 +45,7 @@ fun makeSelectImageFromQuilt(
     title: String,
     quilt: BufferedImage,
     totalImages: Int,
-    callback: (btnEvent: ButtonInteractionEvent, index: Int) -> Unit
+    callback: suspend (btnEvent: ButtonInteractionEvent, index: Int) -> Unit
 ): Paginator {
     val getPageCallback: GetPageCallback = { index ->
         val page = EmbedBuilder()

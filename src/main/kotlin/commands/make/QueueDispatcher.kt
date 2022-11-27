@@ -24,6 +24,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
+import utils.asciiProgressBar
 import utils.base64UriToByteArray
 import utils.getResourceAsText
 import utils.peterDate
@@ -120,8 +121,8 @@ class QueueDispatcher(private val jda: JDA) {
                             val doc = result.getDocs(0)
                             val progress = doc.tags.fieldsMap["progress"]!!.numberValue
                             avgPercentCompleted += progress
+                            newImages.add(doc.base64UriToByteArray())
                             if(progress == 1.0) {
-                                newImages.add(doc.base64UriToByteArray())
                                 completedEntries.add(doc)
                                 inProgress.removeAt(0)
                             }
@@ -132,6 +133,7 @@ class QueueDispatcher(private val jda: JDA) {
                         finalImages = newImages
                         break
                     }
+                    println("$avgPercentCompleted $lastPercentCompleted ${newImages.size}")
                     if (newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
                         ticksWithoutUpdate++
                         var imageNotAppearing = 0
@@ -175,7 +177,7 @@ class QueueDispatcher(private val jda: JDA) {
                         lastPercentCompleted = avgPercentCompleted
                         ticksWithoutUpdate = 0
                         val quilt = makeQuiltFromByteArrayList(newImages)
-                        entry.progressUpdate(entry.getHumanReadableOverview(), quilt, "${config.bot.name}_progress.jpg")
+                        entry.progressUpdate(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted), quilt, "${config.bot.name}_progress.jpg")
                     }
                     delay(1000 * 5)
                 }

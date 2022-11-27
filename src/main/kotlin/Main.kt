@@ -10,6 +10,7 @@ import commands.social.serverStatsCommand
 import commands.social.setBackgroundCommand
 import commands.social.shareCommand
 import commands.update.updateCommand
+import commands.upscale.upscaleCommand
 import commands.variate.variateCommand
 import database.initDatabase
 import dev.minn.jda.ktx.interactions.commands.choice
@@ -73,6 +74,7 @@ fun initCommands(jda: JDA) {
     rollbackChapterCommand(jda)
     img2imgCommand(jda)
     profileCommand(jda)
+    upscaleCommand(jda)
     magicPromptCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
@@ -135,6 +137,8 @@ fun initCommands(jda: JDA) {
             sdGuidanceScale(this)
             sdSteps(this)
             seed(this)
+        }
+        slash("upscale", "Upscale your precious creations!") {
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)

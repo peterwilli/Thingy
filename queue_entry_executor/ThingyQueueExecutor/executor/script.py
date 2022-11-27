@@ -56,7 +56,7 @@ class Script:
             except:
                 pass
             if doc is None:
-                self._debug(line)
+                self._debug(line.strip())
             else:
                 if "progress" not in doc.tags:
                     # Assume synchronous

@@ -43,6 +43,7 @@ fun listChaptersCommand(jda: JDA) {
                     chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false)
                         .where()
                         .eq("userID", user.id).queryForFirst()
+
                 val latestEntry = lastSelectedChapter!!.getLatestEntry()
                 val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
                 ImageSliderEntry(

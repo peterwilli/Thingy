@@ -6,10 +6,13 @@ import java.net.URI
 import java.util.*
 import javax.imageio.ImageIO
 
-fun bufferedImageToDataURI(image: BufferedImage): URI {
+fun bufferedImageToBase64(image: BufferedImage, format: String = "PNG"): String {
     val out = ByteArrayOutputStream()
-    ImageIO.write(image, "PNG", out)
+    ImageIO.write(image, format, out)
     val bytes: ByteArray = out.toByteArray()
-    val base64bytes: String = Base64.getEncoder().encodeToString(bytes)
-    return URI.create("data:image/png;base64,$base64bytes")
+    return Base64.getEncoder().encodeToString(bytes)
+}
+
+fun bufferedImageToDataURI(image: BufferedImage): URI {
+    return URI.create("data:image/png;base64,${bufferedImageToBase64(image)}")
 }

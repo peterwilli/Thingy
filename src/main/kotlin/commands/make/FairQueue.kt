@@ -37,7 +37,7 @@ data class FairQueueEntry(
         }
         stringBuilder.append("** | ")
         for((k, v) in parameters[0].asJsonObject.asMap()) {
-            if (k.startsWith("_")) {
+            if (k.startsWith("_") || v.toString().length > 1000) {
                 continue
             }
             stringBuilder.append("`$k`: *${sanitize(v.toString())}* ")
