@@ -77,7 +77,17 @@ class FairQueue(maxEntriesPerOwner: Int) {
     }
 
     suspend fun updateRanks() {
-        for ((idx, entry) in queue.drop(1).withIndex()) {
+        val commandsGroup =  queue.groupingBy {
+            it.script
+        }
+        val counts = commandsGroup.eachCount()
+        queue.sortByDescending {
+            counts[it.script]
+        }
+        if(queue.size == 1) {
+            return
+        }
+        for ((idx, entry) in queue.withIndex()) {
             entry.progressUpdate("*Queued* **#${idx + 1}** | ${entry.getHumanReadableOverview()}")
         }
     }
