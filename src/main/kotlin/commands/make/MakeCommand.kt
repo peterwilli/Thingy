@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionE
 import net.dv8tion.jda.api.interactions.InteractionHook
 import utils.optionsToJson
 import utils.sendException
+import utils.withDefaults
 import kotlin.random.Random
 
 fun makeCommand(jda: JDA) {
@@ -22,7 +23,7 @@ fun makeCommand(jda: JDA) {
             fun createEntry(hook: InteractionHook): FairQueueEntry {
                 var batch = JsonArray()
                 for (idx in 0 until config.hostConstraints.totalImagesInMakeCommand) {
-                    val params = event.optionsToJson()
+                    val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
                     val seed = params["seed"].asLong
                     params.addProperty("seed", seed + idx)
                     if (idx > 0) {
@@ -34,14 +35,14 @@ fun makeCommand(jda: JDA) {
                     "Making Images",
                     event.member!!.id,
                     batch,
-                    getScriptForSize(event.getOption("size")!!.asInt),
+                    getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
                     null
                 )
             }
 
             val entry = createEntry(event.hook)
-            event.hook.editOriginal(queueDispatcher.queue.addToQueue(entry)).queue()
+            queueDispatcher.queue.addToQueue(entry)
         } catch (e: Exception) {
             e.printStackTrace()
             event.sendException(e)

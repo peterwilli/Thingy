@@ -37,7 +37,10 @@ data class FairQueueEntry(
         }
         stringBuilder.append("** | ")
         for((k, v) in parameters[0].asJsonObject.asMap()) {
-            stringBuilder.append("$k: ${sanitize(v.asString)}")
+            if (k.startsWith("_")) {
+                continue
+            }
+            stringBuilder.append("`$k`: *${sanitize(v.toString())}* ")
         }
         return stringBuilder.toString()
     }
@@ -73,7 +76,13 @@ class FairQueue(maxEntriesPerOwner: Int) {
         return null
     }
 
-    fun entryCount(owner: String): Int {
+    suspend fun updateRanks() {
+        for ((idx, entry) in queue.drop(1).withIndex()) {
+            entry.progressUpdate("*Queued* **#${idx + 1}** | ${entry.getHumanReadableOverview()}")
+        }
+    }
+
+    private fun entryCount(owner: String): Int {
         return queue.count {
             it.owner == owner
         }
@@ -85,17 +94,16 @@ class FairQueue(maxEntriesPerOwner: Int) {
         })
     }
 
-    fun addToQueue(entry: FairQueueEntry): String {
+    suspend fun addToQueue(entry: FairQueueEntry) {
         if (updateMode) {
-            return "${config.bot.name} is in update mode! New requests are temporarily blocked so we can update the bot, making sure you won't lose any content! Sorry for the inconvenience!"
+            entry.progressUpdate("${config.bot.name} is in update mode! New requests are temporarily blocked so we can update the bot, making sure you won't lose any content! Sorry for the inconvenience!")
+            return
         }
         val count = entryCount(entry.owner)
         if (count >= config.maxEntriesPerOwner) {
             throw MemberLimitExceededException("${entry.owner} has currently $count items in the queue! Max is ${config.maxEntriesPerOwner}")
         }
         queue.add(entry)
-        return entry.getHumanReadableOverview(
-            withDescription = "Added to queue"
-        )
+        updateRanks()
     }
 }

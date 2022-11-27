@@ -31,7 +31,6 @@ impl EventHandler for Handler {
             };
 
             let vm_sender = vm.get_sender();
-            debug!("kanker");
             let (_, reply) = join!(vm_sender.send(command), rx);
             debug!("reply: {}", String::from_value(reply.unwrap().0).unwrap());
         }

@@ -1,0 +1,22 @@
+jtype: Flow
+with:
+  protocol: grpc
+  monitoring: false
+  port: 51001
+  env:
+    JINA_LOG_LEVEL: debug
+executors:
+  - name: thingy_queue_executor
+    uses: ThingyQueueExecutor
+    replicas: 1
+    floating: false
+    uses_metas:
+      py_modules:
+        - ThingyQueueExecutor.executor
+  - name: magic_prompt
+    uses: MagicPromptExecutor
+    replicas: 1
+    floating: false
+    uses_metas:
+      py_modules:
+        - MagicPromptExecutor.executor

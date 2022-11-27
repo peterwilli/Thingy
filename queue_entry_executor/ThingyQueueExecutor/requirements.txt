@@ -1,0 +1,6 @@
+git+https://github.com/huggingface/diffusers.git#egg=diffusers
+jina>=3.7
+transformers>=4.21
+torchvision
+scipy
+accelerate

@@ -113,7 +113,7 @@ fun initCommands(jda: JDA) {
     }
 
     fun sdSteps(data: SlashCommandData): SlashCommandData {
-        return data.option<Int>("steps", "Higher steps typically lead to a better image", required = false) {
+        return data.option<Int>("steps", "Higher steps typically lead to a better image (default 25)", required = false) {
             this.setMinValue(1)
             this.setMaxValue(100)
         }

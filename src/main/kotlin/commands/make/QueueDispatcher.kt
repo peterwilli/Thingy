@@ -11,6 +11,7 @@ import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
+import docarray.Docarray.DocumentProto
 import gson
 import io.grpc.Status
 import io.grpc.StatusException
@@ -23,6 +24,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
+import utils.base64UriToByteArray
 import utils.getResourceAsText
 import utils.peterDate
 import java.net.URL
@@ -43,6 +45,7 @@ class QueueDispatcher(private val jda: JDA) {
                     tries++
                     try {
                         dispatch(entry)
+                        queue.updateRanks()
                         break
                     } catch (e: StatusException) {
                         if (e.status.code == Status.UNIMPLEMENTED.code || e.status.code == Status.UNAVAILABLE.code) {
@@ -82,15 +85,16 @@ class QueueDispatcher(private val jda: JDA) {
         val mockRetrieveArtMap: MutableMap<String, ByteArray> = mutableMapOf()
         var cancelled = false
         val client = jcloudClient.currentClient()
-        val scriptContents = getResourceAsText("/scripts/${entry.script}")
+        val scriptContents = getResourceAsText("/scripts/${entry.script}.py")
         coroutineScope {
             var finalImages: List<ByteArray>? = null
+            var queueId: String? = null
             val paramsDispatcher = async {
                 for (params in batch) {
                     if (cancelled) {
                         break
                     }
-                    client.sendEntry(scriptContents, params.asJsonObject)
+                    queueId = client.sendEntry(scriptContents, params.asJsonObject)
                     inProgress.add(params)
                     while (inProgress.size >= config.hostConstraints.maxSimultaneousMakeRequests) {
                         delay(1000)
@@ -102,20 +106,29 @@ class QueueDispatcher(private val jda: JDA) {
             val imageProgress = async {
                 var ticksWithoutUpdate = 0
                 var lastPercentCompleted: Double = 0.0
-                var indexToCheck = 0
+                val completedEntries = mutableListOf<DocumentProto>()
+
                 while (true) {
                     val newImages = mutableListOf<ByteArray>()
-                    var completedCount = 0
-                    var avgPercentCompleted: Double = 0.0
-                    val result = client.retrieveEntryStatus(indexToCheck)
-
-                    if(result.docsCount > 0) {
-                        // We have a status
-                        // TODO: Check progress / remove from queue (completedCount)
+                    var avgPercentCompleted: Double = completedEntries.size.toDouble()
+                    if (queueId != null) {
+                        val result = client.retrieveEntryStatus(queueId!!, 0)
+                        for(doc in completedEntries) {
+                            newImages.add(doc.base64UriToByteArray())
+                        }
+                        if(result.docsCount > 0) {
+                            val doc = result.getDocs(0)
+                            val progress = doc.tags.fieldsMap["progress"]!!.numberValue
+                            avgPercentCompleted += progress
+                            if(progress == 1.0) {
+                                newImages.add(doc.base64UriToByteArray())
+                                completedEntries.add(doc)
+                                inProgress.removeAt(0)
+                            }
+                        }
                     }
-
                     avgPercentCompleted /= batch.size()
-                    if (completedCount == batch.size()) {
+                    if (completedEntries.size == batch.size()) {
                         finalImages = newImages
                         break
                     }

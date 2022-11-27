@@ -39,10 +39,13 @@ class Client(
         return !(channel.isShutdown || channel.isTerminated)
     }
 
-    suspend fun retrieveEntryStatus(index: Int): DocumentArrayProto {
+    suspend fun retrieveEntryStatus(queueId: String, index: Int): DocumentArrayProto {
         val builder = Struct.newBuilder()
         builder.putFields("index", value {
             numberValue = index.toDouble()
+        })
+        builder.putFields("queue_id", value {
+            stringValue = queueId
         })
         val dataReq = dataRequestProto {
             parameters = builder.build()
@@ -63,8 +66,11 @@ class Client(
         return result!!
     }
 
-    suspend fun sendEntry(script: String, params: JsonObject): DocumentArrayProto {
+    suspend fun sendEntry(script: String, params: JsonObject): String {
         val builder = Struct.newBuilder()
+        builder.putFields("script", value {
+            stringValue = script
+        })
         val dataReq = dataRequestProto {
             parameters = builder.build()
             header = headerProto {
@@ -82,13 +88,13 @@ class Client(
             }
         }
         val reqs = listOf(dataReq).asFlow()
-        var result: DocumentArrayProto? = null
+        var result: String? = null
         stub.withCompression("gzip").call(reqs).collect {
             val status = it.header.status
             if (status.code == Jina.StatusProto.StatusCode.ERROR) {
                 throw IllegalStateException("Error found in gateway response!\n${status.exception}")
             }
-            result = it.data.docs
+            result = it.data.docs.getDocs(0).text
         }
         return result!!
     }

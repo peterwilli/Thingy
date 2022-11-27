@@ -1,3 +1,4 @@
+import java.net.URI
 import java.net.URL
 
 data class HostConstraints(
@@ -31,7 +32,8 @@ data class Config(
     val databasePath: String,
     val maxEntriesPerOwner: Int,
     val hostConstraints: HostConstraints,
-    val jcloudKeeper: JCloudKeeper,
+    val jcloudKeeper: JCloudKeeper?,
+    val directUrl: URI?,
     val imagesFolder: String,
     val timeouts: Timeouts,
     val shareChannelID: String,

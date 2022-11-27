@@ -43,10 +43,15 @@ class JCloudClient {
     }
 
     private fun getCurrentURL(): URI? {
-        val connection = config.jcloudKeeper.url.openConnection()
-        BufferedReader(InputStreamReader(connection.getInputStream())).use { inp ->
-            val response = gson.fromJson(inp.readText(), URLResponse::class.java)
-            return URI(response.endpoint)
+        if (config.jcloudKeeper != null) {
+            val connection = config.jcloudKeeper!!.url.openConnection()
+            BufferedReader(InputStreamReader(connection.getInputStream())).use { inp ->
+                val response = gson.fromJson(inp.readText(), URLResponse::class.java)
+                return URI(response.endpoint)
+            }
+        }
+        else if (config.directUrl != null) {
+            return config.directUrl
         }
         return null
     }

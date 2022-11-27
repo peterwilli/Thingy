@@ -14,7 +14,7 @@ def calculate_size(base_size, w, h):
         return s_w, s_h
 
 def get_pipe(hf_auth_token):
-    repo_id = "stabilityai/stable-diffusion-2"
+    repo_id = "stabilityai/stable-diffusion-2-base"
     device = "cuda"
     pipe = DiffusionPipeline.from_pretrained(repo_id, torch_dtype=torch.float16, revision="fp16", use_auth_token=hf_auth_token)
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
