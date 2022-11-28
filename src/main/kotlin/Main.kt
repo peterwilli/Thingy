@@ -139,6 +139,34 @@ fun initCommands(jda: JDA) {
             seed(this)
         }
         slash("upscale", "Upscale your precious creations!") {
+            sdGuidanceScale(this)
+            option<Int>(
+                "original_image_slice",
+                "How much guidance from the full image?",
+                required = false,
+                builder = {
+                    this.setMaxValue(32)
+                    this.setMinValue(0)
+                }
+            )
+            option<Int>(
+                "tile_border",
+                "How much guessing around tiles? (More means less seams)",
+                required = false,
+                builder = {
+                    this.setMaxValue(32)
+                    this.setMinValue(0)
+                }
+            )
+            option<Double>(
+                "noise_level",
+                "More noise means less of the original image is left and more details are \"imagined\"",
+                required = false,
+                builder = {
+                    this.setMaxValue(100.0)
+                    this.setMinValue(0.0)
+                }
+            )
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)

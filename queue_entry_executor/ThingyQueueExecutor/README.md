@@ -1,3 +1,3 @@
-# Txt2ImgExecutor
+# ThingyQueueExecutor
 
-txt2img for Thingy
+Executor for Thingy queue entries

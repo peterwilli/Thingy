@@ -28,7 +28,9 @@ import utils.asciiProgressBar
 import utils.base64UriToByteArray
 import utils.getResourceAsText
 import utils.peterDate
+import java.lang.StringBuilder
 import java.net.URL
+import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
 class QueueDispatcher(private val jda: JDA) {
@@ -108,6 +110,7 @@ class QueueDispatcher(private val jda: JDA) {
                 var ticksWithoutUpdate = 0
                 var lastPercentCompleted: Double = 0.0
                 val completedEntries = mutableListOf<DocumentProto>()
+                var timeSinceLastUpdate: Long = 0
 
                 while (true) {
                     val newImages = mutableListOf<ByteArray>()
@@ -133,7 +136,6 @@ class QueueDispatcher(private val jda: JDA) {
                         finalImages = newImages
                         break
                     }
-                    println("$avgPercentCompleted $lastPercentCompleted ${newImages.size}")
                     if (newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
                         ticksWithoutUpdate++
                         var imageNotAppearing = 0
@@ -174,10 +176,22 @@ class QueueDispatcher(private val jda: JDA) {
                             break
                         }
                     } else {
+                        val quilt = makeQuiltFromByteArrayList(newImages)
+                        val progressMsg = StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted))
+                        if (timeSinceLastUpdate > 0) {
+                            val steps = 1 / (avgPercentCompleted - lastPercentCompleted)
+                            val estimatedSeconds = (peterDate() - timeSinceLastUpdate) * (steps * (1 - avgPercentCompleted)).toLong()
+                            val etaString = String.format("%02dm%02ds",
+                                TimeUnit.SECONDS.toMinutes(estimatedSeconds),
+                                TimeUnit.SECONDS.toSeconds(estimatedSeconds) -
+                                        TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(estimatedSeconds))
+                            )
+                            progressMsg.append(" **ETA:** $etaString")
+                        }
                         lastPercentCompleted = avgPercentCompleted
                         ticksWithoutUpdate = 0
-                        val quilt = makeQuiltFromByteArrayList(newImages)
-                        entry.progressUpdate(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted), quilt, "${config.bot.name}_progress.jpg")
+                        timeSinceLastUpdate = peterDate()
+                        entry.progressUpdate(progressMsg.toString(), quilt, "${config.bot.name}_progress.jpg")
                     }
                     delay(1000 * 5)
                 }

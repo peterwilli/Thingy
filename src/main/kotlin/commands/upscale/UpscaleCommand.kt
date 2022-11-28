@@ -22,6 +22,15 @@ import java.net.URL
 import javax.imageio.ImageIO
 import kotlin.random.Random
 
+fun sdUpscaleDefaults(): JsonObject {
+    val result = JsonObject()
+    result.addProperty("guidance_scale", 9.0)
+    result.addProperty("original_image_slice", 8)
+    result.addProperty("noise_level", 50)
+    result.addProperty("tile_border", 32)
+    return result
+}
+
 fun upscaleCommand(jda: JDA) {
     jda.onCommand("upscale") { event ->
         try {
@@ -61,7 +70,7 @@ fun upscaleCommand(jda: JDA) {
                 val parameterToVariate = parameters[chosenImage].asJsonObject
                 val imageSlice = takeSlice(image, parameters.size(), chosenImage)
                 val base64Image = bufferedImageToBase64(imageSlice)
-                val params = JsonObject()
+                val params = event.optionsToJson().withDefaults(sdUpscaleDefaults())
                 params.addProperty("prompt", parameterToVariate.get("prompt").asString)
                 params.addProperty("image", base64Image)
                 btnEvent.reply_("Added upscale").await()
