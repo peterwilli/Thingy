@@ -1,7 +1,7 @@
 FROM rust:1.64.0-slim as keep_my_jcloud_builder
 RUN cargo install \
     --git https://github.com/peterwilli/KeepMyJCloud.git \ 
-    --rev 98391263d1c1ccfc14914d2adc908afa70c84089
+    --rev 831489a7bb296459ebb05e2120fbb9af024df73c
 
 FROM gradle:jdk18-jammy as thingy_builder
 WORKDIR /usr/src/app
@@ -17,7 +17,7 @@ RUN echo "Installing system dependencies" && \
     apt-get update && \
     apt-get install -y java-18-amazon-corretto-jdk && \
     echo "Installing python dependencies" && \
-    pip3 install jcloud==0.0.36 && \
+    pip3 install jcloud==0.1.4 && \
     apt-get remove -y wget software-properties-common && \
     apt-get autoremove -y && \
     rm -rf corretto.key && \

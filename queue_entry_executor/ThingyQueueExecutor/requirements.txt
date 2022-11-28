@@ -4,4 +4,3 @@ transformers>=4.21
 torchvision
 scipy
 accelerate
-xformers

@@ -1,7 +1,9 @@
 package commands.chapters
 
 import com.google.gson.JsonArray
+import com.j256.ormlite.misc.TransactionManager
 import database.chapterDao
+import database.connectionSource
 import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
@@ -62,12 +64,7 @@ fun listChaptersCommand(jda: JDA) {
                         lastSelectedChapter!!.getLatestEntry().parameters,
                         JsonArray::class.java
                     )
-
-                val updateBuilder = userDao.updateBuilder()
-                updateBuilder.where().eq("id", lastSelectedChapter!!.userID)
-                updateBuilder.updateColumnValue("currentChapterId", lastSelectedChapter!!.id)
-                updateBuilder.update()
-
+                user.updateSelectedChapter(lastSelectedChapter!!.id)
                 it.reply_(
                     "${
                         sanitize(parameters[0].asJsonObject.get("prompt").asString)
@@ -92,6 +89,22 @@ fun listChaptersCommand(jda: JDA) {
                             user = event.user
                         ) {
                             lastSelectedChapter!!.delete()
+                            TransactionManager.callInTransaction(connectionSource) {
+                                // If we don't have a chapter selected anymore we likely deleted a selected chapter.
+                                val usingChapter =
+                                    chapterDao.queryBuilder().selectColumns().where().eq("id", user.currentChapterId)
+                                        .and()
+                                        .eq("userID", user.id).queryForFirst()
+                                if (usingChapter == null) {
+                                    val possibleLastChapter =
+                                        chapterDao.queryBuilder().selectColumns("id").limit(1)
+                                            .orderBy("creationTimestamp", false).where().eq("userID", user.id)
+                                            .queryForFirst()
+                                    if (possibleLastChapter != null) {
+                                        user.updateSelectedChapter(possibleLastChapter.id)
+                                    }
+                                }
+                            }
                             deleteEvent.hook.editMessage(content = "*Deleted!*").setComponents().queue()
                         },
                         jda.button(
