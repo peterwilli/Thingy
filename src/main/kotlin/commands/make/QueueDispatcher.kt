@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
 class QueueDispatcher(private val jda: JDA) {
-    val queue = FairQueue(config.maxEntriesPerOwner)
+    val queue = FairQueue()
     private var queueStarted = false
 
     suspend fun startQueueDispatcher() {
@@ -85,7 +85,6 @@ class QueueDispatcher(private val jda: JDA) {
         var inProgress: MutableList<Any> = mutableListOf()
         entry.progressUpdate(entry.getHumanReadableOverview())
         val batch = entry.parameters
-        val mockRetrieveArtMap: MutableMap<String, ByteArray> = mutableMapOf()
         var cancelled = false
         val client = jcloudClient.currentClient()
         val scriptContents = getResourceAsText("/scripts/${entry.script}.py")

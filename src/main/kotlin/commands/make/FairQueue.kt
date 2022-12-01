@@ -95,7 +95,7 @@ data class FairQueueEntry(
     }
 }
 
-class FairQueue(maxEntriesPerOwner: Int) {
+class FairQueue {
     private val queue = mutableListOf<FairQueueEntry>()
 
     fun next(): FairQueueEntry? {

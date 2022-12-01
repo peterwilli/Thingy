@@ -25,7 +25,7 @@ fun JsonObject.stripHiddenParameters(): JsonObject {
 
 fun JsonObject.stripHiddenParameters(hiddenParameters: Array<String>): JsonObject {
     val result = this.deepCopy()
-    for ((k, v) in result.asMap()) {
+    for ((k, _) in result.asMap()) {
         if (k.startsWith("_") || hiddenParameters.contains(k)) {
             result.remove(k)
         }

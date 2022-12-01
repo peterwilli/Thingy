@@ -26,7 +26,7 @@ import java.net.URL
 import javax.imageio.ImageIO
 import kotlin.time.Duration.Companion.minutes
 
-fun makeSelectArtContestEntry(jda: JDA, user: User, entries: List<ArtContestEntry>): Paginator {
+fun makeSelectArtContestEntry(entries: List<ArtContestEntry>): Paginator {
     val getPageCallback: GetPageCallback = { index ->
         val page = EmbedBuilder()
         val entry = entries[index.toInt()]
@@ -70,7 +70,7 @@ fun removeFromContestCommand(jda: JDA) {
                 return@onCommand
             }
             event.deferReply().setEphemeral(true).queue()
-            val imageSelector = makeSelectArtContestEntry(jda, event.user, memberEntries);
+            val imageSelector = makeSelectArtContestEntry(memberEntries)
             imageSelector.customActionComponents = listOf(jda.button(
                 label = "Delete",
                 style = ButtonStyle.DANGER,
