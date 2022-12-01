@@ -47,7 +47,6 @@ fun setBackgroundCommand(jda: JDA) {
             val image = ImageIO.read(URL(latestEntry.imageURL))
             val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
             val quiltSelector = makeSelectImageFromQuilt(
-                event,
                 event.user,
                 "Select image for background use!",
                 image,

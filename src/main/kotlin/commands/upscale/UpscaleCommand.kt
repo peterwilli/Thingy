@@ -59,7 +59,6 @@ fun upscaleCommand(jda: JDA) {
             val image = ImageIO.read(URL(latestEntry.imageURL))
 
             val quiltSelector = makeSelectImageFromQuilt(
-                event,
                 event.user,
                 "Select your image to upscale!",
                 image,

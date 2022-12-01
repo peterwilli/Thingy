@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.utils.FileUpload
 import paginator
 import utils.bufferedImageToByteArray
 import utils.takeSlice
+import utils.toThumbnail
 import java.awt.image.BufferedImage
 import java.net.URL
 import kotlin.time.Duration.Companion.minutes
@@ -40,12 +41,7 @@ fun sendImageSlider(title: String, amountOfImages: Long, onImage: GetImageCallba
     return paginator(amountOfImages, getPage = getPageCallback, expireAfter = 10.minutes)
 }
 
-private fun toThumbnail(image: BufferedImage): BufferedImage {
-    return Thumbnails.of(image).size(512, 512).outputFormat("jpg").asBufferedImage()
-}
-
 fun makeSelectImageFromQuilt(
-    event: GenericCommandInteractionEvent,
     user: User,
     title: String,
     quilt: BufferedImage,

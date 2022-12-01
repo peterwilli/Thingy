@@ -22,19 +22,24 @@ import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
-import utils.bufferedImageToByteArray
-import utils.messageToURL
-import utils.sendException
-import utils.takeSlice
+import utils.*
 import java.awt.image.BufferedImage
 import java.net.URL
 import javax.imageio.ImageIO
 
-private val imageFilename = "final.png"
+private const val imageFilename = "final.jpg"
+private const val imageFilenamePreview = "final.jpg"
 
-private fun makeShareEmbed(img: BufferedImage, author: User, parameters: JsonObject): MessageEmbed {
+private fun makeShareEmbed(img: BufferedImage, author: User, parameters: JsonObject, preview: Boolean): MessageEmbed {
     val embed = EmbedBuilder()
-    embed.setImage("attachment://$imageFilename")
+    embed.setImage("attachment://${
+        if(preview) {
+            imageFilenamePreview
+        }
+        else {
+            imageFilename
+        }
+    }")
     // Discord has a max title length for embeds of 256. We take 250 to be on the safe side.
     val maxPromptLength = 250
     val prompt = parameters.get("prompt").asString
@@ -81,7 +86,6 @@ fun shareCommand(jda: JDA) {
             val image = ImageIO.read(URL(latestEntry.imageURL))
             val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
             val quiltSelector = makeSelectImageFromQuilt(
-                event,
                 event.user,
                 "Select image for sharing",
                 image,
@@ -97,7 +101,7 @@ fun shareCommand(jda: JDA) {
                 }
                 val imageSlice = takeSlice(image, parameters.size(), chosenImage)
                 val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
-                val embed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject)
+                val embed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject, true)
                 val okButton = jda.button(
                     label = "Fire away!",
                     style = ButtonStyle.PRIMARY,
@@ -105,8 +109,9 @@ fun shareCommand(jda: JDA) {
                 ) {
                     try {
                         it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
+                            val embed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject, false)
                             shareChannel.sendMessageEmbeds(embed)
-                                .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
+                                .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice, "jpg"), imageFilename))
                                 .queue { sharedMsg ->
                                     val messageLink = messageToURL(sharedMsg)
                                     shareMsg.editOriginal("**Shared!** $messageLink").queue()
@@ -138,7 +143,7 @@ fun shareCommand(jda: JDA) {
                     }
                 }
                 event.hook.editMessage(content = "**Preview!**", embeds = listOf(embed))
-                    .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
+                    .setFiles(FileUpload.fromData(bufferedImageToByteArray(toThumbnail(imageSlice), "jpg"), imageFilenamePreview))
                     .setActionRow(okButton, cancelButton).queue()
             }
             event.hook.editMessageToIncludePaginator(quiltSelector).queue()
