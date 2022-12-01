@@ -52,7 +52,7 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
 
     - We need to start the Docker image:
     - 
-      - If you're updating, make sure to run `docker pull peterwilli/thingy:latest` first!
+      - If you're updating, make sure to run `docker pull peterwilli/thingy:latest` first, and back up your database! (We do some migration, and while it's tested, a backup is never a bad idea!)
 
       - If you're starting fresh, you can use the following command in the bot directory: `docker run -v $(pwd):/opt/thingy/data -d --name=thingy peterwilli/thingy:latest`
 
