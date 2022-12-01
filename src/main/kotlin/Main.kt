@@ -92,7 +92,7 @@ fun initCommands(jda: JDA) {
         testLeaderboardCommand(jda)
     }
 
-    fun seed(data: SlashCommandData) {
+    fun seed(data: SlashCommandData): SlashCommandData {
         data.option<Int>(
             "seed",
             "Entropy for the random number generator, use the same seed to replicate results!",
@@ -102,24 +102,27 @@ fun initCommands(jda: JDA) {
                 this.setMinValue(0)
             }
         )
+        return data
     }
 
-    fun sdGuidanceScale(data: SlashCommandData) {
+    fun sdGuidanceScale(data: SlashCommandData): SlashCommandData {
         data.option<Double>("guidance_scale", "How much guidance to the prompt?", required = false) {
             this.setMinValue(0.0)
             this.setMaxValue(100.0)
         }
+        return data
     }
 
-    fun sdSize(data: SlashCommandData) {
+    fun sdSize(data: SlashCommandData): SlashCommandData {
         data.option<Int>("size", "Image square size (Default: Normal)", required = false) {
             choice("Small", 256)
             choice("Normal", 512)
             choice("Big", 768)
         }
+        return data
     }
 
-    fun sdUpscale(data: SlashCommandData) {
+    fun sdUpscale(data: SlashCommandData): SlashCommandData {
         data.option<Int>(
             "original_image_slice",
             "How much guidance from the full image?",
@@ -128,7 +131,8 @@ fun initCommands(jda: JDA) {
                 this.setMaxValue(32)
                 this.setMinValue(0)
             }
-        ).option<Int>(
+        )
+        data.option<Int>(
             "tile_border",
             "How much guessing around tiles? (More means less seams)",
             required = false,
@@ -136,7 +140,8 @@ fun initCommands(jda: JDA) {
                 this.setMaxValue(32)
                 this.setMinValue(0)
             }
-        ).option<Double>(
+        )
+        data.option<Double>(
             "noise_level",
             "More noise means less of the original image is left and more details are \"imagined\"",
             required = false,
@@ -145,6 +150,7 @@ fun initCommands(jda: JDA) {
                 this.setMinValue(0.0)
             }
         )
+        return data
     }
 
     fun sdSteps(data: SlashCommandData): SlashCommandData {

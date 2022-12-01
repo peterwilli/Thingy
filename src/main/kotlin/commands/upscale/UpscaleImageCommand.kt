@@ -17,7 +17,7 @@ fun upscaleImageCommand(jda: JDA) {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
             }
-            event.deferReply(true).await()
+            event.deferReply().await()
             val params = event.optionsToJson().withDefaults(sdUpscaleDefaults())
             val image = base64ToBufferedImage(params.get("image").asString)
             if (image.width > 1024 || image.height > 1024) {
