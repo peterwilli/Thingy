@@ -8,6 +8,7 @@ Integrates with DiscoArt, Stable Diffusion and other peculiarities, all rolled u
 - Fairness queue: Making sure everyone gets to make art!
 - Social features: Sharing, profiles and stats
 - Advanced Profile customization
+- A massive upscaling feature with the ability to upscale up to 3k
 - **Chapters**: Work on your pieces, and switch back to previous works of art!
   - Every "creation" command (`/stable_diffusion`, `/disco_diffusion`) results in a new chapter
   - Users can use variation commands (`/upscale`, `/variate`, ~~more to come~~) to alter said chapters as they wish
@@ -17,6 +18,12 @@ Integrates with DiscoArt, Stable Diffusion and other peculiarities, all rolled u
 [Demo video + dev journey](https://www.youtube.com/watch?v=epLF0OXTp-A)
 
 In short: this bot allows you to generate images based on a text prompt, but can do way more than just that - offering a wide variety of tools to make alter your generated images.
+
+# Demo art
+
+![black smoke escaping out of a human mouth, diesel exhaust realistic portrait](https://cdn.discordapp.com/attachments/1015964690800726158/1047917600161681508/final.jpg)
+
+![Hamburger with jalapeños served on a wooden log slice, centered, food, snack, realistic photo, kodak Ektar](https://cdn.discordapp.com/attachments/1015964690800726158/1047429960056447036/final.png)
 
 # Credits and special thanks
 
