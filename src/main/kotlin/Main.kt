@@ -11,7 +11,9 @@ import commands.social.setBackgroundCommand
 import commands.social.shareCommand
 import commands.update.updateCommand
 import commands.upscale.upscaleCommand
+import commands.upscale.upscaleImageCommand
 import commands.variate.variateCommand
+import database.chapterEntryDao
 import database.initDatabase
 import database.models.Thingy
 import dev.minn.jda.ktx.interactions.commands.choice
@@ -77,6 +79,7 @@ fun initCommands(jda: JDA) {
     img2imgCommand(jda)
     profileCommand(jda)
     upscaleCommand(jda)
+    upscaleImageCommand(jda)
     magicPromptCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
@@ -89,8 +92,8 @@ fun initCommands(jda: JDA) {
         testLeaderboardCommand(jda)
     }
 
-    fun seed(data: SlashCommandData): SlashCommandData {
-        return data.option<Int>(
+    fun seed(data: SlashCommandData) {
+        data.option<Int>(
             "seed",
             "Entropy for the random number generator, use the same seed to replicate results!",
             required = false,
@@ -101,19 +104,47 @@ fun initCommands(jda: JDA) {
         )
     }
 
-    fun sdGuidanceScale(data: SlashCommandData): SlashCommandData {
-        return data.option<Double>("guidance_scale", "How much guidance to the prompt?", required = false) {
+    fun sdGuidanceScale(data: SlashCommandData) {
+        data.option<Double>("guidance_scale", "How much guidance to the prompt?", required = false) {
             this.setMinValue(0.0)
             this.setMaxValue(100.0)
         }
     }
 
-    fun sdSize(data: SlashCommandData): SlashCommandData {
-        return data.option<Int>("size", "Image square size (Default: Normal)", required = false) {
+    fun sdSize(data: SlashCommandData) {
+        data.option<Int>("size", "Image square size (Default: Normal)", required = false) {
             choice("Small", 256)
             choice("Normal", 512)
             choice("Big", 768)
         }
+    }
+
+    fun sdUpscale(data: SlashCommandData) {
+        data.option<Int>(
+            "original_image_slice",
+            "How much guidance from the full image?",
+            required = false,
+            builder = {
+                this.setMaxValue(32)
+                this.setMinValue(0)
+            }
+        ).option<Int>(
+            "tile_border",
+            "How much guessing around tiles? (More means less seams)",
+            required = false,
+            builder = {
+                this.setMaxValue(32)
+                this.setMinValue(0)
+            }
+        ).option<Double>(
+            "noise_level",
+            "More noise means less of the original image is left and more details are \"imagined\"",
+            required = false,
+            builder = {
+                this.setMaxValue(100.0)
+                this.setMinValue(0.0)
+            }
+        )
     }
 
     fun sdSteps(data: SlashCommandData): SlashCommandData {
@@ -146,33 +177,13 @@ fun initCommands(jda: JDA) {
         }
         slash("upscale", "Upscale your precious creations!") {
             sdGuidanceScale(this)
-            option<Int>(
-                "original_image_slice",
-                "How much guidance from the full image?",
-                required = false,
-                builder = {
-                    this.setMaxValue(32)
-                    this.setMinValue(0)
-                }
-            )
-            option<Int>(
-                "tile_border",
-                "How much guessing around tiles? (More means less seams)",
-                required = false,
-                builder = {
-                    this.setMaxValue(32)
-                    this.setMinValue(0)
-                }
-            )
-            option<Double>(
-                "noise_level",
-                "More noise means less of the original image is left and more details are \"imagined\"",
-                required = false,
-                builder = {
-                    this.setMaxValue(100.0)
-                    this.setMinValue(0.0)
-                }
-            )
+            sdUpscale(this)
+        }
+        slash("upscale_image", "Upscale any image you want (Max 1024x1024 accepted)!") {
+            option<Attachment>("image", "Image to upscale", required = true)
+            option<String>("prompt", "Describe your original image, the better you can describe it, the better the results", required = true)
+            sdGuidanceScale(this)
+            sdUpscale(this)
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)

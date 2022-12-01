@@ -65,7 +65,7 @@ fun upscaleCommand(jda: JDA) {
                 image,
                 parameters.size()
             ) { btnEvent, chosenImage ->
-                val parameterToVariate = parameters[chosenImage].asJsonObject
+                val parameterToUpscale = parameters[chosenImage].asJsonObject
                 val imageSlice = takeSlice(image, parameters.size(), chosenImage)
                 if (imageSlice.width > 1024 || image.height > 1024) {
                     btnEvent.reply_("Sorry! We don't allow upscaling images over 1024 pixels in width or height to prevent gobbling up all computation power! This image is ${imageSlice.width}x${imageSlice.height}! Remember, we upscale 4x in size!")
@@ -75,7 +75,7 @@ fun upscaleCommand(jda: JDA) {
                 btnEvent.reply_("Sending upscale...").await()
                 val base64Image = bufferedImageToBase64(imageSlice)
                 val params = event.optionsToJson().withDefaults(sdUpscaleDefaults())
-                params.addProperty("prompt", parameterToVariate.get("prompt").asString)
+                params.addProperty("prompt", parameterToUpscale.get("prompt").asString)
                 params.addProperty("image", base64Image)
                 upscale(params, event.user, btnEvent.hook)
             }

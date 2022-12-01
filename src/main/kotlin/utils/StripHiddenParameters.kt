@@ -9,7 +9,7 @@ fun JsonArray.stripHiddenParameters(): JsonArray {
 
 fun JsonArray.stripHiddenParameters(hiddenParameters: Array<String>): JsonArray {
     val result = JsonArray()
-    for (item in result) {
+    for (item in this) {
         if (item.isJsonObject) {
             result.add(item.asJsonObject.stripHiddenParameters(hiddenParameters))
         } else {
@@ -25,7 +25,7 @@ fun JsonObject.stripHiddenParameters(): JsonObject {
 
 fun JsonObject.stripHiddenParameters(hiddenParameters: Array<String>): JsonObject {
     val result = this.deepCopy()
-    for ((k, _) in result.asMap()) {
+    for ((k, _) in this.asMap()) {
         if (k.startsWith("_") || hiddenParameters.contains(k)) {
             result.remove(k)
         }

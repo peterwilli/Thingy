@@ -34,8 +34,8 @@ import java.net.URL
 import javax.imageio.ImageIO
 
 val defaultVoteEmoji = Emoji.fromFormatted("\uD83D\uDC32")
-private val maxPicsPerMember = 2
-private val imageFilename = "final.png"
+private const val maxPicsPerMember = 2
+private const val imageFilename = "final.png"
 
 private fun makeShareEmbed(img: BufferedImage, author: User, parameters: JsonObject): MessageEmbed {
     val embed = EmbedBuilder()
@@ -122,7 +122,7 @@ fun submitToContestCommand(jda: JDA) {
                     try {
                         it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
                             shareChannel.sendMessageEmbeds(embed)
-                                .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice), imageFilename))
+                                .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice, "png"), imageFilename))
                                 .queue { sharedMsg ->
                                     sharedMsg.addReaction(defaultVoteEmoji).queue()
                                     val messageLink = messageToURL(sharedMsg)
