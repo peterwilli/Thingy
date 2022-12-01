@@ -1,14 +1,14 @@
-FROM rust:1.64.0-slim as keep_my_jcloud_builder
+FROM rust:1.64.0-bullseye as keep_my_jcloud_builder
 RUN cargo install \
     --git https://github.com/peterwilli/KeepMyJCloud.git \ 
-    --rev 831489a7bb296459ebb05e2120fbb9af024df73c
+    --rev 9b25365aa5c110a7f41a1d4f0aff26ab1962114a
 
 FROM gradle:jdk18-jammy as thingy_builder
 WORKDIR /usr/src/app
 COPY . .
 RUN gradle :shadowJar
 
-FROM debian:bookworm-slim
+FROM debian:bullseye
 RUN echo "Installing system dependencies" && \
     apt-get update && \
     apt-get install -y software-properties-common python3-pip wget curl && \ 

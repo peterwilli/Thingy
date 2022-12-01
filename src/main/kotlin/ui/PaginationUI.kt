@@ -5,6 +5,7 @@ import Paginator
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.MessageCreate
 import getAverageColor
+import net.coobird.thumbnailator.Thumbnails
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
@@ -39,6 +40,10 @@ fun sendImageSlider(title: String, amountOfImages: Long, onImage: GetImageCallba
     return paginator(amountOfImages, getPage = getPageCallback, expireAfter = 10.minutes)
 }
 
+private fun toThumbnail(image: BufferedImage): BufferedImage {
+    return Thumbnails.of(image).size(512, 512).outputFormat("jpg").asBufferedImage()
+}
+
 fun makeSelectImageFromQuilt(
     event: GenericCommandInteractionEvent,
     user: User,
@@ -47,18 +52,20 @@ fun makeSelectImageFromQuilt(
     totalImages: Int,
     callback: suspend (btnEvent: ButtonInteractionEvent, index: Int) -> Unit
 ): Paginator {
+
     val getPageCallback: GetPageCallback = { index ->
         val page = EmbedBuilder()
         page.setTitle(title)
-        page.setFooter("Image ${index + 1} / $totalImages")
-        page.setImage("attachment://${index + 1}.jpg")
         val imageSlice = takeSlice(quilt, totalImages, index.toInt())
-        val avgColor = getAverageColor(imageSlice, 0, 0, imageSlice.width, imageSlice.height)
+        page.setFooter("Image ${index + 1} / $totalImages (size: ${imageSlice.width}x${imageSlice.height})")
+        page.setImage("attachment://${index + 1}.jpg")
+        val previewImage = toThumbnail(imageSlice)
+        val avgColor = getAverageColor(previewImage, 0, 0, imageSlice.width, imageSlice.height)
         page.setColor(avgColor)
         page.build()
         val msgCreate = MessageCreate(
             embeds = listOf(page.build()),
-            files = listOf(FileUpload.fromData(bufferedImageToByteArray(imageSlice, "jpg"), "1.jpg"))
+            files = listOf(FileUpload.fromData(bufferedImageToByteArray(previewImage, "jpg"), "1.jpg"))
         )
         msgCreate
     }
@@ -66,7 +73,8 @@ fun makeSelectImageFromQuilt(
         paginator(amountOfPages = totalImages.toLong(), getPage = getPageCallback, expireAfter = 10.minutes)
     imageSelector.injectMessageCallback = { idx, msgEdit ->
         val imageSlice = takeSlice(quilt, totalImages, idx.toInt())
-        msgEdit.setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice, "jpg"), "${idx + 1}.jpg"))
+        val previewImage = toThumbnail(imageSlice)
+        msgEdit.setFiles(FileUpload.fromData(bufferedImageToByteArray(previewImage, "jpg"), "${idx + 1}.jpg"))
     }
     imageSelector.customActionComponents = listOf(user.jda.button(
         label = "Select",

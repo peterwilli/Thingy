@@ -1,11 +1,12 @@
 jtype: Flow
 with:
   protocol: grpc
-monitoring: true
+  monitoring: true
+jcloud:
+  name: thingy
 executors:
-  # Stable Diffusion
-  - name: stable_diffusion_txt2img
-    uses: jinahub+docker://Txt2ImgExecutor/0.1.8
+  - name: thingy_queue_executor
+    uses: jinahub+docker://xog5bvtu/0.1.0
     jcloud:
       resources:
         gpu: 1
@@ -14,5 +15,4 @@ executors:
     uses: jinahub+docker://MagicPromptExecutor/v1.1
     jcloud:
       resources:
-        gpu: 0
         cpu: 1

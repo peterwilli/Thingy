@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.github.minndevelopment:jda-ktx:863470e")
+    implementation("com.github.minndevelopment:jda-ktx:17eb77a")
     implementation("net.dv8tion:JDA:5.0.0-alpha.22")
     implementation("ch.qos.logback:logback-classic:1.4.5")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
@@ -37,6 +37,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("org.apache.directory.studio:org.apache.commons.io:2.4")
     implementation("com.google.protobuf:protobuf-java-util:3.21.9")
+    implementation("net.coobird:thumbnailator:0.4.18")
     implementation(kotlin("reflect"))
 }
 
@@ -65,7 +66,7 @@ protobuf {
             artifact = "io.grpc:protoc-gen-grpc-java:1.49.0"
         }
         id("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.3.0:jdk18@jar"
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.3.0:jdk8@jar"
         }
     }
     generateProtoTasks {
