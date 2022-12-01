@@ -7,6 +7,7 @@ import database.chapterDao
 import database.models.SharedArtCacheEntry
 import database.sharedArtCacheEntryDao
 import database.userDao
+import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.editMessage
@@ -26,6 +27,7 @@ import utils.*
 import java.awt.image.BufferedImage
 import java.net.URL
 import javax.imageio.ImageIO
+import kotlin.concurrent.thread
 
 private const val imageFilename = "final.jpg"
 private const val imageFilenamePreview = "final.jpg"
@@ -95,13 +97,15 @@ fun shareCommand(jda: JDA) {
                     sharedArtCacheEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
                         .and().eq("imageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()
                 if (possibleCacheEntry != null) {
-                    event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}")
+                    event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}", components = listOf(), embeds = listOf())
                         .queue()
                     return@makeSelectImageFromQuilt
                 }
+                event.hook.editMessage(content = "Processing image... Please wait...", components = listOf(), embeds = listOf()).await()
                 val imageSlice = takeSlice(image, parameters.size(), chosenImage)
+                val imageSliceThumbnail = toThumbnail(takeSlice(image, parameters.size(), chosenImage))
                 val shareChannel = jda.getTextChannelById(config.shareChannelID)!!
-                val embed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject, true)
+                val embed = makeShareEmbed(imageSliceThumbnail, event.user, parameters[0].asJsonObject, true)
                 val okButton = jda.button(
                     label = "Fire away!",
                     style = ButtonStyle.PRIMARY,
@@ -109,8 +113,8 @@ fun shareCommand(jda: JDA) {
                 ) {
                     try {
                         it.editMessage("*Sharing...*").setComponents().setEmbeds().setAttachments().queue { shareMsg ->
-                            val embed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject, false)
-                            shareChannel.sendMessageEmbeds(embed)
+                            val finalEmbed = makeShareEmbed(imageSlice, event.user, parameters[0].asJsonObject, false)
+                            shareChannel.sendMessageEmbeds(finalEmbed)
                                 .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSlice, "jpg"), imageFilename))
                                 .queue { sharedMsg ->
                                     val messageLink = messageToURL(sharedMsg)
@@ -142,9 +146,11 @@ fun shareCommand(jda: JDA) {
                         it.reply_("Error! $e").setEphemeral(true).queue()
                     }
                 }
-                event.hook.editMessage(content = "**Preview!**", embeds = listOf(embed))
-                    .setFiles(FileUpload.fromData(bufferedImageToByteArray(toThumbnail(imageSlice), "jpg"), imageFilenamePreview))
-                    .setActionRow(okButton, cancelButton).queue()
+                thread {
+                    event.hook.editMessage(content = "**Preview!**", embeds = listOf(embed))
+                        .setFiles(FileUpload.fromData(bufferedImageToByteArray(imageSliceThumbnail, "jpg"), imageFilenamePreview))
+                        .setActionRow(okButton, cancelButton).queue()
+                }
             }
             event.hook.editMessageToIncludePaginator(quiltSelector).queue()
         } catch (e: Exception) {
