@@ -1,27 +1,7 @@
 package commands.variate
 
-import alphanumericCharPool
-import commands.make.FairQueueEntry
-import commands.make.FairQueueType
-import config
-import database.chapterDao
-import database.userDao
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.messages.reply_
-import editMessageToIncludePaginator
-import gson
-import miniManual
 import net.dv8tion.jda.api.JDA
-import queueDispatcher
-import randomString
-import ui.makeSelectImageFromQuilt
-import utils.bufferedImageToDataURI
-import utils.takeSlice
-import java.net.URL
-import javax.imageio.ImageIO
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.random.Random
 
 fun variateCommand(jda: JDA) {
     jda.onCommand("variate") { event ->

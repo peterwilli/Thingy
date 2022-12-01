@@ -1,15 +1,8 @@
 package commands.img2img
 
-import commands.make.*
-import config
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.messages.reply_
-import gson
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
-import org.atteo.evo.inflector.English
-import queueDispatcher
-import kotlin.math.min
 
 fun img2imgCommand(jda: JDA) {
     fun onCommand(event: GenericCommandInteractionEvent) {

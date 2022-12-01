@@ -22,19 +22,19 @@ fun magicPromptCommand(jda: JDA) {
             val result = client.magicPrompt(event.getOption("start")!!.asString, amount, variation)
             if (result.isEmpty()) {
                 event.hook.editOriginal("Failed :(").queue()
-                event.messageChannel.sendMessage("${event.user.asMention} Magic Prompt failed! Sorry! Please try again later...").queue()
-            }
-            else {
+                event.messageChannel.sendMessage("${event.user.asMention} Magic Prompt failed! Sorry! Please try again later...")
+                    .queue()
+            } else {
                 val firstText = result.first()
                 val magicMessage = event.messageChannel.sendMessage(firstText).await()
                 for (text in result.sliceArray(1 until result.size)) {
                     event.messageChannel.sendMessage(text).queue()
                 }
                 event.hook.editOriginal("Done! See ${messageToURL(magicMessage)}").queue()
-                magicMessage.reply_("${event.user.asMention} Your magic prompts are done! We added them as single messages so it's easy to copy paste on phone! They are yours to do with as you wish!").queue()
+                magicMessage.reply_("${event.user.asMention} Your magic prompts are done! We added them as single messages so it's easy to copy paste on phone! They are yours to do with as you wish!")
+                    .queue()
             }
-        }
-        catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             event.hook.editOriginal("Error! $e").queue()
         }

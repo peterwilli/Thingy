@@ -25,7 +25,10 @@ import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
-import utils.*
+import utils.bufferedImageToByteArray
+import utils.messageToURL
+import utils.sendException
+import utils.takeSlice
 import java.awt.image.BufferedImage
 import java.net.URL
 import javax.imageio.ImageIO
@@ -101,7 +104,8 @@ fun submitToContestCommand(jda: JDA) {
                 }
                 val possibleCacheEntry =
                     artContestEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
-                        .and().eq("originalImageURL", latestEntry.imageURL).and().eq("index", chosenImage).queryForFirst()
+                        .and().eq("originalImageURL", latestEntry.imageURL).and().eq("index", chosenImage)
+                        .queryForFirst()
                 if (possibleCacheEntry != null) {
                     event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}")
                         .setComponents().setEmbeds().setAttachments().queue()

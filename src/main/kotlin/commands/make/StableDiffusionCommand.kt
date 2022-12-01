@@ -1,9 +1,11 @@
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import commands.make.*
+import commands.make.FairQueueEntry
+import commands.make.getScriptForSize
+import commands.make.standardPermissionList
+import commands.make.validatePermissions
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import utils.optionsToJson
@@ -42,6 +44,7 @@ fun stableDiffusionCommand(jda: JDA) {
                     "Making Images",
                     event.member!!.id,
                     batch,
+                    arrayOf(),
                     getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
                     null

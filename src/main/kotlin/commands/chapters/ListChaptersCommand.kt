@@ -81,7 +81,15 @@ fun listChaptersCommand(jda: JDA) {
                         JsonArray::class.java
                     )
 
-                deleteEvent.reply_("**Are you sure to delete this chapter?** *${sanitize(parameters[0].asJsonObject.get("prompt").asString)}*")
+                deleteEvent.reply_(
+                    "**Are you sure to delete this chapter?** *${
+                        sanitize(
+                            parameters[0].asJsonObject.get(
+                                "prompt"
+                            ).asString
+                        )
+                    }*"
+                )
                     .setEphemeral(true).addActionRow(listOf(
                         jda.button(
                             label = "Delete!",

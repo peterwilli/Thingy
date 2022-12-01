@@ -11,7 +11,7 @@ import java.util.*
 fun GenericCommandInteractionEvent.optionsToJson(): JsonObject {
     val result = JsonObject()
     for (option in this.options) {
-        when(option.type) {
+        when (option.type) {
             OptionType.NUMBER -> result.addProperty(option.name, option.asDouble)
             OptionType.STRING -> result.addProperty(option.name, option.asString)
             OptionType.BOOLEAN -> result.addProperty(option.name, option.asBoolean)
@@ -23,6 +23,7 @@ fun GenericCommandInteractionEvent.optionsToJson(): JsonObject {
                     result.addProperty(option.name, base64)
                 }
             }
+
             OptionType.INTEGER -> result.addProperty(option.name, option.asInt)
         }
     }

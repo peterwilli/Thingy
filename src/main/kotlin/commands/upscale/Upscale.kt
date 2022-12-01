@@ -4,11 +4,10 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import config
 import net.dv8tion.jda.api.entities.User
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 import queueDispatcher
-import java.awt.image.BufferedImage
+
+val upscaleHiddenParameters = arrayOf("image")
 
 suspend fun upscale(
     params: JsonObject,
@@ -22,6 +21,7 @@ suspend fun upscale(
         "Upscaling image",
         user.id,
         array,
+        upscaleHiddenParameters,
         "stable_diffusion_upscale",
         hook,
         null

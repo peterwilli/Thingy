@@ -31,7 +31,7 @@ dependencies {
     implementation("com.sksamuel.hoplite:hoplite-yaml:2.6.5")
     implementation("com.j256.ormlite:ormlite-core:6.1")
     implementation("com.j256.ormlite:ormlite-jdbc:6.1")
-    implementation("org.xerial:sqlite-jdbc:3.39.4.1")
+    implementation("org.xerial:sqlite-jdbc:3.40.0.0")
     implementation("org.atteo:evo-inflector:1.3")
     implementation("com.google.code.gson:gson:2.10")
     implementation("org.apache.commons:commons-lang3:3.12.0")

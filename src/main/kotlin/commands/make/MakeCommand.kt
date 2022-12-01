@@ -1,8 +1,10 @@
 import com.google.gson.JsonArray
-import commands.make.*
+import commands.make.FairQueueEntry
+import commands.make.getScriptForSize
+import commands.make.standardPermissionList
+import commands.make.validatePermissions
 import dev.minn.jda.ktx.events.onCommand
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 import utils.optionsToJson
 import utils.sendException
@@ -18,7 +20,8 @@ fun makeCommand(jda: JDA) {
             event.deferReply().queue()
             val client = jcloudClient.currentClient()
             val prompt = event.getOption("prompt")!!.asString
-            val magicPromptResult = client.magicPrompt(prompt, config.hostConstraints.totalImagesInMakeCommand - 1, Random.nextDouble())
+            val magicPromptResult =
+                client.magicPrompt(prompt, config.hostConstraints.totalImagesInMakeCommand - 1, Random.nextDouble())
 
             fun createEntry(hook: InteractionHook): FairQueueEntry {
                 var batch = JsonArray()
@@ -35,6 +38,7 @@ fun makeCommand(jda: JDA) {
                     "Making Images",
                     event.member!!.id,
                     batch,
+                    arrayOf(),
                     getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
                     null

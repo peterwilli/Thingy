@@ -24,11 +24,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
-import utils.asciiProgressBar
-import utils.base64UriToByteArray
-import utils.getResourceAsText
-import utils.peterDate
-import java.lang.StringBuilder
+import utils.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
@@ -52,9 +48,13 @@ class QueueDispatcher(private val jda: JDA) {
                         break
                     } catch (e: StatusException) {
                         if (e.status.code == Status.UNIMPLEMENTED.code || e.status.code == Status.UNAVAILABLE.code) {
-                            println("Killing client, Jina must have been offline! Error: ${ExceptionUtils.getMessage(
-                                e
-                            )}\n${ExceptionUtils.getStackTrace(e)}")
+                            println(
+                                "Killing client, Jina must have been offline! Error: ${
+                                    ExceptionUtils.getMessage(
+                                        e
+                                    )
+                                }\n${ExceptionUtils.getStackTrace(e)}"
+                            )
                             jcloudClient.freeClient()
                         }
                         e.printStackTrace()
@@ -117,15 +117,15 @@ class QueueDispatcher(private val jda: JDA) {
                     var avgPercentCompleted: Double = completedEntries.size.toDouble()
                     if (queueId != null) {
                         val result = client.retrieveEntryStatus(queueId!!, 0)
-                        for(doc in completedEntries) {
+                        for (doc in completedEntries) {
                             newImages.add(doc.base64UriToByteArray())
                         }
-                        if(result.docsCount > 0) {
+                        if (result.docsCount > 0) {
                             val doc = result.getDocs(0)
                             val progress = doc.tags.fieldsMap["progress"]!!.numberValue
                             avgPercentCompleted += progress
                             newImages.add(doc.base64UriToByteArray())
-                            if(progress == 1.0) {
+                            if (progress == 1.0) {
                                 completedEntries.add(doc)
                                 inProgress.removeAt(0)
                             }
@@ -177,11 +177,14 @@ class QueueDispatcher(private val jda: JDA) {
                         }
                     } else {
                         val quilt = makeQuiltFromByteArrayList(newImages)
-                        val progressMsg = StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted))
+                        val progressMsg =
+                            StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted))
                         if (timeSinceLastUpdate > 0) {
                             val steps = 1 / (avgPercentCompleted - lastPercentCompleted)
-                            val estimatedSeconds = (peterDate() - timeSinceLastUpdate) * (steps * (1 - avgPercentCompleted)).toLong()
-                            val etaString = String.format("%02dm%02ds",
+                            val estimatedSeconds =
+                                (peterDate() - timeSinceLastUpdate) * (steps * (1 - avgPercentCompleted)).toLong()
+                            val etaString = String.format(
+                                "%02dm%02ds",
                                 TimeUnit.SECONDS.toMinutes(estimatedSeconds),
                                 TimeUnit.SECONDS.toSeconds(estimatedSeconds) -
                                         TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(estimatedSeconds))
@@ -203,7 +206,8 @@ class QueueDispatcher(private val jda: JDA) {
                     entry.getHumanReadableOverview(), quilt,
                     "${config.bot.name}_final.jpg"
                 )
-                finishMsg.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*").queue()
+                finishMsg.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
+                    .queue()
                 var chapterID: Long = 0
                 if (entry.chapter == null) {
                     val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)
@@ -234,7 +238,7 @@ class QueueDispatcher(private val jda: JDA) {
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
                             imageURL = URL(finishMsg.attachments.first().url),
-                            parameters = gson.toJson(entry.parameters)
+                            parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
                         )
                         chapterEntryDao.create(chapterEntry)
                     }
@@ -247,7 +251,7 @@ class QueueDispatcher(private val jda: JDA) {
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
                             imageURL = URL(finishMsg.attachments.first().url),
-                            parameters = gson.toJson(entry.parameters)
+                            parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
                         )
                         chapterEntryDao.create(chapterEntry)
                         val updateBuilder = chapterDao.updateBuilder()

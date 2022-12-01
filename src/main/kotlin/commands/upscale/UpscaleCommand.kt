@@ -2,8 +2,9 @@ package commands.upscale
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import commands.make.*
-import config
+import commands.make.standardPermissionList
+import commands.make.upscale
+import commands.make.validatePermissions
 import database.chapterDao
 import database.userDao
 import dev.minn.jda.ktx.coroutines.await
@@ -13,14 +14,10 @@ import editMessageToIncludePaginator
 import gson
 import miniManual
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.InteractionHook
-import queueDispatcher
 import ui.makeSelectImageFromQuilt
 import utils.*
 import java.net.URL
 import javax.imageio.ImageIO
-import kotlin.random.Random
 
 fun sdUpscaleDefaults(): JsonObject {
     val result = JsonObject()

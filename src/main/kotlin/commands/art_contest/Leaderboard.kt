@@ -20,7 +20,7 @@ var lastHour = 0
 fun getTopN(max: Int): Array<Pair<ArtContestEntry, Long>> {
     var lastEntryID: Long = 0
     val result = mutableListOf<Pair<ArtContestEntry, Long>>()
-    while(true) {
+    while (true) {
         val entry =
             artContestEntryDao.queryBuilder().selectColumns().where().ge("id", lastEntryID).queryForFirst() ?: break
         val votesCount = artContestVoteDao.queryBuilder().where().eq("contestEntryID", entry.id).countOf()
@@ -51,12 +51,15 @@ fun sendLeaderboard(jda: JDA) {
             0 -> {
                 ":first_place:"
             }
+
             1 -> {
                 ":second_place:"
             }
+
             2 -> {
                 ":third_place:"
             }
+
             else -> {
                 "#${i + 1}"
             }

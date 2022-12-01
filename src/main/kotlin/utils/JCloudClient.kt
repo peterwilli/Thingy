@@ -1,7 +1,7 @@
 package utils
 
-import config
 import Client
+import config
 import gson
 import io.grpc.ManagedChannelBuilder
 import org.apache.commons.lang3.exception.ExceptionUtils
@@ -35,8 +35,10 @@ class JCloudClient {
             try {
                 client!!.close()
             } catch (e: Exception) {
-                println("Exception in freeClient (Ignored):\n${ExceptionUtils.getMessage(e)}\n" +
-                        "${ExceptionUtils.getStackTrace(e)}")
+                println(
+                    "Exception in freeClient (Ignored):\n${ExceptionUtils.getMessage(e)}\n" +
+                            "${ExceptionUtils.getStackTrace(e)}"
+                )
             }
             client = null
         }
@@ -49,8 +51,7 @@ class JCloudClient {
                 val response = gson.fromJson(inp.readText(), URLResponse::class.java)
                 return URI(response.endpoint)
             }
-        }
-        else if (config.directUrl != null) {
+        } else if (config.directUrl != null) {
             return config.directUrl
         }
         return null

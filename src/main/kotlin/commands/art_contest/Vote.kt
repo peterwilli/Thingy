@@ -23,11 +23,14 @@ fun voteReactionWatcher(jda: JDA) {
             return@listener
         }
         TransactionManager.callInTransaction(connectionSource) {
-            val previousVotes = artContestVoteDao.queryBuilder().selectColumns().where().eq("userID", it.user!!.idLong).query()
+            val previousVotes =
+                artContestVoteDao.queryBuilder().selectColumns().where().eq("userID", it.user!!.idLong).query()
             if (previousVotes.size >= maxVotes) {
                 for (i in 0..(previousVotes.size - maxVotes)) {
                     val voteToDelete = previousVotes[i]
-                    val entryVotedOn = artContestEntryDao.queryBuilder().selectColumns().where().eq("id", voteToDelete.contestEntryID).queryForFirst()
+                    val entryVotedOn =
+                        artContestEntryDao.queryBuilder().selectColumns().where().eq("id", voteToDelete.contestEntryID)
+                            .queryForFirst()
                     voteToDelete.delete()
                     val message = artContestChannel.retrieveMessageById(entryVotedOn.messageID).complete()
                     message.removeReaction(defaultVoteEmoji, it.user!!).queue()
@@ -55,7 +58,8 @@ fun voteReactionWatcher(jda: JDA) {
         TransactionManager.callInTransaction(connectionSource) {
             val entry = artContestEntryDao.queryBuilder().selectColumns("id").where().eq("messageID", it.messageIdLong)
                 .queryForFirst()
-            val vote = artContestVoteDao.queryBuilder().selectColumns().where().eq("userID", it.user!!.idLong).and().eq("contestEntryID", entry.id).queryForFirst()
+            val vote = artContestVoteDao.queryBuilder().selectColumns().where().eq("userID", it.user!!.idLong).and()
+                .eq("contestEntryID", entry.id).queryForFirst()
             vote.delete()
         }
     }

@@ -1,9 +1,9 @@
 //import commands.make.DiffusionConfig
 import com.google.gson.JsonObject
-import com.google.protobuf.*
+import com.google.protobuf.Struct
 import com.google.protobuf.util.JsonFormat
+import com.google.protobuf.value
 import docarray.Docarray.DocumentArrayProto
-import docarray.DocumentArrayProtoKt
 import docarray.documentArrayProto
 import docarray.documentProto
 import io.grpc.ManagedChannel
@@ -129,7 +129,7 @@ class Client(
                 throw IllegalStateException("Error found in gateway response!\n${status.exception}")
             }
             if (it.data.docs.docsCount > 0) {
-                for(doc in it.data.docs.docsList) {
+                for (doc in it.data.docs.docsList) {
                     result.add(doc.text)
                 }
             }

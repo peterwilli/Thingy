@@ -1,7 +1,6 @@
 package commands.make
 
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import config
 import database.models.UserChapter
 import dev.minn.jda.ktx.coroutines.await
@@ -12,6 +11,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.utils.FileUpload
 import updateMode
 import utils.sanitize
+import utils.stripHiddenParameters
 
 class MemberLimitExceededException(message: String) : Exception(message)
 
@@ -23,6 +23,7 @@ data class FairQueueEntry(
     val description: String,
     val owner: String,
     val parameters: JsonArray,
+    val hiddenParameters: Array<String>,
     val script: String,
     val progressHook: InteractionHook,
     val chapter: UserChapter?
@@ -36,8 +37,8 @@ data class FairQueueEntry(
             stringBuilder.append(withDescription)
         }
         stringBuilder.append("** | ")
-        for((k, v) in parameters[0].asJsonObject.asMap()) {
-            if (k.startsWith("_") || v.toString().length > 1000) {
+        for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters().asMap()) {
+            if (v.toString().length > 1000) {
                 continue
             }
             stringBuilder.append("`$k`: *${sanitize(v.toString())}* ")
@@ -64,6 +65,34 @@ data class FairQueueEntry(
     fun getMember(): Member {
         return progressHook.interaction.member!!
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FairQueueEntry
+
+        if (description != other.description) return false
+        if (owner != other.owner) return false
+        if (parameters != other.parameters) return false
+        if (!hiddenParameters.contentEquals(other.hiddenParameters)) return false
+        if (script != other.script) return false
+        if (progressHook != other.progressHook) return false
+        if (chapter != other.chapter) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = description.hashCode()
+        result = 31 * result + owner.hashCode()
+        result = 31 * result + parameters.hashCode()
+        result = 31 * result + hiddenParameters.contentHashCode()
+        result = 31 * result + script.hashCode()
+        result = 31 * result + progressHook.hashCode()
+        result = 31 * result + (chapter?.hashCode() ?: 0)
+        return result
+    }
 }
 
 class FairQueue(maxEntriesPerOwner: Int) {
@@ -77,14 +106,14 @@ class FairQueue(maxEntriesPerOwner: Int) {
     }
 
     suspend fun updateRanks() {
-        val commandsGroup =  queue.groupingBy {
+        val commandsGroup = queue.groupingBy {
             it.script
         }
         val counts = commandsGroup.eachCount()
         queue.sortByDescending {
             counts[it.script]
         }
-        if(queue.size == 1) {
+        if (queue.size == 1) {
             return
         }
         for ((idx, entry) in queue.withIndex()) {

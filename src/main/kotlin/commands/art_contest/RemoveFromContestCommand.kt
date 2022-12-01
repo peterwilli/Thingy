@@ -86,9 +86,9 @@ fun removeFromContestCommand(jda: JDA) {
                             val memberEntryToDelete = memberEntries[imageSelector.getIndex().toInt()]
                             val channel = jda.getTextChannelById(config.artContestChannelID!!)
                             if (channel == null) {
-                                btnEvent.hook.editMessage(content = "Can't find art channel! Art entry not deleted.").setComponents().queue()
-                            }
-                            else {
+                                btnEvent.hook.editMessage(content = "Can't find art channel! Art entry not deleted.")
+                                    .setComponents().queue()
+                            } else {
                                 val messageId = memberEntryToDelete.messageLink.split("/").last()
                                 channel.deleteMessageById(messageId).queue()
                                 memberEntryToDelete.delete()

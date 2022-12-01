@@ -13,6 +13,7 @@ import commands.update.updateCommand
 import commands.upscale.upscaleCommand
 import commands.variate.variateCommand
 import database.initDatabase
+import database.models.Thingy
 import dev.minn.jda.ktx.interactions.commands.choice
 import dev.minn.jda.ktx.interactions.commands.option
 import dev.minn.jda.ktx.interactions.commands.slash
@@ -45,6 +46,7 @@ suspend fun main(args: Array<String>) {
     })
     jcloudClient = JCloudClient()
     initDatabase()
+    Thingy.getCurrent().runMigration()
     val builder: JDABuilder = JDABuilder.createDefault(config.bot.token)
     builder.apply {
         injectKTX(timeout = Duration.INFINITE)
@@ -115,7 +117,11 @@ fun initCommands(jda: JDA) {
     }
 
     fun sdSteps(data: SlashCommandData): SlashCommandData {
-        return data.option<Int>("steps", "Higher steps typically lead to a better image (default 25)", required = false) {
+        return data.option<Int>(
+            "steps",
+            "Higher steps typically lead to a better image (default 25)",
+            required = false
+        ) {
             this.setMinValue(1)
             this.setMaxValue(100)
         }
@@ -200,7 +206,11 @@ fun initCommands(jda: JDA) {
                 this.setMaxValue(10)
                 this.setMinValue(1)
             }
-            option<Int>("variation", "How much variation %? (Next word will be less related to previous word) (Default: 30)", required = false) {
+            option<Int>(
+                "variation",
+                "How much variation %? (Next word will be less related to previous word) (Default: 30)",
+                required = false
+            ) {
                 this.setMaxValue(100)
                 this.setMinValue(1)
             }

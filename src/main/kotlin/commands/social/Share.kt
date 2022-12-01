@@ -22,7 +22,10 @@ import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.utils.FileUpload
 import ui.makeSelectImageFromQuilt
-import utils.*
+import utils.bufferedImageToByteArray
+import utils.messageToURL
+import utils.sendException
+import utils.takeSlice
 import java.awt.image.BufferedImage
 import java.net.URL
 import javax.imageio.ImageIO
@@ -36,9 +39,8 @@ private fun makeShareEmbed(img: BufferedImage, author: User, parameters: JsonObj
     val maxPromptLength = 250
     val prompt = parameters.get("prompt").asString
     val title = if (prompt.length > maxPromptLength) {
-         "${prompt.take(maxPromptLength)}..."
-    }
-    else {
+        "${prompt.take(maxPromptLength)}..."
+    } else {
         prompt
     }
     embed.setTitle(title)
