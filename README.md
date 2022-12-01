@@ -47,15 +47,14 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
     - If you ran an older version of the bot, you can drop your `db.sqlite` here. Keep in mind the configuration has changed slightly. Otherwise, you can ignore this.
  - Download [this file](https://raw.githubusercontent.com/peterwilli/Thingy/main/config.example.yml) and name it `config.yml`, put it into the bot directory. 
  - Once done, follow "Setting up the bot" and then go back here
- - Download the bot interface (communicates with the AI) [from here](https://github.com/peterwilli/Thingy/releases/tag/v2-alpha-3) and put it in the bot directory
 
  - **The following steps are for running the AI remotely on JCloud! (Free for now!)**
 
     - We need to start the Docker image:
+    - 
+      - If you're updating, make sure to run `docker pull peterwilli/thingy:latest` first!
 
       - If you're starting fresh, you can use the following command in the bot directory: `docker run -v $(pwd):/opt/thingy/data -d --name=thingy peterwilli/thingy:latest`
-
-      - If you used an older version of Thingy (before Oct 21 2022), chances are it's already up. Run `jc list` either in an already spawned container, or whatever your current setup is. If there's a link, you can run `jina status <id from jc list>` to see if it's the thingy flow (typically contains executors like `stable_diffusion_txt2img` and `stable_diffusion_img2img`). **Remove this instance!** The bot will make a new one.
 
     - Once it is running, log in to JCloud by running: `docker exec -it thingy jc login`. You should now get a link that you can copy-paste in your browser to login.
 
@@ -94,11 +93,10 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
 
 These are co-developed with Thingy!
 
-- [Diffusers executor](https://github.com/peterwilli/DiffusersExecutor)
-
 - [Keep My JCloud](https://github.com/peterwilli/KeepMyJCloud)
 
 # Changelog
 
+ - 01 dec 2022: Uploaded new Docker image for Thingy 3 + fixed sharing + fixed readme instructions
  - 26 sept 2022: Added Keep My JCloud as sister project, integrated in the bot using Docker. It keeps JCloud instances running by re-deploying if it dissapears.
  - 21 oct 2022: Fixes for hanging cache system + sister projects updates + faster SD! + Magic Prompts!
