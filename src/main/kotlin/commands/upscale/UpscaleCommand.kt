@@ -38,7 +38,8 @@ fun upscaleCommand(jda: JDA) {
                 return@onCommand
             }
             val user =
-                userDao.queryBuilder().selectColumns("id", "currentChapterId").where().eq("discordUserID", event.user.id)
+                userDao.queryBuilder().selectColumns("id", "currentChapterId").where()
+                    .eq("discordUserID", event.user.id)
                     .queryForFirst()
             if (user == null) {
                 event.reply_("User '${event.user.id}' not found! Did you make art yet? $miniManual")
@@ -69,11 +70,16 @@ fun upscaleCommand(jda: JDA) {
             ) { btnEvent, chosenImage ->
                 val parameterToVariate = parameters[chosenImage].asJsonObject
                 val imageSlice = takeSlice(image, parameters.size(), chosenImage)
+                if (imageSlice.width > 1024 || image.height > 1024) {
+                    btnEvent.reply_("Sorry! We don't allow upscaling images over 1024 pixels in width or height to prevent gobbling up all computation power! This image is ${imageSlice.width}x${imageSlice.height}! Remember, we upscale 4x in size!")
+                        .setEphemeral(true).queue()
+                    return@makeSelectImageFromQuilt
+                }
+                btnEvent.reply_("Sending upscale...").await()
                 val base64Image = bufferedImageToBase64(imageSlice)
                 val params = event.optionsToJson().withDefaults(sdUpscaleDefaults())
                 params.addProperty("prompt", parameterToVariate.get("prompt").asString)
                 params.addProperty("image", base64Image)
-                btnEvent.reply_("Added upscale").await()
                 upscale(params, event.user, btnEvent.hook)
             }
             event.hook.editMessageToIncludePaginator(quiltSelector).queue()

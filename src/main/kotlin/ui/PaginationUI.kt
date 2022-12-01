@@ -60,7 +60,7 @@ fun makeSelectImageFromQuilt(
         page.setFooter("Image ${index + 1} / $totalImages (size: ${imageSlice.width}x${imageSlice.height})")
         page.setImage("attachment://${index + 1}.jpg")
         val previewImage = toThumbnail(imageSlice)
-        val avgColor = getAverageColor(previewImage, 0, 0, imageSlice.width, imageSlice.height)
+        val avgColor = getAverageColor(previewImage, 0, 0, previewImage.width, previewImage.height)
         page.setColor(avgColor)
         page.build()
         val msgCreate = MessageCreate(

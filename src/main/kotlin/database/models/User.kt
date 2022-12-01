@@ -38,7 +38,7 @@ class User {
     fun updateSelectedChapter(chapterId: Long) {
         val updateBuilder = userDao.updateBuilder()
         updateBuilder.where().eq("id", id)
-        updateBuilder.updateColumnValue("currentChapterId", currentChapterId)
+        updateBuilder.updateColumnValue("currentChapterId", chapterId)
         updateBuilder.update()
     }
 }
