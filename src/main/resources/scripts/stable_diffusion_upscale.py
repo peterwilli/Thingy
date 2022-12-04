@@ -53,7 +53,6 @@ def clamp_rect(rect: [int], min: [int], max: [int]):
         clamp(rect[3], min[1], max[1])
     )
 
-
 def add_overlap_rect(rect: [int], overlap: int, image_size: [int]):
     rect = list(rect)
     rect[0] -= overlap

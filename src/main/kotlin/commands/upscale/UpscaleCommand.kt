@@ -66,7 +66,7 @@ fun upscaleCommand(jda: JDA) {
             ) { btnEvent, chosenImage ->
                 val parameterToUpscale = parameters[chosenImage].asJsonObject
                 val imageSlice = takeSlice(image, parameters.size(), chosenImage)
-                if (imageSlice.width > 1024 || image.height > 1024) {
+                if (imageSlice.width > 1024 || imageSlice.height > 1024) {
                     btnEvent.reply_("Sorry! We don't allow upscaling images over 1024 pixels in width or height to prevent gobbling up all computation power! This image is ${imageSlice.width}x${imageSlice.height}! Remember, we upscale 4x in size!")
                         .setEphemeral(true).queue()
                     return@makeSelectImageFromQuilt
