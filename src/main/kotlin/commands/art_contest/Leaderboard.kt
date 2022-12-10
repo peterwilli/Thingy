@@ -6,6 +6,7 @@ import database.artContestVoteDao
 import database.models.ArtContestEntry
 import database.userDao
 import dev.minn.jda.ktx.events.listener
+import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import org.slf4j.LoggerFactory
@@ -40,6 +41,9 @@ fun getTopN(max: Int): Array<Pair<ArtContestEntry, Long>> {
 }
 
 fun sendLeaderboard(jda: JDA) {
+    runBlocking {
+        syncVotes(jda)
+    }
     val leaderboard = StringBuilder()
     leaderboard.append("**Leaderboard!**\n")
     val topNEntries = getTopN(10)

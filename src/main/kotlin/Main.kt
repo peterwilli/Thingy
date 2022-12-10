@@ -13,7 +13,6 @@ import commands.update.updateCommand
 import commands.upscale.upscaleCommand
 import commands.upscale.upscaleImageCommand
 import commands.variate.variateCommand
-import database.chapterEntryDao
 import database.initDatabase
 import database.models.Thingy
 import dev.minn.jda.ktx.interactions.commands.choice
