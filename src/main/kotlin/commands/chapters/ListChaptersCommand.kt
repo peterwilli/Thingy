@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.j256.ormlite.misc.TransactionManager
 import database.chapterDao
 import database.connectionSource
+import database.models.ChapterEntry
 import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
@@ -42,7 +43,8 @@ fun listChaptersCommand(jda: JDA) {
             if (chapterType == "images") {
                 val chaptersCount =
                     chapterDao.queryBuilder().selectColumns("id").where()
-                        .eq("userID", user.id).countOf()
+                        .eq("userID", user.id)
+                        .and().eq("chapterType", ChapterEntry.Companion.Type.Image.ordinal).countOf()
                 if (chaptersCount == 0L) {
                     event.reply_("Sorry, we couldn't find any chapters! $miniManual")
                         .setEphemeral(true).queue()
@@ -53,7 +55,9 @@ fun listChaptersCommand(jda: JDA) {
                     lastSelectedChapter =
                         chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false)
                             .where()
-                            .eq("userID", user.id).queryForFirst()
+                            .eq("userID", user.id)
+                            .and().eq("chapterType", ChapterEntry.Companion.Type.Image.ordinal)
+                            .queryForFirst()
 
                     val latestEntry = lastSelectedChapter!!.getLatestEntry()
                     val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
