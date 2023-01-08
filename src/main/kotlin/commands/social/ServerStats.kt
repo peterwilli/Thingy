@@ -13,9 +13,9 @@ fun serverStatsCommand(jda: JDA) {
             embedBuilder.setTitle("Bot stats!")
             embedBuilder.addField(
                 "Total generations (all servers)",
-                userDao.queryBuilder().selectColumns("generationsDone").query().map {
+                userDao.queryBuilder().selectColumns("generationsDone").query().sumOf {
                     it.generationsDone
-                }.sum().toString(),
+                }.toString(),
                 false
             )
             embedBuilder.setColor(0x33cc33)

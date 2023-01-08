@@ -47,7 +47,7 @@ fun rollbackChapterCommand(jda: JDA) {
                 val parameters = gson.fromJson(lastEntry!!.parameters, JsonArray::class.java)
                 ImageSliderEntry(
                     description = parameters[0].asJsonObject.get("prompt").asString,
-                    image = URL(lastEntry!!.imageURL)
+                    image = URL(lastEntry!!.data)
                 )
             }
             val slider = sendImageSlider("Rollback to", entryCount, onImage)

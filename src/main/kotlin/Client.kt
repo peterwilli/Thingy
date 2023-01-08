@@ -63,7 +63,6 @@ class Client(
             }
             result = it.data.docs
         }
-        println("result: $result")
         return result!!
     }
 

@@ -822,6 +822,8 @@ def on_document(document, callback):
             f.write(booster_command)
     word = f"<{document.tags['word']}>"
     steps = int(document.tags['steps'])
+    learning_rate = float(document.tags['learning_rate'])
+
     with tempfile.TemporaryDirectory() as temp_dir:
         images_path = os.path.join(temp_dir, "images")
         os.makedirs(images_path, exist_ok=True)
@@ -841,6 +843,7 @@ def on_document(document, callback):
                                     f"--train_data_dir={images_path}",
                                     f"--output_dir={output_path}",
                                     f"--max_train_steps={steps}",
+                                    f"--learning_rate={learning_rate}",
                                     f"--only_save_embeds"],
                                    stdout=subprocess.PIPE)
 

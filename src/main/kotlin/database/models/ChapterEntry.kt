@@ -48,7 +48,7 @@ class ChapterEntry {
 
     @NotNull
     @DatabaseField()
-    lateinit var imageURL: String
+    lateinit var data: String
 
     companion object {
         enum class Type {
@@ -70,7 +70,7 @@ class ChapterEntry {
         chapterID: Long,
         chapterType: Type,
         chapterVisibility: Visibility,
-        imageURL: URL,
+        data: String,
         serverID: String,
         channelID: String,
         messageID: String,
@@ -79,7 +79,7 @@ class ChapterEntry {
         this.chapterID = chapterID
         this.chapterType = chapterType.ordinal
         this.chapterVisibility = chapterVisibility.ordinal
-        this.imageURL = imageURL.toString()
+        this.data = data
         this.serverID = serverID
         this.channelID = channelID
         this.messageID = messageID

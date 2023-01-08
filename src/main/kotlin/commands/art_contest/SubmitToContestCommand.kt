@@ -86,7 +86,7 @@ fun submitToContestCommand(jda: JDA) {
 
             event.deferReply(true).queue()
             val latestEntry = usingChapter.getLatestEntry()
-            val image = ImageIO.read(URL(latestEntry.imageURL))
+            val image = ImageIO.read(URL(latestEntry.data))
             val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
             val quiltSelector = makeSelectImageFromQuilt(
                 event.user,
@@ -103,7 +103,7 @@ fun submitToContestCommand(jda: JDA) {
                 }
                 val possibleCacheEntry =
                     artContestEntryDao.queryBuilder().selectColumns().where().eq("userID", usingChapter.userID)
-                        .and().eq("originalImageURL", latestEntry.imageURL).and().eq("index", chosenImage)
+                        .and().eq("originalImageURL", latestEntry.data).and().eq("index", chosenImage)
                         .queryForFirst()
                 if (possibleCacheEntry != null) {
                     event.hook.editMessage(content = "**Sorry!** but you shared this image before! We don't allow sharing images more than twice! The message is previously shared here: ${possibleCacheEntry.messageLink}")
@@ -130,7 +130,7 @@ fun submitToContestCommand(jda: JDA) {
                                         ArtContestEntry(
                                             usingChapter.userID,
                                             URL(sharedMsg.embeds.first().image!!.url),
-                                            URL(latestEntry.imageURL),
+                                            URL(latestEntry.data),
                                             parameters.get(0).asJsonObject.get("prompt").asString,
                                             chosenImage,
                                             messageLink,

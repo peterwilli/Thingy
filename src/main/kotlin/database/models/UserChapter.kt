@@ -24,14 +24,19 @@ class UserChapter {
 
     @NotNull
     @DatabaseField(index = true)
+    var chapterType: Int = 0
+
+    @NotNull
+    @DatabaseField(index = true)
     var userID: Long = 0
 
     // ORMLite needs a no-arg constructor
     constructor() {
     }
 
-    constructor(id: Long, userID: Long) {
+    constructor(id: Long, chapterType: Int, userID: Long) {
         this.id = id
+        this.chapterType = chapterType
         this.userID = userID
     }
 

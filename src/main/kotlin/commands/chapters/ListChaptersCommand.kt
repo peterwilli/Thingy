@@ -31,100 +31,110 @@ fun listChaptersCommand(jda: JDA) {
                     .setEphemeral(true).queue()
                 return@onCommand
             }
-            val chaptersCount =
-                chapterDao.queryBuilder().selectColumns("id").where()
-                    .eq("userID", user.id).countOf()
-            if (chaptersCount == 0L) {
-                event.reply_("Sorry, we couldn't find any chapters! $miniManual")
-                    .setEphemeral(true).queue()
-                return@onCommand
-            }
-            var lastSelectedChapter: UserChapter? = null
-            val onImage: GetImageCallback = { index ->
-                lastSelectedChapter =
-                    chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false)
-                        .where()
-                        .eq("userID", user.id).queryForFirst()
 
-                val latestEntry = lastSelectedChapter!!.getLatestEntry()
-                val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
-                ImageSliderEntry(
-                    description = parameters[0].asJsonObject.get("prompt").asString,
-                    image = URL(latestEntry.imageURL)
-                )
+            var chapterType = if(event.getOption("type") == null) {
+                "images"
             }
-            val slider = sendImageSlider("My Chapters", chaptersCount, onImage)
-            slider.customActionComponents = listOf(jda.button(
-                label = "Select",
-                style = ButtonStyle.PRIMARY,
-                user = event.user
-            ) {
-                val parameters =
-                    gson.fromJson(
-                        lastSelectedChapter!!.getLatestEntry().parameters,
-                        JsonArray::class.java
-                    )
-                user.updateSelectedChapter(lastSelectedChapter!!.id)
-                it.reply_(
-                    "${
-                        sanitize(parameters[0].asJsonObject.get("prompt").asString)
-                    } is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!"
-                ).setEphemeral(true).queue()
-            }, jda.button(
-                label = "\uD83D\uDDD1️",
-                style = ButtonStyle.DANGER,
-                user = event.user
-            ) { deleteEvent ->
-                val parameters =
-                    gson.fromJson(
-                        lastSelectedChapter!!.getLatestEntry().parameters,
-                        JsonArray::class.java
-                    )
+            else {
+                event.getOption("type")!!.asString
+            }
 
-                deleteEvent.reply_(
-                    "**Are you sure to delete this chapter?** *${
-                        sanitize(
-                            parameters[0].asJsonObject.get(
-                                "prompt"
-                            ).asString
+            if (chapterType == "images") {
+                val chaptersCount =
+                    chapterDao.queryBuilder().selectColumns("id").where()
+                        .eq("userID", user.id).countOf()
+                if (chaptersCount == 0L) {
+                    event.reply_("Sorry, we couldn't find any chapters! $miniManual")
+                        .setEphemeral(true).queue()
+                    return@onCommand
+                }
+                var lastSelectedChapter: UserChapter? = null
+                val onImage: GetImageCallback = { index ->
+                    lastSelectedChapter =
+                        chapterDao.queryBuilder().selectColumns().limit(1).offset(index).orderBy("creationTimestamp", false)
+                            .where()
+                            .eq("userID", user.id).queryForFirst()
+
+                    val latestEntry = lastSelectedChapter!!.getLatestEntry()
+                    val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
+                    ImageSliderEntry(
+                        description = parameters[0].asJsonObject.get("prompt").asString,
+                        image = URL(latestEntry.data)
+                    )
+                }
+                val slider = sendImageSlider("My Chapters", chaptersCount, onImage)
+                slider.customActionComponents = listOf(jda.button(
+                    label = "Select",
+                    style = ButtonStyle.PRIMARY,
+                    user = event.user
+                ) {
+                    val parameters =
+                        gson.fromJson(
+                            lastSelectedChapter!!.getLatestEntry().parameters,
+                            JsonArray::class.java
                         )
-                    }*"
-                )
-                    .setEphemeral(true).addActionRow(listOf(
-                        jda.button(
-                            label = "Delete!",
-                            style = ButtonStyle.DANGER,
-                            user = event.user
-                        ) {
-                            lastSelectedChapter!!.delete()
-                            TransactionManager.callInTransaction(connectionSource) {
-                                // If we don't have a chapter selected anymore we likely deleted a selected chapter.
-                                val usingChapter =
-                                    chapterDao.queryBuilder().selectColumns().where().eq("id", user.currentChapterId)
-                                        .and()
-                                        .eq("userID", user.id).queryForFirst()
-                                if (usingChapter == null) {
-                                    val possibleLastChapter =
-                                        chapterDao.queryBuilder().selectColumns("id").limit(1)
-                                            .orderBy("creationTimestamp", false).where().eq("userID", user.id)
-                                            .queryForFirst()
-                                    if (possibleLastChapter != null) {
-                                        user.updateSelectedChapter(possibleLastChapter.id)
+                    user.updateSelectedChapter(lastSelectedChapter!!.id)
+                    it.reply_(
+                        "${
+                            sanitize(parameters[0].asJsonObject.get("prompt").asString)
+                        } is now your current chapter! You can use editing commands such as `/upscale`, `/variate` to edit it! Enjoy!"
+                    ).setEphemeral(true).queue()
+                }, jda.button(
+                    label = "\uD83D\uDDD1️",
+                    style = ButtonStyle.DANGER,
+                    user = event.user
+                ) { deleteEvent ->
+                    val parameters =
+                        gson.fromJson(
+                            lastSelectedChapter!!.getLatestEntry().parameters,
+                            JsonArray::class.java
+                        )
+
+                    deleteEvent.reply_(
+                        "**Are you sure to delete this chapter?** *${
+                            sanitize(
+                                parameters[0].asJsonObject.get(
+                                    "prompt"
+                                ).asString
+                            )
+                        }*"
+                    )
+                        .setEphemeral(true).addActionRow(listOf(
+                            jda.button(
+                                label = "Delete!",
+                                style = ButtonStyle.DANGER,
+                                user = event.user
+                            ) {
+                                lastSelectedChapter!!.delete()
+                                TransactionManager.callInTransaction(connectionSource) {
+                                    // If we don't have a chapter selected anymore we likely deleted a selected chapter.
+                                    val usingChapter =
+                                        chapterDao.queryBuilder().selectColumns().where().eq("id", user.currentChapterId)
+                                            .and()
+                                            .eq("userID", user.id).queryForFirst()
+                                    if (usingChapter == null) {
+                                        val possibleLastChapter =
+                                            chapterDao.queryBuilder().selectColumns("id").limit(1)
+                                                .orderBy("creationTimestamp", false).where().eq("userID", user.id)
+                                                .queryForFirst()
+                                        if (possibleLastChapter != null) {
+                                            user.updateSelectedChapter(possibleLastChapter.id)
+                                        }
                                     }
                                 }
+                                deleteEvent.hook.editMessage(content = "*Deleted!*").setComponents().queue()
+                            },
+                            jda.button(
+                                label = "Keep!",
+                                style = ButtonStyle.PRIMARY,
+                                user = event.user
+                            ) {
+                                deleteEvent.hook.editMessage(content = "*Delete canceled*").setComponents().queue()
                             }
-                            deleteEvent.hook.editMessage(content = "*Deleted!*").setComponents().queue()
-                        },
-                        jda.button(
-                            label = "Keep!",
-                            style = ButtonStyle.PRIMARY,
-                            user = event.user
-                        ) {
-                            deleteEvent.hook.editMessage(content = "*Delete canceled*").setComponents().queue()
-                        }
-                    )).queue()
-            })
-            event.replyPaginator(slider).setEphemeral(true).queue()
+                        )).queue()
+                })
+                event.replyPaginator(slider).setEphemeral(true).queue()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("**Error!** $e").setEphemeral(true).queue()

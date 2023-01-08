@@ -56,7 +56,7 @@ fun upscaleCommand(jda: JDA) {
             event.deferReply(true).queue()
             val latestEntry = usingChapter.getLatestEntry()
             val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
-            val image = ImageIO.read(URL(latestEntry.imageURL))
+            val image = ImageIO.read(URL(latestEntry.data))
 
             val quiltSelector = makeSelectImageFromQuilt(
                 event.user,

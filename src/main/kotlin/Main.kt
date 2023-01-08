@@ -49,7 +49,12 @@ suspend fun main(args: Array<String>) {
     })
     jcloudClient = JCloudClient()
     initDatabase()
-    Thingy.getCurrent().runMigration()
+    try {
+        Thingy.getCurrent().runMigration()
+    }
+    catch(e: Exception) {
+        e.printStackTrace()
+    }
     createDefaultDatabaseEntries()
     val builder: JDABuilder = JDABuilder.createDefault(config.bot.token)
     builder.apply {
@@ -207,6 +212,14 @@ fun initCommands(jda: JDA) {
                 this.setMinValue(50)
                 this.setMaxValue(150)
             }
+            option<Double>(
+                "learning_rate",
+                "Higher learning rate could improve the concept, but too high will divert it",
+                required = false
+            ) {
+                this.setMinValue(1e-4)
+                this.setMaxValue(1e-2)
+            }
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)
@@ -254,8 +267,11 @@ fun initCommands(jda: JDA) {
             option<Boolean>("on", "Turn update mode on or off", required = true)
         }
         slash("cancel", "Cancel latest item (by you) in the queue")
-
         slash("chapters", "Show your previous work!") {
+            option<String>("type", "What kind of work do you want to see? (default: Images)", required = false) {
+                choice("Images", "images")
+                choice("Models", "pretrained_models")
+            }
         }
         slash("rollback", "Like your old results better? Use this to bring them back!") {
         }

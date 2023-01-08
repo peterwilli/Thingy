@@ -26,6 +26,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 import queueDispatcher
 import utils.*
 import java.net.URL
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
@@ -89,7 +90,7 @@ class QueueDispatcher(private val jda: JDA) {
         val client = jcloudClient.currentClient()
         val scriptContents = getResourceAsText("/scripts/${entry.script}.py")
         coroutineScope {
-            var finalImages: List<ByteArray>? = null
+            var finalData: List<List<ByteArray>>? = null
             var queueId: String? = null
             val paramsDispatcher = async {
                 for (params in batch) {
@@ -112,18 +113,33 @@ class QueueDispatcher(private val jda: JDA) {
                 var timeSinceLastUpdate: Long = 0
 
                 while (true) {
-                    val newImages = mutableListOf<ByteArray>()
+                    val newImages = mutableListOf<List<ByteArray>>()
                     var avgPercentCompleted: Double = completedEntries.size.toDouble()
                     if (queueId != null) {
                         val result = client.retrieveEntryStatus(queueId!!, 0)
                         for (doc in completedEntries) {
-                            newImages.add(doc.base64UriToByteArray())
+                            if(entry.chapterType == ChapterEntry.Companion.Type.Image) {
+                                newImages.add(listOf(doc.base64UriToByteArray()))
+                            }
+                            else if (entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
+                                newImages.add(listOf(doc.base64UriToByteArray(), Base64.getDecoder().decode(doc.tags.fieldsMap["trained_model"]!!.stringValue)))
+                            }
                         }
                         if (result.docsCount > 0) {
                             val doc = result.getDocs(0)
                             val progress = doc.tags.fieldsMap["progress"]!!.numberValue
                             avgPercentCompleted += progress
-                            newImages.add(doc.base64UriToByteArray())
+                            if(entry.chapterType == ChapterEntry.Companion.Type.Image) {
+                                newImages.add(listOf(doc.base64UriToByteArray()))
+                            }
+                            else if (entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
+                                if (doc.tags.fieldsMap.containsKey("trained_model")) {
+                                    newImages.add(listOf(doc.base64UriToByteArray(), Base64.getDecoder().decode(doc.tags.fieldsMap["trained_model"]!!.stringValue)))
+                                }
+                                else {
+                                    newImages.add(listOf(doc.base64UriToByteArray()))
+                                }
+                            }
                             if (progress == 1.0) {
                                 completedEntries.add(doc)
                                 inProgress.removeAt(0)
@@ -132,7 +148,7 @@ class QueueDispatcher(private val jda: JDA) {
                     }
                     avgPercentCompleted /= batch.size()
                     if (completedEntries.size == batch.size()) {
-                        finalImages = newImages
+                        finalData = newImages
                         break
                     }
                     if (newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
@@ -152,7 +168,7 @@ class QueueDispatcher(private val jda: JDA) {
                         if (ticksWithoutUpdate > updateThreshold) {
                             inProgress.clear()
                             cancelled = true
-                            finalImages = null
+                            finalData = null
                             val tryAgainButton = jda.button(
                                 label = "Try again",
                                 style = ButtonStyle.PRIMARY,
@@ -193,7 +209,9 @@ class QueueDispatcher(private val jda: JDA) {
                         ticksWithoutUpdate = 0
                         timeSinceLastUpdate = peterDate()
                         if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
-                            val quilt = makeQuiltFromByteArrayList(newImages)
+                            val quilt = makeQuiltFromByteArrayList(newImages.map {
+                                it[0]
+                            })
                             entry.progressUpdate(progressMsg.toString(), quilt, "${config.bot.name}_progress.jpg")
                         }
                         else if (entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
@@ -204,8 +222,10 @@ class QueueDispatcher(private val jda: JDA) {
                 }
             }
             imageProgress.await()
-            if (finalImages != null) {
-                val quilt = makeQuiltFromByteArrayList(finalImages!!)
+            if (finalData != null) {
+                val quilt = makeQuiltFromByteArrayList(finalData!!.map {
+                    it[0]
+                })
                 val finishMsg = entry.progressUpdate(
                     entry.getHumanReadableOverview(), quilt,
                     "${config.bot.name}_final.jpg"
@@ -233,9 +253,11 @@ class QueueDispatcher(private val jda: JDA) {
                         }
                         val chapter = UserChapter(
                             id = chapterID,
+                            chapterType = entry.chapterType.ordinal,
                             userID = user.id
                         )
                         chapterDao.create(chapter)
+
                         val chapterEntry = ChapterEntry(
                             chapterID = chapterID,
                             chapterType = entry.chapterType,
@@ -243,9 +265,10 @@ class QueueDispatcher(private val jda: JDA) {
                             serverID = finishMsg.guild.id,
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
-                            imageURL = URL(finishMsg.attachments.first().url),
-                            parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
+                            data = Base64.getEncoder().encodeToString(finalData!![0][1]),
+                            parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters)),
                         )
+                        chapterEntry.metadata = entry.parameters[0].asJsonObject.get("word").asString
                         chapterEntryDao.create(chapterEntry)
                     }
                 }
@@ -270,6 +293,7 @@ class QueueDispatcher(private val jda: JDA) {
                             }
                             val chapter = UserChapter(
                                 id = chapterID,
+                                chapterType = entry.chapterType.ordinal,
                                 userID = user.id
                             )
                             chapterDao.create(chapter)
@@ -280,7 +304,7 @@ class QueueDispatcher(private val jda: JDA) {
                                 serverID = finishMsg.guild.id,
                                 channelID = finishMsg.channel.id,
                                 messageID = finishMsg.id,
-                                imageURL = URL(finishMsg.attachments.first().url),
+                                data = URL(finishMsg.attachments.first().url).toString(),
                                 parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
                             )
                             chapterEntryDao.create(chapterEntry)
@@ -295,7 +319,7 @@ class QueueDispatcher(private val jda: JDA) {
                                 serverID = finishMsg.guild.id,
                                 channelID = finishMsg.channel.id,
                                 messageID = finishMsg.id,
-                                imageURL = URL(finishMsg.attachments.first().url),
+                                data = URL(finishMsg.attachments.first().url).toString(),
                                 parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
                             )
                             chapterEntryDao.create(chapterEntry)

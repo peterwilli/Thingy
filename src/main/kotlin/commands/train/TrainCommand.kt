@@ -8,7 +8,9 @@ import config
 import database.models.ChapterEntry
 import database.userDao
 import dev.minn.jda.ktx.events.onCommand
+import dev.minn.jda.ktx.messages.editMessage
 import dev.minn.jda.ktx.messages.reply_
+import isLettersOrDigits
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.utils.FileUpload
 import queueDispatcher
@@ -17,6 +19,7 @@ import utils.*
 fun sdTrainDefaults(): JsonObject {
     val result = JsonObject()
     result.addProperty("steps", 100)
+    result.addProperty("learning_rate", 2e-3)
     return result
 }
 
@@ -32,6 +35,11 @@ fun trainCommand(jda: JDA) {
             }
             event.deferReply().queue()
             val params = event.optionsToJson().withDefaults(sdTrainDefaults())
+            val word = params["word"].asString
+            if (!(word.isLettersOrDigits() && word.lowercase() == word)) {
+                event.hook.editMessage(content = "**Error!** Words need to be fully alphanumeric and lowercase!").queue()
+                return@onCommand
+            }
             val array = JsonArray()
             params.addProperty("_hf_auth_token", config.bot.hfToken)
             array.add(params)
