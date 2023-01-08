@@ -17,10 +17,7 @@ lateinit var artContestVoteDao: Dao<ArtContestVote, String>
 lateinit var userDao: Dao<User, String>
 lateinit var thingyDao: Dao<Thingy, String>
 
-fun initDatabase() {
-    val databaseUrl = "jdbc:sqlite:${config.databasePath}"
-    // create a connection source to our database
-    connectionSource = JdbcConnectionSource(databaseUrl)
+fun createDefaultDatabaseEntries() {
     TableUtils.createTableIfNotExists(connectionSource, Thingy::class.java)
     TableUtils.createTableIfNotExists(connectionSource, UserChapter::class.java)
     TableUtils.createTableIfNotExists(connectionSource, ChapterEntry::class.java)
@@ -28,6 +25,12 @@ fun initDatabase() {
     TableUtils.createTableIfNotExists(connectionSource, SharedArtCacheEntry::class.java)
     TableUtils.createTableIfNotExists(connectionSource, ArtContestEntry::class.java)
     TableUtils.createTableIfNotExists(connectionSource, ArtContestVote::class.java)
+}
+
+fun initDatabase() {
+    val databaseUrl = "jdbc:sqlite:${config.databasePath}"
+    // create a connection source to our database
+    connectionSource = JdbcConnectionSource(databaseUrl)
     thingyDao = DaoManager.createDao(connectionSource, Thingy::class.java)
     chapterEntryDao = DaoManager.createDao(connectionSource, ChapterEntry::class.java)
     chapterDao = DaoManager.createDao(connectionSource, UserChapter::class.java)

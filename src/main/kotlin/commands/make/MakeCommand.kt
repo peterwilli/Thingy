@@ -1,8 +1,6 @@
 import com.google.gson.JsonArray
-import commands.make.FairQueueEntry
-import commands.make.getScriptForSize
-import commands.make.standardPermissionList
-import commands.make.validatePermissions
+import commands.make.*
+import database.models.ChapterEntry
 import dev.minn.jda.ktx.events.onCommand
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
@@ -41,7 +39,9 @@ fun makeCommand(jda: JDA) {
                     arrayOf(),
                     getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
-                    null
+                    null,
+                    ChapterEntry.Companion.Type.Image,
+                    ChapterEntry.Companion.Visibility.Public
                 )
             }
 

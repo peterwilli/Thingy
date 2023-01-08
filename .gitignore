@@ -3,3 +3,4 @@
 build/
 config.yml
 *.sqlite
+/queue_entry_executor/text-inversion-model

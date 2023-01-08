@@ -1,9 +1,7 @@
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import commands.make.FairQueueEntry
-import commands.make.getScriptForSize
-import commands.make.standardPermissionList
-import commands.make.validatePermissions
+import commands.make.*
+import database.models.ChapterEntry
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
 import net.dv8tion.jda.api.JDA
@@ -47,7 +45,9 @@ fun stableDiffusionCommand(jda: JDA) {
                     arrayOf(),
                     getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
-                    null
+                    null,
+                    ChapterEntry.Companion.Type.Image,
+                    ChapterEntry.Companion.Visibility.Public
                 )
             }
 

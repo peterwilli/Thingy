@@ -60,5 +60,15 @@ class Thingy {
                 updateBuilder.update()
             }
         }
+        if (version == 1) {
+            TransactionManager.callInTransaction(connectionSource) {
+                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN metadata TEXT;")
+                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN chapterVisibility INT;")
+                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN chapterType INT;")
+                val updateBuilder = thingyDao.updateBuilder()
+                updateBuilder.updateColumnValue("version", 2)
+                updateBuilder.update()
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package commands.make
 
 import com.google.gson.JsonArray
 import config
+import database.models.ChapterEntry
 import database.models.UserChapter
 import dev.minn.jda.ktx.coroutines.await
 import net.dv8tion.jda.api.entities.Member
@@ -15,10 +16,6 @@ import utils.stripHiddenParameters
 
 class MemberLimitExceededException(message: String) : Exception(message)
 
-enum class FairQueueType {
-    DiscoDiffusion, StableDiffusion, Variate, Upscale
-}
-
 data class FairQueueEntry(
     val description: String,
     val owner: String,
@@ -26,7 +23,9 @@ data class FairQueueEntry(
     val hiddenParameters: Array<String>,
     val script: String,
     val progressHook: InteractionHook,
-    val chapter: UserChapter?
+    val chapter: UserChapter?,
+    val chapterType: ChapterEntry.Companion.Type,
+    val chapterVisibility: ChapterEntry.Companion.Visibility
 ) {
     fun getHumanReadableOverview(withDescription: String? = null): String {
         val stringBuilder = StringBuilder()

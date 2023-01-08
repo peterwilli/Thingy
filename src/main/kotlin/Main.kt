@@ -9,10 +9,12 @@ import commands.social.profileCommand
 import commands.social.serverStatsCommand
 import commands.social.setBackgroundCommand
 import commands.social.shareCommand
+import commands.train.trainCommand
 import commands.update.updateCommand
 import commands.upscale.upscaleCommand
 import commands.upscale.upscaleImageCommand
 import commands.variate.variateCommand
+import database.createDefaultDatabaseEntries
 import database.initDatabase
 import database.models.Thingy
 import dev.minn.jda.ktx.interactions.commands.choice
@@ -48,6 +50,7 @@ suspend fun main(args: Array<String>) {
     jcloudClient = JCloudClient()
     initDatabase()
     Thingy.getCurrent().runMigration()
+    createDefaultDatabaseEntries()
     val builder: JDABuilder = JDABuilder.createDefault(config.bot.token)
     builder.apply {
         injectKTX(timeout = Duration.INFINITE)
@@ -85,6 +88,7 @@ fun initCommands(jda: JDA) {
     removeFromContestCommand(jda)
     submitToContestCommand(jda)
     voteReactionWatcher(jda)
+    trainCommand(jda)
 
     if (config.leaderboardChannelID != null) {
         leaderboardScheduler(jda, 9)
@@ -189,6 +193,20 @@ fun initCommands(jda: JDA) {
             option<String>("prompt", "Describe your original image, the better you can describe it, the better the results", required = true)
             sdGuidanceScale(this)
             sdUpscale(this)
+        }
+        slash("train", "How cool would it be to have yourself in our AI? Your pet?") {
+            option<String>("word", "Word to assign your concept to. Example: 'peters_dog'", required = true)
+            for(i in 0 until 3) {
+                option<Attachment>("image_${i + 1}", "Image ${i + 1} to train on", required = i == 0)
+            }
+            option<Int>(
+                "steps",
+                "Higher steps typically lead to better learning",
+                required = false
+            ) {
+                this.setMinValue(50)
+                this.setMaxValue(150)
+            }
         }
         slash("img2img", "Make an existing image into your prompt!") {
             option<Attachment>("input_image", "Initial image", required = true)

@@ -7,8 +7,7 @@ import org.apache.commons.io.IOUtils
 import java.net.URL
 import java.util.*
 
-
-fun GenericCommandInteractionEvent.optionsToJson(): JsonObject {
+fun GenericCommandInteractionEvent.optionsToJson(byteProcessing: (ByteArray) -> ByteArray = { it }): JsonObject {
     val result = JsonObject()
     for (option in this.options) {
         when (option.type) {
@@ -19,7 +18,8 @@ fun GenericCommandInteractionEvent.optionsToJson(): JsonObject {
                 val connection = URL(option.asAttachment.url).openConnection()
                 connection.getInputStream().use {
                     val bytes: ByteArray = IOUtils.toByteArray(it)
-                    val base64 = Base64.getEncoder().encodeToString(bytes)
+                    val processedBytes = byteProcessing(bytes)  // preprocess the bytes
+                    val base64 = Base64.getEncoder().encodeToString(processedBytes)
                     result.addProperty(option.name, base64)
                 }
             }

@@ -175,7 +175,6 @@ class QueueDispatcher(private val jda: JDA) {
                             break
                         }
                     } else {
-                        val quilt = makeQuiltFromByteArrayList(newImages)
                         val progressMsg =
                             StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted))
                         if (timeSinceLastUpdate > 0) {
@@ -193,7 +192,13 @@ class QueueDispatcher(private val jda: JDA) {
                         lastPercentCompleted = avgPercentCompleted
                         ticksWithoutUpdate = 0
                         timeSinceLastUpdate = peterDate()
-                        entry.progressUpdate(progressMsg.toString(), quilt, "${config.bot.name}_progress.jpg")
+                        if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
+                            val quilt = makeQuiltFromByteArrayList(newImages)
+                            entry.progressUpdate(progressMsg.toString(), quilt, "${config.bot.name}_progress.jpg")
+                        }
+                        else if (entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
+                            entry.progressUpdate(progressMsg.toString())
+                        }
                     }
                     delay(1000 * 5)
                 }
@@ -208,7 +213,7 @@ class QueueDispatcher(private val jda: JDA) {
                 finishMsg.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
                     .queue()
                 var chapterID: Long = 0
-                if (entry.chapter == null) {
+                if (entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
                     val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)
                     val user = if (userQuery.countOf() == 0L) {
                         val newUser = User(entry.owner)
@@ -233,6 +238,8 @@ class QueueDispatcher(private val jda: JDA) {
                         chapterDao.create(chapter)
                         val chapterEntry = ChapterEntry(
                             chapterID = chapterID,
+                            chapterType = entry.chapterType,
+                            chapterVisibility = entry.chapterVisibility,
                             serverID = finishMsg.guild.id,
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
@@ -241,22 +248,62 @@ class QueueDispatcher(private val jda: JDA) {
                         )
                         chapterEntryDao.create(chapterEntry)
                     }
-                } else {
-                    chapterID = entry.chapter.id
-                    TransactionManager.callInTransaction(connectionSource) {
-                        val chapterEntry = ChapterEntry(
-                            chapterID = entry.chapter.id,
-                            serverID = finishMsg.guild.id,
-                            channelID = finishMsg.channel.id,
-                            messageID = finishMsg.id,
-                            imageURL = URL(finishMsg.attachments.first().url),
-                            parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
-                        )
-                        chapterEntryDao.create(chapterEntry)
-                        val updateBuilder = chapterDao.updateBuilder()
-                        updateBuilder.where().eq("id", entry.chapter.id)
-                        updateBuilder.updateColumnValue("updateTimestamp", peterDate())
-                        updateBuilder.update()
+                }
+                else if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
+                    if (entry.chapter == null) {
+                        val userQuery = userDao.queryBuilder().where().eq("discordUserID", entry.owner)
+                        val user = if (userQuery.countOf() == 0L) {
+                            val newUser = User(entry.owner)
+                            userDao.create(newUser)
+                            userQuery.query().first()!!
+                        } else {
+                            userQuery.query().first()!!
+                        }
+                        TransactionManager.callInTransaction(connectionSource) {
+                            val possibleLastChapter =
+                                chapterDao.queryBuilder().selectColumns("id").orderBy("creationTimestamp", false).limit(1)
+                                    .queryForFirst()
+                            chapterID = if (possibleLastChapter == null) {
+                                0
+                            } else {
+                                possibleLastChapter.id + 1
+                            }
+                            val chapter = UserChapter(
+                                id = chapterID,
+                                userID = user.id
+                            )
+                            chapterDao.create(chapter)
+                            val chapterEntry = ChapterEntry(
+                                chapterID = chapterID,
+                                chapterType = entry.chapterType,
+                                chapterVisibility = entry.chapterVisibility,
+                                serverID = finishMsg.guild.id,
+                                channelID = finishMsg.channel.id,
+                                messageID = finishMsg.id,
+                                imageURL = URL(finishMsg.attachments.first().url),
+                                parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
+                            )
+                            chapterEntryDao.create(chapterEntry)
+                        }
+                    } else {
+                        chapterID = entry.chapter.id
+                        TransactionManager.callInTransaction(connectionSource) {
+                            val chapterEntry = ChapterEntry(
+                                chapterID = entry.chapter.id,
+                                chapterType = entry.chapterType,
+                                chapterVisibility = entry.chapterVisibility,
+                                serverID = finishMsg.guild.id,
+                                channelID = finishMsg.channel.id,
+                                messageID = finishMsg.id,
+                                imageURL = URL(finishMsg.attachments.first().url),
+                                parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters))
+                            )
+                            chapterEntryDao.create(chapterEntry)
+                            val updateBuilder = chapterDao.updateBuilder()
+                            updateBuilder.where().eq("id", entry.chapter.id)
+                            updateBuilder.updateColumnValue("updateTimestamp", peterDate())
+                            updateBuilder.update()
+                        }
                     }
                 }
                 TransactionManager.callInTransaction(connectionSource) {
