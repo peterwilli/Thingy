@@ -14,10 +14,7 @@ import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import utils.checkForEmbeds
-import utils.optionsToJson
-import utils.sendException
-import utils.withDefaults
+import utils.*
 import java.util.*
 import kotlin.math.pow
 import kotlin.random.Random
@@ -46,7 +43,7 @@ fun stableDiffusionCommand(jda: JDA) {
             val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
             val embeds = checkForEmbeds(event.getOption("prompt")!!.asString, event.user.idLong)
 
-            fun createEntry(hook: InteractionHook): FairQueueEntry {
+            fun createEntry(hook: InteractionHook, params: JsonObject): FairQueueEntry {
                 var batch = JsonArray()
                 for (idx in 0 until config.hostConstraints.totalImagesInMakeCommand) {
                     val clonedParams = params.deepCopy()
@@ -68,49 +65,15 @@ fun stableDiffusionCommand(jda: JDA) {
             }
 
             if (embeds.first.isNotEmpty()) {
-                event.hook.editMessage(
-                    content = "Hey there! There are pretrained models available for the following words. Want to use them? Words are:\n${
-                        embeds.first.joinToString(
-                            "\n"
-                        )
-                    }"
-                ).setActionRow(listOf(
-                    jda.button(
-                        label = "Use pretrained models!",
-                        style = ButtonStyle.PRIMARY,
-                        user = event.user
-                    ) {
-                        it.hook.editMessage(content = "Working...").setComponents(listOf()).queue {
-                            var prompt = params["prompt"].asString
-                            val jsonEmbeds = params["embeds"].asJsonArray
-                            for (embed in embeds.first.zip(embeds.second)) {
-                                prompt = prompt.replace(Regex("\\b${embed.first}\\b", RegexOption.IGNORE_CASE), "<${embed.first}>")
-                                jsonEmbeds.add(embed.second)
-                            }
-                            params.addProperty("prompt", prompt)
-                            params.add("embeds", jsonEmbeds)
-                            val entry = createEntry(event.hook)
-                            runBlocking {
-                                queueDispatcher.queue.addToQueue(entry)
-                            }
-                        }
-                    },
-                    jda.button(
-                        label = "Use raw prompts!",
-                        style = ButtonStyle.SECONDARY,
-                        user = event.user
-                    ) {
-                        it.hook.editMessage(content = "Working...").setComponents(listOf()).queue {
-                            val entry = createEntry(event.hook)
-                            runBlocking {
-                                queueDispatcher.queue.addToQueue(entry)
-                            }
-                        }
+                embedsCallback(jda, event, embeds, params) { _, params, hook ->
+                    val entry = createEntry(hook, params)
+                    runBlocking {
+                        queueDispatcher.queue.addToQueue(entry)
                     }
-                )).queue()
+                }
             }
             else {
-                val entry = createEntry(event.hook)
+                val entry = createEntry(event.hook, params)
                 queueDispatcher.queue.addToQueue(entry)
             }
         } catch (e: Exception) {

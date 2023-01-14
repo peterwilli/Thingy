@@ -1,10 +1,56 @@
 package utils
 
+import com.beust.klaxon.Json
+import com.google.gson.JsonObject
 import database.chapterDao
 import database.chapterEntryDao
 import database.models.ChapterEntry
 import database.userDao
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.editMessage
+import kotlinx.coroutines.runBlocking
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.Interaction
+import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 
+fun embedsCallback(jda: JDA, event: GenericCommandInteractionEvent, embeds: Pair<Array<String>, Array<String>>, params: JsonObject, callback: (Boolean, JsonObject, InteractionHook) -> Unit) {
+    event.hook.editMessage(
+        content = "Hey there! There are pretrained models available for the following words. Want to use them? Words are:\n${
+            embeds.first.joinToString(
+                "\n"
+            )
+        }"
+    ).setActionRow(listOf(
+        jda.button(
+            label = "Use pretrained models!",
+            style = ButtonStyle.PRIMARY,
+            user = event.user
+        ) { buttonEvent ->
+            buttonEvent.hook.editMessage(content = "Working...").setComponents(listOf()).queue {
+                var prompt = params["prompt"].asString
+                val jsonEmbeds = params["embeds"].asJsonArray
+                for (embed in embeds.first.zip(embeds.second)) {
+                    prompt = prompt.replace(Regex("\\b${embed.first}\\b", RegexOption.IGNORE_CASE), "<${embed.first}>")
+                    jsonEmbeds.add(embed.second)
+                }
+                params.addProperty("prompt", prompt)
+                params.add("embeds", jsonEmbeds)
+                callback(true, params, buttonEvent.hook)
+            }
+        },
+        jda.button(
+            label = "Use raw prompts!",
+            style = ButtonStyle.SECONDARY,
+            user = event.user
+        ) { buttonEvent ->
+            buttonEvent.hook.editMessage(content = "Working...").setComponents(listOf()).queue {
+                callback(false, params, buttonEvent.hook)
+            }
+        }
+    )).queue()
+}
 
 fun checkForEmbeds(prompt: String, userId: Long): Pair<Array<String>, Array<String>> {
     val result = mutableListOf<String>()
