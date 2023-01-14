@@ -17,7 +17,7 @@ RUN echo "Installing system dependencies" && \
     apt-get update && \
     apt-get install -y java-18-amazon-corretto-jdk && \
     echo "Installing python dependencies" && \
-    pip3 install jcloud==0.1.6 && \
+    pip3 install jcloud==0.2.0 && \
     apt-get remove -y wget software-properties-common && \
     apt-get autoremove -y && \
     rm -rf corretto.key && \

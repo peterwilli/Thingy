@@ -10,6 +10,7 @@ jcloud:
 executors:
   - name: thingy_queue_executor
     uses: jinahub+docker://xog5bvtu/0.1.4
+    timeout_ready: 1200 # TODO: Due to a bug in Jina, this is in seconds, rather than ms. Keep track on this!
     jcloud:
       resources:
         gpu: 1
