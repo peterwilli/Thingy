@@ -43,11 +43,8 @@ fun checkForEmbeds(prompt: String, userId: Long): Pair<Array<String>, Array<Stri
 
     val split = prompt.replace(",", "").split(" ")
     for (word in split) {
-        val queryBuilder = chapterEntryDao.queryBuilder()
-        queryBuilder.where().eq("metadata", word.lowercase()).and()
-            .eq("chapterType", ChapterEntry.Companion.Type.TrainedModel.ordinal)
-        val preparedQuery = queryBuilder.prepare()
-        val results = chapterEntryDao.query(preparedQuery)
+        val results = chapterEntryDao.queryBuilder().where().eq("metadata", word.lowercase()).and()
+            .eq("chapterType", ChapterEntry.Companion.Type.TrainedModel.ordinal).query()
         for (entry in results) {
             if (entry.chapterVisibility == ChapterEntry.Companion.Visibility.Public.ordinal) {
                 result.add(entry.metadata!!)

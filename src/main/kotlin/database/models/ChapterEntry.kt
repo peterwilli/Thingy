@@ -1,7 +1,11 @@
 package database.models
 
 import com.j256.ormlite.field.DatabaseField
+import com.j256.ormlite.misc.TransactionManager
 import com.j256.ormlite.table.DatabaseTable
+import database.chapterDao
+import database.chapterEntryDao
+import database.connectionSource
 import org.jetbrains.annotations.NotNull
 import utils.peterDate
 import java.net.URL
@@ -84,5 +88,11 @@ class ChapterEntry {
         this.channelID = channelID
         this.messageID = messageID
         this.parameters = parameters
+    }
+
+    fun delete() {
+        val dbEntry = chapterEntryDao.deleteBuilder()
+        dbEntry.where().eq("id", id)
+        chapterEntryDao.delete(dbEntry.prepare())
     }
 }

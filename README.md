@@ -97,9 +97,11 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
 These are co-developed with Thingy!
 
 - [Keep My JCloud](https://github.com/peterwilli/KeepMyJCloud)
+- [LEAP](https://github.com/peterwilli/sd-leap-booster)
 
 # Changelog
 
+ - 10 jan 2023: Added LEAP!
  - 01 dec 2022: Uploaded new Docker image for Thingy 3 + fixed sharing + fixed readme instructions
  - 26 sept 2022: Added Keep My JCloud as sister project, integrated in the bot using Docker. It keeps JCloud instances running by re-deploying if it dissapears.
  - 21 oct 2022: Fixes for hanging cache system + sister projects updates + faster SD! + Magic Prompts!
