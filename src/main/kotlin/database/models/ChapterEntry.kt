@@ -91,8 +91,18 @@ class ChapterEntry {
     }
 
     fun delete() {
-        val dbEntry = chapterEntryDao.deleteBuilder()
-        dbEntry.where().eq("id", id)
-        chapterEntryDao.delete(dbEntry.prepare())
+        TransactionManager.callInTransaction(connectionSource) {
+            val dbEntry = chapterEntryDao.deleteBuilder()
+            dbEntry.where().eq("id", id)
+            chapterEntryDao.delete(dbEntry.prepare())
+
+            // Clear empty chapters (if any)
+            val otherEntries = chapterEntryDao.queryBuilder().selectColumns("id").where().eq("chapterID", this.chapterID).countOf()
+            if (otherEntries == null) {
+                val chapterEntry = chapterDao.deleteBuilder()
+                chapterEntry.where().eq("id", this.chapterID)
+                chapterDao.delete(chapterEntry.prepare())
+            }
+        }
     }
 }
