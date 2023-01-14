@@ -23,7 +23,7 @@ fun sdTrainDefaults(): JsonObject {
     return result
 }
 
-val trainHiddenParameters = (0 until 3).map { i ->
+val trainHiddenParameters = (0 until 4).map { i ->
     "image_${i + 1}"
 }.toTypedArray()
 

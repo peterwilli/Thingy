@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull
 class Thingy {
     @NotNull
     @DatabaseField()
-    var version: Int = 1
+    var version: Int = 2
 
     // ORMLite needs a no-arg constructor
     constructor() {
@@ -63,8 +63,8 @@ class Thingy {
         if (version == 1) {
             TransactionManager.callInTransaction(connectionSource) {
                 chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN metadata TEXT;")
-                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN chapterVisibility INT;")
-                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN chapterType INT;")
+                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN chapterVisibility INT NOT NULL default 0;")
+                chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` ADD COLUMN chapterType INT NOT NULL default 0;")
                 chapterEntryDao.executeRaw("ALTER TABLE `chapter_entry` RENAME COLUMN imageURL TO data;")
                 chapterDao.executeRaw("ALTER TABLE `user_chapter` ADD COLUMN chapterType INT;")
                 val updateBuilder = thingyDao.updateBuilder()

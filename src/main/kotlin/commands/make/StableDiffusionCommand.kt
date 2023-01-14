@@ -32,6 +32,8 @@ fun getSdJsonDefaults(): JsonObject {
     return obj
 }
 
+val sdHiddenParameters = arrayOf("embeds")
+
 fun checkForEmbeds(prompt: String, userId: Long): Pair<Array<String>, Array<String>> {
     val result = mutableListOf<String>()
     val embeds = mutableListOf<String>()
@@ -89,7 +91,7 @@ fun stableDiffusionCommand(jda: JDA) {
                     "Making Images",
                     event.member!!.id,
                     batch,
-                    arrayOf(),
+                    sdHiddenParameters,
                     getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
                     null,

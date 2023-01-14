@@ -201,7 +201,7 @@ fun initCommands(jda: JDA) {
         }
         slash("train", "How cool would it be to have yourself in our AI? Your pet?") {
             option<String>("word", "Word to assign your concept to. Example: 'peters_dog'", required = true)
-            for(i in 0 until 3) {
+            for(i in 0 until 4) {
                 option<Attachment>("image_${i + 1}", "Image ${i + 1} to train on", required = i == 0)
             }
             option<Int>(

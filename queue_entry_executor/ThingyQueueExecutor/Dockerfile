@@ -1,5 +1,5 @@
-ARG TORCH_PACKAGE_VERSION=1.12.1
-ARG CUDA_VERSION=11.3
+ARG TORCH_PACKAGE_VERSION=1.13.1
+ARG CUDA_VERSION=11.6
 ARG CUDNN_VERSION=8
 
 
@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y gcc libc6-dev g
 
 ARG JINA_VERSION=
 
+RUN python3 -m pip install --no-cache-dir pip install -U
 RUN python3 -m pip install --no-cache-dir jina${JINA_VERSION:+==${JINA_VERSION}}
 
 COPY requirements.txt requirements.txt

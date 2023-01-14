@@ -127,6 +127,38 @@ class QueueDispatcher(private val jda: JDA) {
                         }
                         if (result.docsCount > 0) {
                             val doc = result.getDocs(0)
+                            if(doc.tags.fieldsMap.containsKey("error_type")) {
+                                val errorType = doc.tags.fieldsMap["error_type"]!!.stringValue
+                                inProgress.clear()
+                                cancelled = true
+                                finalData = null
+                                val tryAgainButton = jda.button(
+                                    label = "Try again",
+                                    style = ButtonStyle.PRIMARY,
+                                    user = entry.getMember().user
+                                ) {
+                                    try {
+                                        it.hook.editOriginal("Trying again...").setComponents(listOf()).queue()
+                                        val tryAgainEntry = entry.copy(progressHook = it.hook)
+                                        queueDispatcher.queue.addToQueue(tryAgainEntry)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        it.reply_("Error! $e").setEphemeral(true).queue()
+                                    }
+                                }
+                                val errorMessage = if(errorType == "timeout") {
+                                    "${entry.getMember().asMention}, Sorry, generation has timed out!\n> *${entry.description}*"
+                                }
+                                else {
+                                    "${entry.getMember().asMention}, Sorry, generation gave an unknown error `$errorType`!\n> *${entry.description}*"
+                                }
+                                entry.getChannel()
+                                    .sendMessage(errorMessage)
+                                    .setActionRow(listOf(tryAgainButton))
+                                    .queue()
+                                paramsDispatcher.cancel()
+                                return@async
+                            }
                             val progress = doc.tags.fieldsMap["progress"]!!.numberValue
                             avgPercentCompleted += progress
                             if(entry.chapterType == ChapterEntry.Companion.Type.Image) {
@@ -151,46 +183,7 @@ class QueueDispatcher(private val jda: JDA) {
                         finalData = newImages
                         break
                     }
-                    if (newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted) {
-                        ticksWithoutUpdate++
-                        var imageNotAppearing = 0
-                        var imageNotUpdating = 0
-                        for (params in batch) {
-                            val timeout = config.timeouts.stableDiffusion
-                            imageNotAppearing = max(timeout.imageNotAppearing, imageNotAppearing)
-                            imageNotUpdating = max(timeout.imageNotUpdating, imageNotUpdating)
-                        }
-                        val updateThreshold = if (newImages.isEmpty()) {
-                            imageNotAppearing
-                        } else {
-                            imageNotUpdating
-                        }
-                        if (ticksWithoutUpdate > updateThreshold) {
-                            inProgress.clear()
-                            cancelled = true
-                            finalData = null
-                            val tryAgainButton = jda.button(
-                                label = "Try again",
-                                style = ButtonStyle.PRIMARY,
-                                user = entry.getMember().user
-                            ) {
-                                try {
-                                    it.hook.editOriginal("Trying again...").setComponents(listOf()).queue()
-                                    val tryAgainEntry = entry.copy(progressHook = it.hook)
-                                    queueDispatcher.queue.addToQueue(tryAgainEntry)
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                    it.reply_("Error! $e").setEphemeral(true).queue()
-                                }
-                            }
-                            entry.getChannel()
-                                .sendMessage("${entry.getMember().asMention}, Sorry, generation has timed out!\n> *${entry.description}*")
-                                .setActionRow(listOf(tryAgainButton))
-                                .queue()
-                            paramsDispatcher.cancel()
-                            break
-                        }
-                    } else {
+                    if(!(newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted)) {
                         val progressMsg =
                             StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted))
                         if (timeSinceLastUpdate > 0) {
@@ -266,7 +259,8 @@ class QueueDispatcher(private val jda: JDA) {
                             channelID = finishMsg.channel.id,
                             messageID = finishMsg.id,
                             data = Base64.getEncoder().encodeToString(finalData!![0][1]),
-                            parameters = gson.toJson(entry.parameters.stripHiddenParameters(entry.hiddenParameters)),
+                            parameters = gson.toJson(entry.parameters.
+                            stripHiddenParameters(entry.hiddenParameters)),
                         )
                         chapterEntry.metadata = entry.parameters[0].asJsonObject.get("word").asString
                         chapterEntryDao.create(chapterEntry)

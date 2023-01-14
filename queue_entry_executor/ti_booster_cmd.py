@@ -1,5 +1,4 @@
 
-#!/usr/bin/env python3
 #Bootstrapped from: https://github.com/huggingface/diffusers/blob/main/examples/textual_inversion/textual_inversion.py
 import argparse
 import logging
@@ -30,12 +29,12 @@ from huggingface_hub import HfFolder, Repository, whoami
 
 # TODO: remove and import from diffusers.utils when the new version of diffusers is released
 from packaging import version
+from PIL import Image
 from torchvision import transforms
 import torchvision
-from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 import leap_sd
-from PIL import Image, ImageOps
+    
 
 if version.parse(version.parse(PIL.__version__).base_version) >= version.parse("9.1.0"):
     PIL_INTERPOLATION = {
@@ -90,6 +89,12 @@ def parse_args():
         default=None,
         required=True,
         help="Path to pretrained model or model identifier from huggingface.co/models.",
+    )
+    parser.add_argument(
+        "--hf_auth_token",
+        type=str,
+        required=True,
+        help="HF auth token for Thingy usage",
     )
     parser.add_argument(
         "--revision",
@@ -171,7 +176,7 @@ def parse_args():
     parser.add_argument(
         "--lr_scheduler",
         type=str,
-        default="cosine",
+        default="constant_with_warmup",
         help=(
             'The scheduler type to use. Choose between ["linear", "cosine", "cosine_with_restarts", "polynomial",'
             ' "constant", "constant_with_warmup"]'
@@ -362,7 +367,6 @@ class TextualInversionDataset(Dataset):
     def __getitem__(self, i):
         example = {}
         image = Image.open(self.image_paths[i % self.num_images])
-        image = ImageOps.exif_transpose(image)
 
         if not image.mode == "RGB":
             image = image.convert("RGB")
@@ -439,7 +443,6 @@ def boost_embed(images_folder):
         )
         for image_name in image_names:
             image = Image.open(os.path.join(images_path, image_name)).convert("RGB")
-            image = ImageOps.exif_transpose(image)
             image = image.resize((64, 64))
             image = pred_transforms(np.array(image)).unsqueeze(0)
             if images is None:
@@ -507,18 +510,18 @@ def main():
 
     # Load tokenizer
     if args.tokenizer_name:
-        tokenizer = CLIPTokenizer.from_pretrained(args.tokenizer_name)
+        tokenizer = CLIPTokenizer.from_pretrained(args.tokenizer_name, use_auth_token=args.hf_auth_token)
     elif args.pretrained_model_name_or_path:
-        tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_name_or_path, subfolder="tokenizer")
+        tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_name_or_path, subfolder="tokenizer", use_auth_token=args.hf_auth_token)
 
     # Load scheduler and models
-    noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
+    noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler", use_auth_token=args.hf_auth_token)
     text_encoder = CLIPTextModel.from_pretrained(
-        args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
+        args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision, use_auth_token=args.hf_auth_token
     )
-    vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision)
+    vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision, use_auth_token=args.hf_auth_token)
     unet = UNet2DConditionModel.from_pretrained(
-        args.pretrained_model_name_or_path, subfolder="unet", revision=args.revision
+        args.pretrained_model_name_or_path, subfolder="unet", revision=args.revision, use_auth_token=args.hf_auth_token
     )
 
     # Add the placeholder token in tokenizer
@@ -682,11 +685,10 @@ def main():
                 # Convert images to latent space
                 latents = vae.encode(batch["pixel_values"].to(dtype=weight_dtype)).latent_dist.sample().detach()
                 latents = latents * 0.18215
-                
+
                 # Sample noise that we'll add to the latents
                 noise = torch.randn_like(latents)
                 bsz = latents.shape[0]
-                
                 # Sample a random timestep for each image
                 timesteps = torch.randint(0, noise_scheduler.config.num_train_timesteps, (bsz,), device=latents.device)
                 timesteps = timesteps.long()
@@ -694,7 +696,7 @@ def main():
                 # Add noise to the latents according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
                 noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
-                
+
                 # Get the text embedding for conditioning
                 encoder_hidden_states = text_encoder(batch["input_ids"])[0].to(dtype=weight_dtype)
 
@@ -758,6 +760,7 @@ def main():
                 vae=vae,
                 unet=unet,
                 tokenizer=tokenizer,
+                use_auth_token=args.hf_auth_token
             )
             pipeline.save_pretrained(args.output_dir)
         # Save the newly trained embeddings
@@ -775,12 +778,11 @@ def main():
         vae=vae,
         unet=unet,
         tokenizer=tokenizer,
+        use_auth_token=args.hf_auth_token
     )
-    preview = pipeline(f"{args.placeholder_token}, realistic photo", width = 512, height = 512, guidance_scale=9, num_inference_steps=50).images[0]
+    preview = pipeline(f"{args.placeholder_token}", width = 512, height = 512, guidance_scale=9, num_inference_steps=25).images[0]
     preview_path = os.path.join(args.output_dir, "image_1.jpg")
     preview.save(preview_path)
     
-
-
 if __name__ == "__main__":
     main()

@@ -36,7 +36,7 @@ data class FairQueueEntry(
             stringBuilder.append(withDescription)
         }
         stringBuilder.append("** | ")
-        for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters().asMap()) {
+        for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters(this.hiddenParameters).asMap()) {
             if (v.toString().length > 1000) {
                 continue
             }

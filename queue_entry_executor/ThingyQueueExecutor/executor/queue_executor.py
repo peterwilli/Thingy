@@ -28,7 +28,10 @@ def run_doc_entry(docs: DocumentArray, queue_id: str, index: int):
         global_object['current_status'][queue_id][-1].tags.update({
             'document_index': index
         })
-        if doc.tags["progress"] == 1:
+        if "progress" in doc.tags:
+            if doc.tags["progress"] == 1:
+                run_doc_entry(docs, queue_id, index + 1)
+        if "error_type" in doc.tags:
             run_doc_entry(docs, queue_id, index + 1)
     global_object['current_script'].run(docs[index], callback)
 
@@ -49,7 +52,7 @@ class ThingyQueueExecutor(Executor):
                     len(global_object['current_status'][queue_id]) > index and \
                     global_object['current_status'][queue_id][index] is not None:
                 doc = global_object['current_status'][queue_id][index]
-                if doc.tags["progress"] == 1:
+                if "progress" in doc.tags and doc.tags["progress"] == 1:
                     del global_object['current_status'][queue_id]
                 return DocumentArray(doc)
 
@@ -66,7 +69,9 @@ class ThingyQueueExecutor(Executor):
             should_spawn_new_script = True
         if should_spawn_new_script:
             global_object['current_script'] = Script(new_script)
-            global_object['current_script'].start()
+            global_object['current_script'].install_deps()
+
+        global_object['current_script'].start()
         queue_id = generate_queue_id()
         run_doc_entry(docs, queue_id, 0)
         return DocumentArray(Document(text=queue_id))
