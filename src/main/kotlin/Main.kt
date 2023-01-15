@@ -9,6 +9,7 @@ import commands.social.profileCommand
 import commands.social.serverStatsCommand
 import commands.social.setBackgroundCommand
 import commands.social.shareCommand
+import commands.train.downloadTrainingCommand
 import commands.train.trainCommand
 import commands.update.updateCommand
 import commands.upscale.upscaleCommand
@@ -88,6 +89,7 @@ fun initCommands(jda: JDA) {
     upscaleCommand(jda)
     upscaleImageCommand(jda)
     magicPromptCommand(jda)
+    downloadTrainingCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
     removeFromContestCommand(jda)
@@ -219,6 +221,13 @@ fun initCommands(jda: JDA) {
             ) {
                 this.setMinValue(1e-4)
                 this.setMaxValue(1e-2)
+            }
+        }
+        slash("download_training", "Download your models made with Thingy!") {
+            option<String>("word", "Word to assign your concept to. Example: 'peters_dog'", required = true)
+            option<String>("mode", "Public or DMs?", required = true) {
+                choice("Public", "public")
+                choice("DMs", "dm")
             }
         }
         slash("img2img", "Make an existing image into your prompt!") {
