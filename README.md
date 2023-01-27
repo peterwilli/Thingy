@@ -30,6 +30,7 @@ In short: this bot allows you to generate images based on a text prompt, but can
  - First and foremost Han Xiao for being around in DMs helping me with what I struggled with but also putting me on the right direction in various moments
  - [DiscoArt](https://github.com/jina-ai/discoart): without this project, I was never able to cook this up in a weekend
  - [Jina](https://jina.ai) which has some incredible tooling I got familiar with
+ - [Mahdi Chaker](https://twitter.com/MahdiMC) for the heavy training GPUs for LEAP!
 
 # Demo
 

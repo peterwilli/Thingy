@@ -191,6 +191,14 @@ fun initCommands(jda: JDA) {
             sdSteps(this)
             seed(this)
         }
+        slash("deliberate", "Making things with Deliberate!") {
+            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
+            sdSize(this)
+            sdGuidanceScale(this)
+            sdSteps(this)
+            seed(this)
+        }
         slash("upscale", "Upscale your precious creations!") {
             sdGuidanceScale(this)
             sdUpscale(this)

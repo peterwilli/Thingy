@@ -5,6 +5,7 @@ import config
 import database.models.ChapterEntry
 import database.models.UserChapter
 import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -51,10 +52,6 @@ data class FairQueueEntry(
 
     suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {
         return progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
-    }
-
-    fun progressDelete() {
-        progressHook.deleteOriginal().queue()
     }
 
     fun getChannel(): MessageChannel {

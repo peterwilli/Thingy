@@ -30,6 +30,7 @@ from huggingface_hub import HfFolder, Repository, whoami
 # TODO: remove and import from diffusers.utils when the new version of diffusers is released
 from packaging import version
 from PIL import Image
+from imgaug import augmenters as iaa
 from torchvision import transforms
 import torchvision
 from transformers import CLIPTextModel, CLIPTokenizer
@@ -430,34 +431,33 @@ def boost_embed(images_folder):
             arr = arr * 2
         return arr[:length]
 
-    def load_grid(images_path):
+    def load_images(images_path):
         image_names = os.listdir(images_path)
         random.shuffle(image_names)
         image_names = repeat_array_to_length(image_names, 4)
         images = None
         pred_transforms = transforms.Compose(
             [
+                iaa.Resize({"shorter-side": (128, 256), "longer-side": "keep-aspect-ratio"}).augment_image,
+                iaa.CropToFixedSize(width=128, height=128).augment_image,
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ]
         )
         for image_name in image_names:
             image = Image.open(os.path.join(images_path, image_name)).convert("RGB")
-            image = image.resize((64, 64))
             image = pred_transforms(np.array(image)).unsqueeze(0)
             if images is None:
                 images = image
             else:
                 images = torch.cat((images, image), 0)
-        grid = torchvision.utils.make_grid(images, nrow = 2, padding = 0)
-        return grid
+        return images
 
-    grid = load_grid(images_folder)
+    images = load_images(images_folder)
     # Simulate single item batch
-    grid = grid.unsqueeze(0)
-    embed_model = leap(grid)
+    images = images.unsqueeze(0)
+    embed_model = leap(images)
     embed_model = embed_model.squeeze()
-    embed_model = denormalize_embed(embed_model, mean = 0.527121, std = 0.094522, min_weight = -0.061995748430490494, max_weight = 0.05560213699936867)
     return embed_model
 
 def main():
