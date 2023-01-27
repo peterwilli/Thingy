@@ -84,7 +84,6 @@ class QueueDispatcher(private val jda: JDA) {
 
     private suspend fun dispatch(entry: FairQueueEntry) {
         var inProgress: MutableList<Any> = mutableListOf()
-        entry.progressUpdate(entry.getHumanReadableOverview())
         val batch = entry.parameters
         var cancelled = false
         val client = jcloudClient.currentClient()

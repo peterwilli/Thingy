@@ -96,6 +96,7 @@ fun initCommands(jda: JDA) {
     submitToContestCommand(jda)
     voteReactionWatcher(jda)
     trainCommand(jda)
+    deliberateCommand(jda)
 
     if (config.leaderboardChannelID != null) {
         leaderboardScheduler(jda, 9)
@@ -194,7 +195,6 @@ fun initCommands(jda: JDA) {
         slash("deliberate", "Making things with Deliberate!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            sdSize(this)
             sdGuidanceScale(this)
             sdSteps(this)
             seed(this)

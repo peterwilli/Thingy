@@ -1,4 +1,3 @@
-/*
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import commands.make.*
@@ -20,11 +19,10 @@ import java.util.*
 import kotlin.math.pow
 import kotlin.random.Random
 
-fun getSdJsonDefaults(): JsonObject {
+fun getDeliberateJsonDefaults(): JsonObject {
     val obj = JsonObject()
     obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
     obj.addProperty("ar", "1:1")
-    obj.addProperty("size", 512)
     obj.addProperty("_hf_auth_token", config.bot.hfToken)
     obj.addProperty("guidance_scale", 7.5)
     obj.addProperty("steps", 25)
@@ -32,16 +30,14 @@ fun getSdJsonDefaults(): JsonObject {
     return obj
 }
 
-val sdHiddenParameters = arrayOf("embeds")
-
-fun stableDiffusionCommand(jda: JDA) {
-    jda.onCommand("stable_diffusion") { event ->
+fun deliberateCommand(jda: JDA) {
+    jda.onCommand("deliberate") { event ->
         try {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
             }
             event.deferReply().await()
-            val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
+            val params = event.optionsToJson().withDefaults(getDeliberateJsonDefaults())
             val embeds = checkForEmbeds(event.getOption("prompt")!!.asString, event.user.idLong)
 
             fun createEntry(hook: InteractionHook, params: JsonObject): FairQueueEntry {
@@ -57,7 +53,7 @@ fun stableDiffusionCommand(jda: JDA) {
                     event.member!!.id,
                     batch,
                     sdHiddenParameters,
-                    getScriptForSize(batch[0].asJsonObject.get("size").asInt),
+                    "deliberate",
                     hook,
                     null,
                     ChapterEntry.Companion.Type.Image,
@@ -65,7 +61,7 @@ fun stableDiffusionCommand(jda: JDA) {
                 )
             }
 
-            if (embeds.first.isNotEmpty()) {
+            /*if (embeds.first.isNotEmpty()) {
                 embedsCallback(jda, event, embeds, params) { _, params, hook ->
                     val entry = createEntry(hook, params)
                     runBlocking {
@@ -73,14 +69,13 @@ fun stableDiffusionCommand(jda: JDA) {
                     }
                 }
             }
-            else {
+            else {*/
                 val entry = createEntry(event.hook, params)
                 queueDispatcher.queue.addToQueue(entry)
-            }
+            //}
         } catch (e: Exception) {
             e.printStackTrace()
             event.sendException(e)
         }
     }
 }
-*/

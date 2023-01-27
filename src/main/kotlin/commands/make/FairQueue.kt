@@ -122,7 +122,9 @@ class FairQueue {
         queue.sortByDescending {
             counts[it.script]
         }
-        for ((idx, entry) in queue.withIndex()) {
+        val queueIter = queue.withIndex().iterator()
+        while(queueIter.hasNext()) {
+            val (idx, entry) = queueIter.next()
             entry.progressUpdate("*Queued* **#${idx + 1}** | ${entry.getHumanReadableOverview()}")
         }
     }
