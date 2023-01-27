@@ -26,7 +26,8 @@ data class FairQueueEntry(
     val progressHook: InteractionHook,
     val chapter: UserChapter?,
     val chapterType: ChapterEntry.Companion.Type,
-    val chapterVisibility: ChapterEntry.Companion.Visibility
+    val chapterVisibility: ChapterEntry.Companion.Visibility,
+    var originalMessage: Message? = null
 ) {
     fun getHumanReadableOverview(withDescription: String? = null): String {
         val stringBuilder = StringBuilder()
@@ -47,11 +48,23 @@ data class FairQueueEntry(
     }
 
     suspend fun progressUpdate(message: String): Message {
-        return progressHook.editOriginal(message).await()
+        if (originalMessage == null) {
+            originalMessage = progressHook.editOriginal(message).await()
+        }
+        else {
+            originalMessage!!.editMessage(message).await()
+        }
+        return originalMessage!!
     }
 
     suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {
-        return progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
+        if (originalMessage == null) {
+            originalMessage = progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
+        }
+        else {
+            originalMessage!!.editMessage(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
+        }
+        return originalMessage!!
     }
 
     fun getChannel(): MessageChannel {
@@ -108,9 +121,6 @@ class FairQueue {
         val counts = commandsGroup.eachCount()
         queue.sortByDescending {
             counts[it.script]
-        }
-        if (queue.size == 1) {
-            return
         }
         for ((idx, entry) in queue.withIndex()) {
             entry.progressUpdate("*Queued* **#${idx + 1}** | ${entry.getHumanReadableOverview()}")
