@@ -31,6 +31,9 @@ def get_pipe(hf_auth_token):
     pipe = StableDiffusionPipeline.from_pretrained(repo_id, torch_dtype=torch.float16, use_auth_token=hf_auth_token, text_encoder=text_encoder, tokenizer=tokenizer)
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
     pipe = pipe.to(device)
+    def dummy(images, **kwargs):
+        return images, False
+    pipe.safety_checker = dummy
     return pipe
 
 def next_divisible(n, d):
