@@ -83,6 +83,7 @@ class QueueDispatcher(private val jda: JDA) {
     }
 
     private suspend fun dispatch(entry: FairQueueEntry) {
+        entry.progressUpdate("*Running* | ${entry.getHumanReadableOverview()}")
         var inProgress: MutableList<Any> = mutableListOf()
         val batch = entry.parameters
         var cancelled = false

@@ -19,7 +19,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("com.github.minndevelopment:jda-ktx:17eb77a")
-    implementation("net.dv8tion:JDA:5.0.0-alpha.22")
+    implementation("net.dv8tion:JDA:5.0.0-beta.3")
     implementation("ch.qos.logback:logback-classic:1.4.5")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
     implementation("io.grpc:grpc-protobuf:1.51.0")

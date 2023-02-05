@@ -28,7 +28,7 @@ def get_pipe(hf_auth_token):
     text_encoder = CLIPTextModel.from_pretrained(
         repo_id, subfolder="text_encoder", torch_dtype=torch.float16
     )
-    pipe = StableDiffusionPipeline.from_pretrained(repo_id, torch_dtype=torch.float16, revision="fp16", use_auth_token=hf_auth_token, text_encoder=text_encoder, tokenizer=tokenizer)
+    pipe = StableDiffusionPipeline.from_pretrained(repo_id, torch_dtype=torch.float16, use_auth_token=hf_auth_token, text_encoder=text_encoder, tokenizer=tokenizer)
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
     pipe = pipe.to(device)
     return pipe
@@ -69,7 +69,7 @@ def on_document(document, callback):
     if global_object['pipe'] is None:
         global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
     pipe = global_object['pipe']
-    base_size = document.tags['size']
+    base_size = 512
     prompt = document.tags['prompt']
     embeds = document.tags['embeds']
     ar = document.tags['ar'].split(":")

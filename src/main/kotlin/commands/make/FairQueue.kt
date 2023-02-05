@@ -5,7 +5,10 @@ import config
 import database.models.ChapterEntry
 import database.models.UserChapter
 import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.reply_
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -26,9 +29,10 @@ data class FairQueueEntry(
     val progressHook: InteractionHook,
     val chapter: UserChapter?,
     val chapterType: ChapterEntry.Companion.Type,
-    val chapterVisibility: ChapterEntry.Companion.Visibility,
-    var originalMessage: Message? = null
+    val chapterVisibility: ChapterEntry.Companion.Visibility
 ) {
+    private var newMessage: Message? = null
+
     fun getHumanReadableOverview(withDescription: String? = null): String {
         val stringBuilder = StringBuilder()
         stringBuilder.append("**")
@@ -48,23 +52,23 @@ data class FairQueueEntry(
     }
 
     suspend fun progressUpdate(message: String): Message {
-        if (originalMessage == null) {
-            originalMessage = progressHook.editOriginal(message).await()
+        newMessage = if (newMessage == null) {
+            val originalMessage = progressHook.retrieveOriginal().await()
+            originalMessage.reply_(message).await()
+        } else {
+            newMessage!!.editMessage(message).await()
         }
-        else {
-            originalMessage!!.editMessage(message).await()
-        }
-        return originalMessage!!
+        return newMessage!!
     }
 
     suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {
-        if (originalMessage == null) {
-            originalMessage = progressHook.editOriginal(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
+        newMessage = if (newMessage == null) {
+            val originalMessage = progressHook.retrieveOriginal().await()
+            originalMessage.reply_(message, files = listOf(FileUpload.fromData(fileBytes, fileName))).await()
+        } else {
+            newMessage!!.editMessage(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
         }
-        else {
-            originalMessage!!.editMessage(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
-        }
-        return originalMessage!!
+        return newMessage!!
     }
 
     fun getChannel(): MessageChannel {
@@ -105,27 +109,32 @@ data class FairQueueEntry(
 }
 
 class FairQueue {
+    private val queueLock = Mutex()
     private val queue = mutableListOf<FairQueueEntry>()
 
-    fun next(): FairQueueEntry? {
-        if (queue.isNotEmpty()) {
-            return queue.removeAt(0)
+    suspend fun next(): FairQueueEntry? {
+        queueLock.withLock {
+            if (queue.isNotEmpty()) {
+                return queue.removeAt(0)
+            }
+            return null
         }
-        return null
     }
 
     suspend fun updateRanks() {
-        val commandsGroup = queue.groupingBy {
-            it.script
-        }
-        val counts = commandsGroup.eachCount()
-        queue.sortByDescending {
-            counts[it.script]
-        }
-        val queueIter = queue.withIndex().iterator()
-        while(queueIter.hasNext()) {
-            val (idx, entry) = queueIter.next()
-            entry.progressUpdate("*Queued* **#${idx + 1}** | ${entry.getHumanReadableOverview()}")
+        queueLock.withLock {
+            val commandsGroup = queue.groupingBy {
+                it.script
+            }
+            val counts = commandsGroup.eachCount()
+            queue.sortByDescending {
+                counts[it.script]
+            }
+            val queueIter = queue.withIndex().iterator()
+            while (queueIter.hasNext()) {
+                val (idx, entry) = queueIter.next()
+                entry.progressUpdate("*Queued* **#${idx + 1}** | ${entry.getHumanReadableOverview()}")
+            }
         }
     }
 
@@ -135,10 +144,12 @@ class FairQueue {
         }
     }
 
-    fun deleteLatestEntryByOwner(owner: String) {
-        queue.remove(queue.findLast {
-            it.owner == owner
-        })
+    suspend fun deleteLatestEntryByOwner(owner: String) {
+        queueLock.withLock {
+            queue.remove(queue.findLast {
+                it.owner == owner
+            })
+        }
     }
 
     suspend fun addToQueue(entry: FairQueueEntry) {
@@ -150,6 +161,7 @@ class FairQueue {
         if (count >= config.maxEntriesPerOwner) {
             throw MemberLimitExceededException("${entry.owner} has currently $count items in the queue! Max is ${config.maxEntriesPerOwner}")
         }
+        entry.progressHook.editOriginal(entry.getHumanReadableOverview("Job dispatched")).queue()
         queue.add(entry)
         updateRanks()
     }

@@ -38,7 +38,7 @@ fun deliberateCommand(jda: JDA) {
             }
             event.deferReply().await()
             val params = event.optionsToJson().withDefaults(getDeliberateJsonDefaults())
-            val embeds = checkForEmbeds(event.getOption("prompt")!!.asString, event.user.idLong)
+            // val embeds = checkForEmbeds(event.getOption("prompt")!!.asString, event.user.idLong)
 
             fun createEntry(hook: InteractionHook, params: JsonObject): FairQueueEntry {
                 var batch = JsonArray()
@@ -49,7 +49,7 @@ fun deliberateCommand(jda: JDA) {
                     batch.add(clonedParams)
                 }
                 return FairQueueEntry(
-                    "Making Images",
+                    "Making Images (Deliberate)",
                     event.member!!.id,
                     batch,
                     sdHiddenParameters,

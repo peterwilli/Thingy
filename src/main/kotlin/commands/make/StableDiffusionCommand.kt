@@ -1,21 +1,16 @@
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import commands.make.*
-import database.chapterDao
-import database.chapterEntryDao
+import commands.make.FairQueueEntry
+import commands.make.getScriptForSize
+import commands.make.standardPermissionList
+import commands.make.validatePermissions
 import database.models.ChapterEntry
-import database.userDao
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.interactions.components.button
-import dev.minn.jda.ktx.messages.editMessage
-import dev.minn.jda.ktx.messages.reply_
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import utils.*
-import java.util.*
 import kotlin.math.pow
 import kotlin.random.Random
 
