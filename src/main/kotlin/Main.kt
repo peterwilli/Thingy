@@ -179,6 +179,7 @@ fun initCommands(jda: JDA) {
     jda.updateCommands {
         slash("make", "The easiest way to get started! Just type some text and let it go! \uD83E\uDDCA") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<String>("negative_prompt", "Things you dont want in the image i. 'too many fingers'")
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             sdSize(this)
             sdGuidanceScale(this)
@@ -187,6 +188,7 @@ fun initCommands(jda: JDA) {
         }
         slash("stable_diffusion", "Making things with Stable Diffusion!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<String>("negative_prompt", "Things you dont want in the image i. 'too many fingers'")
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             sdSize(this)
             sdGuidanceScale(this)
@@ -195,6 +197,7 @@ fun initCommands(jda: JDA) {
         }
         slash("deliberate", "Making things with Deliberate!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
+            option<String>("negative_prompt", "Things you dont want in the image i. 'too many fingers'")
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
             sdGuidanceScale(this)
             sdSteps(this)

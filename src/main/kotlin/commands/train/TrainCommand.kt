@@ -56,6 +56,7 @@ fun trainCommand(jda: JDA) {
                     "Learning concept",
                     event.user.id,
                     array,
+                    sdTrainDefaults(),
                     trainHiddenParameters,
                     "ti_booster",
                     event.hook,

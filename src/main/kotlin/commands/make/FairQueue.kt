@@ -1,6 +1,7 @@
 package commands.make
 
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import config
 import database.models.ChapterEntry
 import database.models.UserChapter
@@ -24,6 +25,7 @@ data class FairQueueEntry(
     val description: String,
     val owner: String,
     val parameters: JsonArray,
+    val defaultParams: JsonObject,
     val hiddenParameters: Array<String>,
     val script: String,
     val progressHook: InteractionHook,
@@ -45,6 +47,14 @@ data class FairQueueEntry(
         for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters(this.hiddenParameters).asMap()) {
             if (v.toString().length > 1000) {
                 continue
+            }
+            if (v.isJsonNull) {
+                continue
+            }
+            if (defaultParams.has(k)) {
+                if (v == defaultParams.get(k)) {
+                    continue
+                }
             }
             stringBuilder.append("`$k`: *${sanitize(v.toString())}* ")
         }

@@ -72,6 +72,7 @@ def on_document(document, callback):
     base_size = document.tags['size']
     prompt = document.tags['prompt']
     embeds = document.tags['embeds']
+    negative_prompt = document.tags['negative_prompt']
     ar = document.tags['ar'].split(":")
     width, height = calculate_size(base_size, int(ar[0]), int(ar[1]))
     width = next_divisible(width, 8)
@@ -85,5 +86,5 @@ def on_document(document, callback):
                 f.write(base64.b64decode(embed_base64))
             load_learned_embed_in_clip(embed_path, pipe.text_encoder, pipe.tokenizer)
 
-    image = pipe(prompt, width = width, height = height, guidance_scale=document.tags["guidance_scale"], num_inference_steps=int(document.tags['steps'])).images[0]
+    image = pipe(prompt, negative_prompt=negative_prompt, width = width, height = height, guidance_scale=document.tags["guidance_scale"], num_inference_steps=int(document.tags['steps'])).images[0]
     callback(Document().load_pil_image_to_datauri(image))

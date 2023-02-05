@@ -22,6 +22,7 @@ suspend fun upscale(
         "Upscaling image",
         user.id,
         array,
+        JsonObject(),
         upscaleHiddenParameters,
         "stable_diffusion_upscale",
         hook,

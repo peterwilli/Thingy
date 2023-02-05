@@ -65,8 +65,10 @@ fun checkForEmbeds(prompt: String, userId: Long): Pair<Array<String>, Array<Stri
             .eq("chapterType", ChapterEntry.Companion.Type.TrainedModel.ordinal).query()
         for (entry in results) {
             if (entry.chapterVisibility == ChapterEntry.Companion.Visibility.Public.ordinal) {
-                result.add(entry.metadata!!)
-                embeds.add(entry.data)
+                if (!embeds.contains(entry.data)) {
+                    result.add(entry.metadata!!)
+                    embeds.add(entry.data)
+                }
                 continue
             }
 
@@ -75,8 +77,10 @@ fun checkForEmbeds(prompt: String, userId: Long): Pair<Array<String>, Array<Stri
                     chapterDao.queryBuilder().selectColumns().where()
                         .eq("id", entry.chapterID).and().eq("userID", user.id).queryForFirst()
                 if (chapter != null) {
-                    result.add(entry.metadata!!)
-                    embeds.add(entry.data)
+                    if (!embeds.contains(entry.data)) {
+                        result.add(entry.metadata!!)
+                        embeds.add(entry.data)
+                    }
                 }
             }
         }

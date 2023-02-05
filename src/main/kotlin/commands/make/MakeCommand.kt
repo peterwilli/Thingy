@@ -38,6 +38,7 @@ fun makeCommand(jda: JDA) {
                     "Making Images",
                     event.member!!.id,
                     batch,
+                    getSdJsonDefaults(),
                     sdHiddenParameters,
                     getScriptForSize(batch[0].asJsonObject.get("size").asInt),
                     hook,
