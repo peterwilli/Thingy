@@ -196,7 +196,7 @@ def parse_args():
     parser.add_argument(
         "--lr_scheduler",
         type=str,
-        default="constant_with_warmup",
+        default="constant",
         help=(
             'The scheduler type to use. Choose between ["linear", "cosine", "cosine_with_restarts", "polynomial",'
             ' "constant", "constant_with_warmup"]'
@@ -837,7 +837,7 @@ def on_document(document, callback):
                 image = image.convert("RGB")
                 image.save(os.path.join(images_path, f"{image_name}.jpg"))
 
-        process = subprocess.Popen(['python', '-u', 'ti_booster_cmd.py',
+        process = subprocess.Popen(['python3', '-u', 'ti_booster_cmd.py',
                                     "--pretrained_model_name_or_path=stabilityai/stable-diffusion-2-1-base",
                                     f"--placeholder_token={word}",
                                     f"--train_data_dir={images_path}",

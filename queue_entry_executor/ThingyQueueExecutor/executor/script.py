@@ -1,9 +1,9 @@
+import re
 import subprocess
+import sys
+import time
 from jina import Document
 from threading import Thread
-import time
-import sys
-import re
 
 bootstrap = """
 import json
