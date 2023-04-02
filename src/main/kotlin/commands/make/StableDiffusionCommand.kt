@@ -58,7 +58,8 @@ fun stableDiffusionCommand(jda: JDA) {
                     hook,
                     null,
                     ChapterEntry.Companion.Type.Image,
-                    ChapterEntry.Companion.Visibility.Public
+                    ChapterEntry.Companion.Visibility.Public,
+                    "jpg"
                 )
             }
 

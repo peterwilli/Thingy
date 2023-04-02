@@ -13,10 +13,10 @@ executors:
     uses_metas:
       py_modules:
         - ThingyQueueExecutor.executor
-  - name: magic_prompt
-    uses: MagicPromptExecutor
-    replicas: 1
-    floating: false
-    uses_metas:
-      py_modules:
-        - MagicPromptExecutor.executor
+  # - name: magic_prompt
+  #   uses: MagicPromptExecutor
+  #   replicas: 1
+  #   floating: false
+  #   uses_metas:
+  #     py_modules:
+  #       - MagicPromptExecutor.executor

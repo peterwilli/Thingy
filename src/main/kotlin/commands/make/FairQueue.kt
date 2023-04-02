@@ -31,7 +31,8 @@ data class FairQueueEntry(
     val progressHook: InteractionHook,
     val chapter: UserChapter?,
     val chapterType: ChapterEntry.Companion.Type,
-    val chapterVisibility: ChapterEntry.Companion.Visibility
+    val chapterVisibility: ChapterEntry.Companion.Visibility,
+    val fileFormat: String
 ) {
     private var newMessage: Message? = null
 

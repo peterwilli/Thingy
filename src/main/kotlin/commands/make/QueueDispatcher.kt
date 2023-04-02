@@ -218,10 +218,10 @@ class QueueDispatcher(private val jda: JDA) {
             if (finalData != null) {
                 val quilt = makeQuiltFromByteArrayList(finalData!!.map {
                     it[0]
-                })
+                }, formatName = entry.fileFormat)
                 val finishMsg = entry.progressUpdate(
                     entry.getHumanReadableOverview(), quilt,
-                    "${config.bot.name}_final.jpg"
+                    "${config.bot.name}_final.${entry.fileFormat}"
                 )
                 finishMsg.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
                     .queue()

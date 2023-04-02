@@ -19,7 +19,7 @@ def calculate_size(base_size, w, h):
         return s_w, s_h
 
 def get_pipe(hf_auth_token):
-    repo_id = "peterwilli/deliberate"
+    repo_id = "peterwilli/deliberate-2"
     device = "cuda"
     tokenizer = CLIPTokenizer.from_pretrained(
         repo_id,

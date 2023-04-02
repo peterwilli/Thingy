@@ -28,7 +28,8 @@ suspend fun upscale(
         hook,
         null,
         ChapterEntry.Companion.Type.Image,
-        ChapterEntry.Companion.Visibility.Public
+        ChapterEntry.Companion.Visibility.Public,
+        "jpg"
     )
     queueDispatcher.queue.addToQueue(entry)
 }

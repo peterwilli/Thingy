@@ -17,16 +17,6 @@ data class Bot(
     val hfToken: String
 )
 
-data class Timeout(
-    val imageNotAppearing: Int,
-    val imageNotUpdating: Int
-)
-
-data class Timeouts(
-    val discoDiffusion: Timeout,
-    val stableDiffusion: Timeout
-)
-
 data class Config(
     val bot: Bot,
     val databasePath: String,
@@ -35,7 +25,6 @@ data class Config(
     val jcloudKeeper: JCloudKeeper?,
     val directUrl: URI?,
     val imagesFolder: String,
-    val timeouts: Timeouts,
     val shareChannelID: String,
     val artContestChannelID: String?,
     val leaderboardChannelID: String?,

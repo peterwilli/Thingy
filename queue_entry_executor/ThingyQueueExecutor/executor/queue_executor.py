@@ -13,7 +13,6 @@ global_object = {
     'current_status': {}
 }
 
-
 def run_doc_entry(docs: DocumentArray, queue_id: str, index: int):
     if index == len(docs):
         return

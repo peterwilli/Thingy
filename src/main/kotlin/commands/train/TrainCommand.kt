@@ -62,7 +62,8 @@ fun trainCommand(jda: JDA) {
                     event.hook,
                     null,
                     ChapterEntry.Companion.Type.TrainedModel,
-                    ChapterEntry.Companion.Visibility.Private
+                    ChapterEntry.Companion.Visibility.Private,
+                    "jpg"
                 )
                 queueDispatcher.queue.addToQueue(entry)
             }

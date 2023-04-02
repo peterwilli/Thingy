@@ -98,6 +98,8 @@ fun initCommands(jda: JDA) {
     voteReactionWatcher(jda)
     trainCommand(jda)
     deliberateCommand(jda)
+    editImageCommand(jda)
+    removeBackgroundImageCommand(jda)
 
     if (config.leaderboardChannelID != null) {
         leaderboardScheduler(jda, 9)
@@ -212,6 +214,15 @@ fun initCommands(jda: JDA) {
             option<String>("prompt", "Describe your original image, the better you can describe it, the better the results", required = true)
             sdGuidanceScale(this)
             sdUpscale(this)
+        }
+        slash("edit_image", "Want to make changes to an existing image? Here you go!") {
+            option<Attachment>("image", "Image to edit", required = true)
+            option<String>("instructions", "Tell the AI what you want, i.e 'make me look ugly'", required = true)
+            seed(this)
+            sdSteps(this)
+        }
+        slash("remove_background_from_image", "Turn images into transparent PNGs!") {
+            option<Attachment>("image", "Image to remove background from", required = true)
         }
         slash("train", "How cool would it be to have yourself in our AI? Your pet?") {
             option<String>("word", "Word to assign your concept to. Example: 'peters_dog'", required = true)
