@@ -17,8 +17,7 @@ class Thingy {
     var version: Int = 2
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     companion object {
         fun getCurrent(): Thingy {

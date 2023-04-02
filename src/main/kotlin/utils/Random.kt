@@ -4,7 +4,7 @@ val alphanumericCharPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 
 private const val HEXES = "0123456789ABCDEF"
 
-fun toHexString(bb: ByteBuffer): String? {
+fun toHexString(bb: ByteBuffer): String {
     val buffer = bb.duplicate()
     val hex = StringBuilder()
     while (buffer.hasRemaining()) {

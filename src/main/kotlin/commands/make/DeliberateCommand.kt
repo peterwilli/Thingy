@@ -1,21 +1,12 @@
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import commands.make.*
-import database.chapterDao
-import database.chapterEntryDao
 import database.models.ChapterEntry
-import database.userDao
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
-import dev.minn.jda.ktx.interactions.components.button
-import dev.minn.jda.ktx.messages.editMessage
-import dev.minn.jda.ktx.messages.reply_
-import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import utils.*
-import java.util.*
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -42,7 +33,7 @@ fun deliberateCommand(jda: JDA) {
             // val embeds = checkForEmbeds(event.getOption("prompt")!!.asString, event.user.idLong)
 
             fun createEntry(hook: InteractionHook, params: JsonObject): FairQueueEntry {
-                var batch = JsonArray()
+                val batch = JsonArray()
                 for (idx in 0 until config.hostConstraints.totalImagesInMakeCommand) {
                     val clonedParams = params.deepCopy()
                     val seed = clonedParams["seed"].asLong

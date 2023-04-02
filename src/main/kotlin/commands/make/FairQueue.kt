@@ -18,6 +18,11 @@ import net.dv8tion.jda.api.utils.FileUpload
 import updateMode
 import utils.sanitize
 import utils.stripHiddenParameters
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.net.URL
+import java.util.*
+import javax.imageio.ImageIO
 
 class MemberLimitExceededException(message: String) : Exception(message)
 
@@ -32,7 +37,8 @@ data class FairQueueEntry(
     val chapter: UserChapter?,
     val chapterType: ChapterEntry.Companion.Type,
     val chapterVisibility: ChapterEntry.Companion.Visibility,
-    val fileFormat: String
+    val fileFormat: String,
+    val shouldSaveChapter: Boolean = true
 ) {
     private var newMessage: Message? = null
 
@@ -46,18 +52,32 @@ data class FairQueueEntry(
         }
         stringBuilder.append("** | ")
         for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters(this.hiddenParameters).asMap()) {
+            if (v.isJsonNull) {
+                continue
+            }
             if (v.toString().length > 1000) {
                 continue
             }
-            if (v.isJsonNull) {
+            try {
+                val url = URL(v.asString)
                 continue
+            }
+            catch (_: Exception) {
             }
             if (defaultParams.has(k)) {
                 if (v == defaultParams.get(k)) {
                     continue
                 }
             }
-            stringBuilder.append("`$k`: *${sanitize(v.toString())}* ")
+            stringBuilder.append("`$k`: *${sanitize(v.asString)}* ")
+        }
+        for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters(this.hiddenParameters).asMap()) {
+            try {
+                val url = URL(v.asString)
+                stringBuilder.append("`$k`: $url ")
+            }
+            catch (_: Exception) {
+            }
         }
         return stringBuilder.toString()
     }
@@ -102,9 +122,7 @@ data class FairQueueEntry(
         if (!hiddenParameters.contentEquals(other.hiddenParameters)) return false
         if (script != other.script) return false
         if (progressHook != other.progressHook) return false
-        if (chapter != other.chapter) return false
-
-        return true
+        return chapter == other.chapter
     }
 
     override fun hashCode(): Int {

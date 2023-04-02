@@ -60,9 +60,9 @@ fun listChaptersCommand(jda: JDA) {
                             .queryForFirst()
 
                     val latestEntry = lastSelectedChapter!!.getLatestEntry()
-                    val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
+                    val description = latestEntry.getDescription()
                     ImageSliderEntry(
-                        description = parameters[0].asJsonObject.get("prompt").asString,
+                        description = description,
                         image = URL(latestEntry.data)
                     )
                 }
@@ -88,18 +88,10 @@ fun listChaptersCommand(jda: JDA) {
                     style = ButtonStyle.DANGER,
                     user = event.user
                 ) { deleteEvent ->
-                    val parameters =
-                        gson.fromJson(
-                            lastSelectedChapter!!.getLatestEntry().parameters,
-                            JsonArray::class.java
-                        )
-
                     deleteEvent.reply_(
                         "**Are you sure to delete this chapter?** *${
                             sanitize(
-                                parameters[0].asJsonObject.get(
-                                    "prompt"
-                                ).asString
+                                lastSelectedChapter!!.getLatestEntry().getDescription()
                             )
                         }*"
                     )

@@ -29,8 +29,7 @@ class SharedArtCacheEntry {
     var index: Int = 0
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     constructor(userID: Long, imageURL: URL, index: Int, messageLink: URL) {
         this.userID = userID

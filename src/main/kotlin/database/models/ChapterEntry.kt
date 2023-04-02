@@ -1,11 +1,13 @@
 package database.models
 
+import com.google.gson.JsonArray
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.misc.TransactionManager
 import com.j256.ormlite.table.DatabaseTable
 import database.chapterDao
 import database.chapterEntryDao
 import database.connectionSource
+import gson
 import org.jetbrains.annotations.NotNull
 import utils.peterDate
 import java.net.URL
@@ -67,8 +69,7 @@ class ChapterEntry {
     }
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     constructor(
         chapterID: Long,
@@ -98,11 +99,24 @@ class ChapterEntry {
 
             // Clear empty chapters (if any)
             val otherEntries = chapterEntryDao.queryBuilder().selectColumns("id").where().eq("chapterID", this.chapterID).countOf()
-            if (otherEntries == null) {
+            if (otherEntries > 0) {
                 val chapterEntry = chapterDao.deleteBuilder()
                 chapterEntry.where().eq("id", this.chapterID)
                 chapterDao.delete(chapterEntry.prepare())
             }
         }
+    }
+
+    fun getDescription(): String {
+        val parsedParameters = gson.fromJson(parameters, JsonArray::class.java)
+        val firstParams = parsedParameters[0].asJsonObject
+
+        val description = if(firstParams.has("prompt")) {
+            firstParams.get("prompt").asString
+        }
+        else {
+            firstParams.get("instructions").asString
+        }
+        return description
     }
 }

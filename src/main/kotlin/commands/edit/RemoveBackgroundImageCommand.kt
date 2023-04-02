@@ -7,8 +7,6 @@ import dev.minn.jda.ktx.events.onCommand
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import utils.*
-import kotlin.math.pow
-import kotlin.random.Random
 
 fun removeBackgroundImageCommand(jda: JDA) {
     jda.onCommand("remove_background_from_image") { event ->
@@ -33,7 +31,8 @@ fun removeBackgroundImageCommand(jda: JDA) {
                     null,
                     ChapterEntry.Companion.Type.Image,
                     ChapterEntry.Companion.Visibility.Public,
-                    "png"
+                    "png",
+                    shouldSaveChapter = false
                 )
             }
             val entry = createEntry(event.hook, params)

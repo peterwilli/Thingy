@@ -28,8 +28,7 @@ class User {
     var currentChapterId: Long = 0
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     constructor(user: String) {
         this.discordUserID = user

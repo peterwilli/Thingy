@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent
 
-private const val MAX_VOTES = 3;
+private const val MAX_VOTES = 3
 
 private suspend fun removeTooManyVotes(jda: JDA) {
     val channel = jda.getTextChannelById(config.artContestChannelID!!)!!

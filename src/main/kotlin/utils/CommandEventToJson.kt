@@ -25,6 +25,7 @@ fun GenericCommandInteractionEvent.optionsToJson(byteProcessing: (ByteArray) -> 
             }
 
             OptionType.INTEGER -> result.addProperty(option.name, option.asInt)
+            else -> {}
         }
     }
     return result

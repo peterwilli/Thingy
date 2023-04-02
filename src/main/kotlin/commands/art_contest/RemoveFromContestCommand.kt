@@ -108,5 +108,5 @@ fun removeFromContestCommand(jda: JDA) {
             e.printStackTrace()
             event.sendException(e)
         }
-    };
+    }
 }

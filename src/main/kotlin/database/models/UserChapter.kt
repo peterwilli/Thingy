@@ -31,8 +31,7 @@ class UserChapter {
     var userID: Long = 0
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     constructor(id: Long, chapterType: Int, userID: Long) {
         this.id = id

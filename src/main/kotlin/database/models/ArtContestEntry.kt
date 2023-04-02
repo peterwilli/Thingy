@@ -48,8 +48,7 @@ class ArtContestEntry {
     var index: Int = 0
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     constructor(
         userID: Long,
@@ -66,7 +65,7 @@ class ArtContestEntry {
         this.prompt = prompt
         this.index = index
         this.messageLink = messageLink.toString()
-        this.messageID = messageID;
+        this.messageID = messageID
     }
 
     fun delete() {

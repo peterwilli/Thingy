@@ -218,7 +218,12 @@ fun initCommands(jda: JDA) {
         slash("edit_image", "Want to make changes to an existing image? Here you go!") {
             option<Attachment>("image", "Image to edit", required = true)
             option<String>("instructions", "Tell the AI what you want, i.e 'make me look ugly'", required = true)
+            option<Double>("input_scale", "How much the input is preserved. Default: 1.0") {
+                this.setMaxValue(1.0)
+                this.setMinValue(0.0)
+            }
             seed(this)
+            sdGuidanceScale(this)
             sdSteps(this)
         }
         slash("remove_background_from_image", "Turn images into transparent PNGs!") {

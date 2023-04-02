@@ -44,7 +44,12 @@ private fun makeShareEmbed(img: BufferedImage, author: User, parameters: JsonObj
     }")
     // Discord has a max title length for embeds of 256. We take 250 to be on the safe side.
     val maxPromptLength = 250
-    val prompt = parameters.get("prompt").asString
+    val prompt = if(parameters.has("prompt")) {
+        parameters.get("prompt").asString
+    }
+    else {
+        parameters.get("instructions").asString
+    }
     val title = if (prompt.length > maxPromptLength) {
         "${prompt.take(maxPromptLength)}..."
     } else {

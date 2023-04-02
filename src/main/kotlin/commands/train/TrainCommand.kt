@@ -4,23 +4,19 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.j256.ormlite.misc.TransactionManager
 import commands.make.*
-import commands.upscale.sdUpscaleDefaults
 import config
 import database.chapterDao
 import database.chapterEntryDao
 import database.connectionSource
 import database.models.ChapterEntry
 import database.userDao
-import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.editMessage
-import dev.minn.jda.ktx.messages.reply_
 import isLettersOrDigits
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import net.dv8tion.jda.api.utils.FileUpload
 import queueDispatcher
 import utils.*
 

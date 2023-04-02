@@ -12,9 +12,9 @@ fun getAverageColor(
     for (x in x0 until x1) {
         for (y in y0 until y1) {
             val pixel = Color(bi.getRGB(x, y))
-            sumr += pixel.getRed()
-            sumg += pixel.getGreen()
-            sumb += pixel.getBlue()
+            sumr += pixel.red
+            sumg += pixel.green
+            sumb += pixel.blue
         }
     }
     val num = w * h

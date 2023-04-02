@@ -24,8 +24,7 @@ class ArtContestVote {
     var contestEntryID: Long = 0
 
     // ORMLite needs a no-arg constructor
-    constructor() {
-    }
+    constructor()
 
     constructor(userID: Long, contestEntryID: Long) {
         this.userID = userID
