@@ -59,7 +59,8 @@ class ChapterEntry {
     companion object {
         enum class Type {
             Image,
-            TrainedModel
+            TrainedModel,
+            Audio
         }
 
         enum class Visibility {

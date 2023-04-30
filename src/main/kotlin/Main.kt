@@ -5,6 +5,7 @@ import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
 import commands.img2img.img2imgCommand
 import commands.make.QueueDispatcher
+import commands.make.makeImageCommand
 import commands.social.profileCommand
 import commands.social.serverStatsCommand
 import commands.social.setBackgroundCommand
@@ -90,6 +91,8 @@ fun initCommands(jda: JDA) {
     upscaleCommand(jda)
     upscaleImageCommand(jda)
     magicPromptCommand(jda)
+    makeAudioCommand(jda)
+    makeImageCommand(jda)
     downloadTrainingCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
@@ -97,7 +100,6 @@ fun initCommands(jda: JDA) {
     submitToContestCommand(jda)
     voteReactionWatcher(jda)
     trainCommand(jda)
-    deliberateCommand(jda)
     editImageCommand(jda)
     removeBackgroundImageCommand(jda)
 
@@ -188,21 +190,22 @@ fun initCommands(jda: JDA) {
             sdSteps(this)
             seed(this)
         }
-        slash("stable_diffusion", "Making things with Stable Diffusion!") {
+        slash("make_image", "Make images based on text!") {
             option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
             option<String>("negative_prompt", "Things you dont want in the image i. 'too many fingers'")
             option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
+            option<String>("model", "The model to use! (Default: Random)", required = false) {
+                for((k, v) in imageModels) {
+                    choice(k, v)
+                }
+            }
             sdSize(this)
             sdGuidanceScale(this)
             sdSteps(this)
             seed(this)
         }
-        slash("deliberate", "Making things with Deliberate!") {
-            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
-            option<String>("negative_prompt", "Things you dont want in the image i. 'too many fingers'")
-            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            sdGuidanceScale(this)
-            sdSteps(this)
+        slash("make_audio", "Make audio! Anything works! Even emoji!") {
+            option<String>("prompt", "Prompt to make i.e 'I will slash you to pieces \uD83D\uDC32!'", required = true)
             seed(this)
         }
         slash("upscale", "Upscale your precious creations!") {

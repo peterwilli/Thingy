@@ -27,7 +27,7 @@ fun getSdJsonDefaults(): JsonObject {
     return obj
 }
 
-val sdHiddenParameters = arrayOf("embeds")
+val sdHiddenParameters = arrayOf("embeds", "model")
 
 fun stableDiffusionCommand(jda: JDA) {
     jda.onCommand("stable_diffusion") { event ->

@@ -33,7 +33,7 @@ fun listChaptersCommand(jda: JDA) {
                 return@onCommand
             }
 
-            var chapterType = if(event.getOption("type") == null) {
+            val chapterType = if(event.getOption("type") == null) {
                 "images"
             }
             else {

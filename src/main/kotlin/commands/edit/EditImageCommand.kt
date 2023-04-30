@@ -33,6 +33,7 @@ fun editImageCommand(jda: JDA) {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
             }
+            event.deferReply().await()
             val attachment = event.getOption("image")!!.asAttachment
             if (!attachment.isImage) {
                 event.reply_(
@@ -40,7 +41,6 @@ fun editImageCommand(jda: JDA) {
                 ).setEphemeral(true).queue()
                 return@onCommand
             }
-            event.deferReply().await()
             val defaults = getEditImageJsonDefaults()
             val params = event.optionsToJson {
                 var image = ImageIO.read(ByteArrayInputStream(it))

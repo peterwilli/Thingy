@@ -116,15 +116,21 @@ class QueueDispatcher(private val jda: JDA) {
                     if (queueId != null) {
                         val result = client.retrieveEntryStatus(queueId!!, 0)
                         for (doc in completedEntries) {
-                            if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
-                                newImages.add(listOf(doc.base64UriToByteArray()))
-                            } else if (entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
-                                newImages.add(
-                                    listOf(
-                                        doc.base64UriToByteArray(),
-                                        Base64.getDecoder().decode(doc.tags.fieldsMap["trained_model"]!!.stringValue)
+                            when (entry.chapterType) {
+                                ChapterEntry.Companion.Type.Image -> {
+                                    newImages.add(listOf(doc.base64UriToByteArray()))
+                                }
+                                ChapterEntry.Companion.Type.Audio -> {
+                                    newImages.add(listOf(doc.base64UriToByteArray()))
+                                }
+                                ChapterEntry.Companion.Type.TrainedModel -> {
+                                    newImages.add(
+                                        listOf(
+                                            doc.base64UriToByteArray(),
+                                            Base64.getDecoder().decode(doc.tags.fieldsMap["trained_model"]!!.stringValue)
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                         if (result.docsCount > 0) {
@@ -177,6 +183,9 @@ class QueueDispatcher(private val jda: JDA) {
                                     newImages.add(listOf(doc.base64UriToByteArray()))
                                 }
                             }
+                            else if (entry.chapterType == ChapterEntry.Companion.Type.Audio) {
+                                newImages.add(listOf(doc.base64UriToByteArray()))
+                            }
                             if (progress == 1.0) {
                                 completedEntries.add(doc)
                                 inProgress.removeAt(0)
@@ -219,13 +228,22 @@ class QueueDispatcher(private val jda: JDA) {
             }
             imageProgress.await()
             if (finalData != null) {
-                val quilt = makeQuiltFromByteArrayList(finalData!!.map {
-                    it[0]
-                }, formatName = entry.fileFormat)
-                val finishMsg = entry.progressUpdate(
-                    entry.getHumanReadableOverview(), quilt,
-                    "${config.bot.name}_final.${entry.fileFormat}"
-                )
+                val finishMsg = if(entry.chapterType == ChapterEntry.Companion.Type.Image || entry.chapterType == ChapterEntry.Companion.Type.TrainedModel) {
+                    val quilt = makeQuiltFromByteArrayList(finalData!!.map {
+                        it[0]
+                    }, formatName = entry.fileFormat)
+                    entry.progressUpdate(
+                        entry.getHumanReadableOverview(), quilt,
+                        "${config.bot.name}_final.${entry.fileFormat}"
+                    )
+                }
+                else {
+                    entry.progressUpdate(
+                        entry.getHumanReadableOverview(), finalData!![0][0],
+                        "${config.bot.name}_final.${entry.fileFormat}"
+                    )
+                }
+
                 finishMsg.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
                     .queue()
                 var chapterID: Long = 0

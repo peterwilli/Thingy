@@ -9,7 +9,7 @@ from io import BytesIO
 
 def get_pipe(hf_auth_token):
     sd_model_id = "stabilityai/stable-diffusion-2-1"
-    controlnet_model_id = "/data/control_instruct_pix2pix"
+    controlnet_model_id = "peterwilli/control_instruct_pix2pix_beta_1"
     device = "cuda"
 
     controlnet = ControlNetModel.from_pretrained(
