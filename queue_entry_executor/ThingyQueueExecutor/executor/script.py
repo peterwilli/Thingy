@@ -36,11 +36,12 @@ class Script:
 
     def start(self):
         if self.process is None:
-            bootstrap = f"prefix=\"{self.prefix}\"\n"
-            with open("current_script.py", "w") as f:
-                f.write(bootstrap)
-                f.write(self.script)
+            with open("bootstrap.py", "r") as b:
+                with open("current_script.py", "w") as f:
+                    f.write(b.read().replace("%{PREFIX}%", self.prefix))
+                    f.write(self.script)
             self.process = subprocess.Popen([sys.executable, '-u', 'current_script.py'])
+
     def stop(self):
         if self.process is not None:
             self.process.terminate()
