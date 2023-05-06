@@ -8,15 +8,17 @@ edition = "2021"
 [dependencies]
 redis = "0.23.0"
 rslock = "0.1.1"
-tokio = { version = "1.28.0", features = ["macros"] }
+tokio = { version = "1.28.0", features = ["macros", "process", "rt-multi-thread"] }
 url = "2.3.1"
 log = "0.4.17"
 rand = "0.8.5"
-anyhow = "1.0.71"
+anyhow = { version = "1.0.71", features = ["backtrace"] }
+env_logger = "0.10.0"
+parking_lot = "0.12.1"
+chrono = "0.4.24"
 
 [dev-dependencies]
 rand_chacha = "0.3.1"
 hex-literal = "0.4.1"
 testcontainers = "0.14.0"
-env_logger = "0.10.0"
 test-log = "0.2.11"

@@ -1,4 +1,3 @@
-//import commands.make.DiffusionConfig
 import com.google.gson.JsonObject
 import com.google.protobuf.Struct
 import com.google.protobuf.util.JsonFormat
@@ -12,23 +11,6 @@ import kotlinx.coroutines.flow.asFlow
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.TimeUnit
-
-private fun reqToByteArrayList(req: Jina.DataRequestProto): List<ByteArray> {
-    var returnedImages = mutableListOf<ByteArray>()
-    if (req.data.docs.docsCount > 0) {
-        for (doc in req.data.docs.docsList) {
-            val filteredUrl = doc.uri.substring(doc.uri.indexOf(",") + 1)
-            returnedImages.add(Base64.getDecoder().decode(filteredUrl))
-        }
-    }
-    return returnedImages
-}
-
-data class RetrieveArtResult(
-    val images: List<ByteArray>,
-    val completed: Boolean,
-    val statusPercent: Double
-)
 
 class Client(
     private val channel: ManagedChannel
