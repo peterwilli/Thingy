@@ -1,17 +1,17 @@
-use std::sync::Arc;
+use crate::types::TimeStamp;
+use crate::utils::unix_time::get_unix_time;
 use log::{debug, error};
 use parking_lot::RwLock;
+use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Child;
 use tokio::spawn;
 use tokio::task::spawn_local;
-use crate::types::TimeStamp;
-use crate::utils::unix_time::get_unix_time;
 
 pub struct ThingyProcess {
     pub process: Child,
     pub script_id: String,
-    pub timestamp: Arc<RwLock<TimeStamp>>
+    pub timestamp: Arc<RwLock<TimeStamp>>,
 }
 
 impl ThingyProcess {
@@ -19,13 +19,21 @@ impl ThingyProcess {
         return Self {
             script_id,
             process,
-            timestamp: Arc::new(RwLock::new(get_unix_time()))
+            timestamp: Arc::new(RwLock::new(get_unix_time())),
         };
     }
 
     pub fn init_read_loop(&mut self) {
-        let stdout = self.process.stdout.take().expect("child did not have a handle to stdout");
-        let stderr = self.process.stderr.take().expect("child did not have a handle to stderr");
+        let stdout = self
+            .process
+            .stdout
+            .take()
+            .expect("child did not have a handle to stdout");
+        let stderr = self
+            .process
+            .stderr
+            .take()
+            .expect("child did not have a handle to stderr");
         let timestamp_lock = self.timestamp.clone();
 
         spawn(async move {
@@ -40,8 +48,7 @@ impl ThingyProcess {
                                 debug!("Stdout: {}", line);
                                 *timestamp_lock.write() = get_unix_time();
                             },
-                            Err(_) => break,
-                            _ => (),
+                            _ => break
                         }
                     }
                     result = stderr_reader.next_line() => {
@@ -50,8 +57,7 @@ impl ThingyProcess {
                                 debug!("Stderr: {}", line);
                                 *timestamp_lock.write() = get_unix_time();
                             },
-                            Err(_) => break,
-                            _ => (),
+                            _ => break
                         }
                     }
                 }

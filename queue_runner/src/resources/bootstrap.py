@@ -22,7 +22,7 @@ class ThingyWorker:
             self.redis.fcall('remove_script_in_queue', 1, 'scriptsInQueue', prefix)
 
     def get_current_bucket(self):
-        # print("get_current_bucket")
+        print("get_current_bucket")
         time.sleep(1)
         result = []
         doc_id = self.redis.fcall('get_and_move_doc', 2, self.bucket_name, self.doing_bucket_name)

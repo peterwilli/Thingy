@@ -20,10 +20,11 @@ import utils.merge
 class QueueEntryStatus(
     var doc: DocumentProto,
     var scriptIndex: Int = 0,
-    var progress: Float = 0.0f
+    var progress: Float = 0.0f,
+    var error: String? = null
 ) {
     fun isDone(parent: QueueEntry): Boolean {
-        return scriptIndex == (parent.scripts.size - 1) && progress == 1.0f
+        return (scriptIndex == (parent.scripts.size - 1) && progress == 1.0f) || error != null
     }
 }
 
@@ -53,6 +54,11 @@ class QueueEntry(
                     currentStatus.progress = progress.toFloat()
                     modified = true
                 }
+            }
+            val error = con.hget("entry:${currentStatus.doc.id}", "error")
+            if (error != null) {
+                currentStatus.error = error
+                modified = true;
             }
         }
         return modified

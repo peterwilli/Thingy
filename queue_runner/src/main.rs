@@ -1,15 +1,15 @@
-use std::time::Duration;
+use crate::queue_runner::QueueRunner;
 use log::error;
+use std::time::Duration;
 use tokio::time::sleep;
 use url::Url;
-use crate::queue_runner::QueueRunner;
 
-mod tests;
-mod queue_runner;
-pub(crate) mod objects;
-pub(crate) mod utils;
-pub(crate) mod types;
 pub(crate) mod consts;
+pub(crate) mod objects;
+mod queue_runner;
+mod tests;
+pub(crate) mod types;
+pub(crate) mod utils;
 
 #[tokio::main]
 async fn main() {
@@ -23,6 +23,6 @@ async fn main() {
             }
             _ => {}
         }
-        sleep(Duration::from_secs(1)).await;
+        sleep(Duration::from_secs(5)).await;
     }
 }
