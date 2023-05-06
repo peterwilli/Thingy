@@ -71,17 +71,21 @@ class QueueClient(
             return arrayOf()
         }
         if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
-            val prog = entry.getProgress()
-            val upload = FileUpload.fromData(
-                makeQuiltFromByteArrayList(updatedDocs.map {
-                    it.base64UriToByteArray()
-                }, "jpg"), if (entry.getProgress() == 1f) {
-                    "thingy_final.jpg"
-                } else {
-                    "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.jpg"
-                }
-            )
-            result.add(upload)
+            if(updatedDocs.any { !it.uri.isNullOrEmpty() }) {
+                val prog = entry.getProgress()
+                val upload = FileUpload.fromData(
+                    makeQuiltFromByteArrayList(updatedDocs.filter {
+                        !it.uri.isNullOrEmpty()
+                    }.map {
+                        it.base64UriToByteArray()
+                    }, "jpg"), if (prog == 1f) {
+                        "thingy_final.jpg"
+                    } else {
+                        "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.jpg"
+                    }
+                )
+                result.add(upload)
+            }
         }
         if (entry.chapterType == ChapterEntry.Companion.Type.Audio) {
             val prog = entry.getProgress()
@@ -116,33 +120,39 @@ class QueueClient(
     suspend fun checkLoop() {
         val entriesUpdated = mutableMapOf<QueueEntry, String>()
         while (true) {
-            entriesMutex.withLock {
-                println("entries: ${entries.size}")
-                for (entry in entries) {
-                    val timeSinceLastUpdate = entry.timeSinceLastUpdate
-                    val lastPercentCompleted = entry.getProgress()
-                    val modified = entry.sync(jedis)
-                    if (modified) {
-                        val eta = getEta(entry.getProgress(), lastPercentCompleted, timeSinceLastUpdate)
-                        entriesUpdated[entry] = getProgressText(entry, eta)
+            try {
+                entriesMutex.withLock {
+                    println("entries: ${entries.size}")
+                    for (entry in entries) {
+                        val timeSinceLastUpdate = entry.timeSinceLastUpdate
+                        val lastPercentCompleted = entry.getProgress()
+                        val modified = entry.sync(jedis)
+                        if (modified) {
+                            val eta = getEta(entry.getProgress(), lastPercentCompleted, timeSinceLastUpdate)
+                            entriesUpdated[entry] = getProgressText(entry, eta)
+                        }
+                        entry.moveToNextScriptIfAny(jedis)
                     }
-                    entry.moveToNextScriptIfAny(jedis)
                 }
-            }
-            for ((entry, text) in entriesUpdated) {
-                updatePreview(entry, text)
-                if (entry.isDone()) {
-                    val message = entry.safeGetMessage()
-                    message.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
-                        .queue()
-                    maybeSaveChapter(entry, message)
+                for ((entry, text) in entriesUpdated) {
+                    updatePreview(entry, text)
+                    if (entry.isDone()) {
+                        val message = entry.safeGetMessage()
+                        message.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
+                            .queue()
+                        maybeSaveChapter(entry, message)
 
-                    entries.remove(entry)
-                    entry.clean(jedis)
+                        entries.remove(entry)
+                        entry.clean(jedis)
+                    }
                 }
+                entriesUpdated.clear()
+                delay(1000)
             }
-            entriesUpdated.clear()
-            delay(1000)
+            catch(e: Exception) {
+                println("QueueClient Loop Exception! (Ignored)")
+                e.printStackTrace()
+            }
         }
     }
 

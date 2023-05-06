@@ -97,6 +97,7 @@ class QueueEntry(
             else {
                 1f
             }
+            accumulatedProgress += (1f * status.scriptIndex)
         }
         return (accumulatedProgress / batchSize.toDouble() / scripts.size.toDouble()).toFloat()
     }

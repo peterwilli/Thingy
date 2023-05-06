@@ -15,5 +15,10 @@ fun DocumentProto.merge(other: DocumentProto): DocumentProto {
         id = randomString(alphanumericCharPool, 32)
         tags = structBuilder.build()
         uri = other.uri
+        blob = if(other.blob.isEmpty) {
+            blob
+        } else {
+            other.blob
+        }
     }
 }

@@ -54,7 +54,7 @@ fun makeImageCommand(jda: JDA) {
             val entry = when(val model = maybeModel?.asString ?: "deliberate") {
                 "deep_floyd_if" -> {
                     val params = event.optionsToJson().withDefaults(getDeepFloydJsonDefaults())
-                    createEntry(event.hook, params, getDeepFloydJsonDefaults(), sdHiddenParameters, arrayOf("deep_floyd_if"), 1, model)
+                    createEntry(event.hook, params, getDeepFloydJsonDefaults(), sdHiddenParameters, arrayOf("deep_floyd_if_s1", "deep_floyd_if_s2", "deep_floyd_if_s3", "deep_floyd_if_s4"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 "deliberate" -> {
                     val params = event.optionsToJson().withDefaults(getDeliberateJsonDefaults())
