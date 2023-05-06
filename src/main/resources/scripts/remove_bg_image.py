@@ -10,7 +10,11 @@ def get_image(document, tag):
     image = image.convert("RGB")
     return image
 
-def on_document(document, callback):
-    input = get_image(document, 'image')
-    output = remove(input)
-    callback(Document().load_pil_image_to_datauri(output))
+
+worker = ThingyWorker()
+while True:
+    bucket = worker.get_current_bucket()
+    for document in bucket:
+        input = get_image(document, 'image')
+        output = remove(input)
+        worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(output), 1)

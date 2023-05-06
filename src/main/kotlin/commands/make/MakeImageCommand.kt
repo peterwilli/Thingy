@@ -9,6 +9,7 @@ import defaultNegative
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
+import getDeepFloydJsonDefaults
 import getDeliberateJsonDefaults
 import getKey
 import getSdJsonDefaults
@@ -22,18 +23,6 @@ import utils.sendException
 import utils.withDefaults
 import kotlin.math.pow
 import kotlin.random.Random
-
-fun getDeepFloydJsonDefaults(): JsonObject {
-    val obj = JsonObject()
-    obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
-    obj.addProperty("ar", "1:1")
-    obj.addProperty("_hf_auth_token", config.bot.hfToken)
-    obj.addProperty("noise_level", 100)
-    obj.addProperty("steps", 50)
-    obj.addProperty("negative_prompt", defaultNegative)
-    obj.add("embeds", JsonArray(0))
-    return obj
-}
 
 fun makeImageCommand(jda: JDA) {
     jda.onCommand("make_image") { event ->
@@ -73,7 +62,13 @@ fun makeImageCommand(jda: JDA) {
                 }
                 "stable_diffusion" -> {
                     val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
-                    createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayListOf("deliberate"), config.hostConstraints.totalImagesInMakeCommand, model)
+                    val selectedScript = if(params.get("size").asInt == 512) {
+                        "stable_diffusion_512"
+                    }
+                    else {
+                        "stable_diffusion_768"
+                    }
+                    createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayListOf(selectedScript), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 else -> {
                     event.reply_("Unknown model: $model").queue()

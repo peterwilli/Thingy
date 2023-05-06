@@ -67,7 +67,9 @@ class QueueClient(
             }
             updatedDocs.add(status.updatedDoc!!)
         }
-
+        if (updatedDocs.isEmpty()) {
+            return arrayOf()
+        }
         if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
             val prog = entry.getProgress()
             val upload = FileUpload.fromData(
@@ -86,7 +88,12 @@ class QueueClient(
 
     suspend fun updatePreview(entry: QueueEntry, text: String) {
         val uploads = getAttachements(entry)
-        entry.progressUpdate(text, uploads)
+        if (uploads.isEmpty()) {
+            entry.progressUpdate(text)
+        }
+        else {
+            entry.progressUpdate(text, uploads)
+        }
     }
 
     suspend fun checkLoop() {

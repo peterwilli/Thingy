@@ -36,16 +36,19 @@ def get_image(document, tag):
     image = image.convert("RGB")
     return image
 
-def on_document(document, callback):
-    torch.manual_seed(int(document.tags['seed']))
-    if global_object['pipe'] is None:
-        global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
-    pipe = global_object['pipe']
-    image = get_image(document, 'image')
-    instructions = document.tags['instructions']
-    negative_prompt = None
-    if 'negative_prompt' in document.tags:
-        negative_prompt = document.tags['negative_prompt']
-    input_scale = document.tags['input_scale']
-    image = pipe(instructions, image=image, controlnet_conditioning_scale=input_scale, negative_prompt=negative_prompt, guidance_scale=document.tags["guidance_scale"], num_inference_steps=int(document.tags['steps'])).images[0]
-    callback(Document().load_pil_image_to_datauri(image))
+worker = ThingyWorker()
+while True:
+    bucket = worker.get_current_bucket()
+    for document in bucket:
+        torch.manual_seed(int(document.tags['seed']))
+        if global_object['pipe'] is None:
+            global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
+        pipe = global_object['pipe']
+        image = get_image(document, 'image')
+        instructions = document.tags['instructions']
+        negative_prompt = None
+        if 'negative_prompt' in document.tags:
+            negative_prompt = document.tags['negative_prompt']
+        input_scale = document.tags['input_scale']
+        image = pipe(instructions, image=image, controlnet_conditioning_scale=input_scale, negative_prompt=negative_prompt, guidance_scale=document.tags["guidance_scale"], num_inference_steps=int(document.tags['steps'])).images[0]
+        worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(image), 1)

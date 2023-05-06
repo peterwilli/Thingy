@@ -64,26 +64,29 @@ def load_learned_embed_in_clip(learned_embeds_path, text_encoder, tokenizer):
     token_id = tokenizer.convert_tokens_to_ids(token)
     text_encoder.get_input_embeddings().weight.data[token_id] = embeds
 
-def on_document(document, callback):
-    generator = torch.manual_seed(int(document.tags['seed']))
-    if global_object['pipe'] is None:
-        global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
-    pipe = global_object['pipe']
-    base_size = document.tags['size']
-    prompt = document.tags['prompt']
-    embeds = document.tags['embeds']
-    ar = document.tags['ar'].split(":")
-    width, height = calculate_size(base_size, int(ar[0]), int(ar[1]))
-    width = next_divisible(width, 8)
-    height = next_divisible(height, 8)
-    print(f"width: {width} height: {height}")
+worker = ThingyWorker()
+while True:
+    bucket = worker.get_current_bucket()
+    for document in bucket:
+        generator = torch.manual_seed(int(document.tags['seed']))
+        if global_object['pipe'] is None:
+            global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
+        pipe = global_object['pipe']
+        base_size = document.tags['size']
+        prompt = document.tags['prompt']
+        embeds = document.tags['embeds']
+        ar = document.tags['ar'].split(":")
+        width, height = calculate_size(base_size, int(ar[0]), int(ar[1]))
+        width = next_divisible(width, 8)
+        height = next_divisible(height, 8)
+        print(f"width: {width} height: {height}")
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        for idx, embed_base64 in enumerate(embeds):
-            embed_path = os.path.join(temp_dir, f"embed_{idx + 1}.bin")
-            with open(embed_path, 'wb') as f:
-                f.write(base64.b64decode(embed_base64))
-            load_learned_embed_in_clip(embed_path, pipe.text_encoder, pipe.tokenizer)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for idx, embed_base64 in enumerate(embeds):
+                embed_path = os.path.join(temp_dir, f"embed_{idx + 1}.bin")
+                with open(embed_path, 'wb') as f:
+                    f.write(base64.b64decode(embed_base64))
+                load_learned_embed_in_clip(embed_path, pipe.text_encoder, pipe.tokenizer)
 
-    image = pipe(prompt, width = width, height = height, guidance_scale=document.tags["guidance_scale"], num_inference_steps=int(document.tags['steps'])).images[0]
-    callback(Document().load_pil_image_to_datauri(image))
+        image = pipe(prompt, width = width, height = height, guidance_scale=document.tags["guidance_scale"], num_inference_steps=int(document.tags['steps'])).images[0]
+        worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(image), 1)

@@ -14,18 +14,6 @@ import utils.*
 import kotlin.math.pow
 import kotlin.random.Random
 
-fun getSdJsonDefaults(): JsonObject {
-    val obj = JsonObject()
-    obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
-    obj.addProperty("ar", "1:1")
-    obj.addProperty("size", 512)
-    obj.addProperty("_hf_auth_token", config.bot.hfToken)
-    obj.addProperty("guidance_scale", 9.0)
-    obj.addProperty("steps", 25)
-    obj.addProperty("negative_prompt", "out of frame, lowres, text, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature,")
-    obj.add("embeds", JsonArray(0))
-    return obj
-}
 
 val sdHiddenParameters = arrayOf("embeds", "model")
 

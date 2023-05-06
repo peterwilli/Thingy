@@ -109,25 +109,28 @@ def process_tile(pipe, prompt, noise_level, guidance_scale, original_image_slice
     transparency_mask = Image.fromarray(make_transparency_mask((upscaled_tile.size[0], upscaled_tile.size[1]), tile_border * 4, remove_borders=remove_borders), mode="L")
     final_image.paste(upscaled_tile, (crop_rect_with_overlap[0] * 4, crop_rect_with_overlap[1] * 4), transparency_mask)
 
-def on_document(document, callback):
-    if global_object['pipe'] is None:
-        global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
-    pipe = global_object['pipe']
-    prompt = document.tags['prompt']
-    noise_level = document.tags['noise_level']
-    guidance_scale = document.tags['guidance_scale']
-    original_image_slice = int(document.tags['original_image_slice'])
-    tile_border = int(document.tags['tile_border'])
-    image = Image.open(BytesIO(base64.b64decode(document.tags['image'])))
+worker = ThingyWorker()
+while True:
+    bucket = worker.get_current_bucket()
+    for document in bucket:
+        if global_object['pipe'] is None:
+            global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
+        pipe = global_object['pipe']
+        prompt = document.tags['prompt']
+        noise_level = document.tags['noise_level']
+        guidance_scale = document.tags['guidance_scale']
+        original_image_slice = int(document.tags['original_image_slice'])
+        tile_border = int(document.tags['tile_border'])
+        image = Image.open(BytesIO(base64.b64decode(document.tags['image'])))
 
-    final_image = Image.new('RGB', (image.size[0] * 4, image.size[1] * 4))
-    tile_size = 128
-    tcx = math.ceil(image.size[0] / tile_size)
-    tcy = math.ceil(image.size[1] / tile_size)
-    total_tile_count = tcx * tcy
-    current_count = 0
-    for y in range(tcy):
-        for x in range(tcx):
-            process_tile(pipe, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image)
-            current_count += 1
-            callback(Document(tags={'progress': current_count / total_tile_count}).load_pil_image_to_datauri(final_image))
+        final_image = Image.new('RGB', (image.size[0] * 4, image.size[1] * 4))
+        tile_size = 128
+        tcx = math.ceil(image.size[0] / tile_size)
+        tcy = math.ceil(image.size[1] / tile_size)
+        total_tile_count = tcx * tcy
+        current_count = 0
+        for y in range(tcy):
+            for x in range(tcx):
+                process_tile(pipe, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image)
+                current_count += 1
+                worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(final_image), current_count / total_tile_count)

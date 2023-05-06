@@ -2,8 +2,9 @@ use crate::types::TimeStamp;
 use crate::utils::unix_time::get_unix_time;
 use log::{debug, error};
 use parking_lot::RwLock;
+use std::io::{BufRead, Cursor, Write};
 use std::sync::Arc;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 use tokio::process::Child;
 use tokio::spawn;
 use tokio::task::spawn_local;
@@ -37,24 +38,36 @@ impl ThingyProcess {
         let timestamp_lock = self.timestamp.clone();
 
         spawn(async move {
-            let mut stdout_reader = BufReader::new(stdout).lines();
-            let mut stderr_reader = BufReader::new(stderr).lines();
+            let mut stdout_reader = BufReader::new(stdout);
+            let mut stderr_reader = BufReader::new(stderr);
+            let mut buf_out = [0u8; 8];
+            let mut buf_err = [0u8; 8];
+            let mut stdout_line = String::new();
+            let mut stderr_line = String::new();
 
             loop {
                 tokio::select! {
-                    result = stdout_reader.next_line() => {
+                    result = stdout_reader.read(&mut buf_out[..]) => {
                         match result {
-                            Ok(Some(line)) => {
-                                debug!("Stdout: {}", line);
+                            Ok(len) => {
+                                stdout_line.push_str(&String::from_utf8_lossy(&buf_out[..len]));
+                                if stdout_line.contains("\n") || stdout_line.len() > 1024 {
+                                    debug!("stdout: {}", stdout_line);
+                                    stdout_line = String::new();
+                                }
                                 *timestamp_lock.write() = get_unix_time();
                             },
                             _ => break
                         }
                     }
-                    result = stderr_reader.next_line() => {
+                    result = stderr_reader.read(&mut buf_err[..]) => {
                         match result {
-                            Ok(Some(line)) => {
-                                debug!("Stderr: {}", line);
+                            Ok(len) => {
+                                stderr_line.push_str(&String::from_utf8_lossy(&buf_err[..len]));
+                                if stderr_line.contains("\n") || stderr_line.len() > 1024 {
+                                    debug!("stderr: {}", stderr_line);
+                                    stderr_line = String::new();
+                                }
                                 *timestamp_lock.write() = get_unix_time();
                             },
                             _ => break
