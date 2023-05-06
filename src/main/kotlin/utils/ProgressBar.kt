@@ -2,7 +2,7 @@ package utils
 
 import kotlin.math.floor
 
-fun asciiProgressBar(percentage: Double, length: Int = 20): String {
+fun asciiProgressBar(percentage: Float, length: Int = 20): String {
     val result = StringBuilder()
     val onStart = floor(percentage * length).toInt()
     for (i in 0 until length) {

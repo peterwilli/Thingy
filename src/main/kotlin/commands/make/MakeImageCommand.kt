@@ -1,5 +1,6 @@
 package commands.make
 
+import client.QueueEntry
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import config
@@ -14,7 +15,7 @@ import getSdJsonDefaults
 import imageModels
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
-import queueDispatcher
+import queueClient
 import sdHiddenParameters
 import utils.optionsToJson
 import utils.sendException
@@ -42,7 +43,7 @@ fun makeImageCommand(jda: JDA) {
             }
             event.deferReply().await()
 
-            fun createEntry(hook: InteractionHook, params: JsonObject, defaultParams: JsonObject, hiddenParameters: Array<String>, script: String, maxImages: Int, model: String): FairQueueEntry {
+            fun createEntry(hook: InteractionHook, params: JsonObject, defaultParams: JsonObject, hiddenParameters: Array<String>, scripts: ArrayList<String>, maxImages: Int, model: String): QueueEntry {
                 val batch = JsonArray()
                 for (idx in 0 until maxImages) {
                     val clonedParams = params.deepCopy()
@@ -50,44 +51,36 @@ fun makeImageCommand(jda: JDA) {
                     clonedParams.addProperty("seed", seed + idx)
                     batch.add(clonedParams)
                 }
-                return FairQueueEntry(
-                    "Making Images (${imageModels.getKey(model)})",
-                    event.member!!.id,
+                return QueueEntry("Making Images (${imageModels.getKey(model)})", event.member!!.id,
                     batch,
                     defaultParams,
                     hiddenParameters,
-                    script,
                     hook,
                     null,
                     ChapterEntry.Companion.Type.Image,
                     ChapterEntry.Companion.Visibility.Public,
-                    "jpg"
-                )
+                    "jpg", scripts)
             }
             val maybeModel = event.getOption("model")
-            if (maybeModel == null) {
-
-            }
-
             val entry = when(val model = maybeModel?.asString ?: "deliberate") {
                 "deep_floyd_if" -> {
                     val params = event.optionsToJson().withDefaults(getDeepFloydJsonDefaults())
-                    createEntry(event.hook, params, getDeepFloydJsonDefaults(), sdHiddenParameters, "deep_floyd_if", 1, model)
+                    createEntry(event.hook, params, getDeepFloydJsonDefaults(), sdHiddenParameters, arrayListOf("deep_floyd_if"), 1, model)
                 }
                 "deliberate" -> {
                     val params = event.optionsToJson().withDefaults(getDeliberateJsonDefaults())
-                    createEntry(event.hook, params, getDeliberateJsonDefaults(), sdHiddenParameters, "deliberate", config.hostConstraints.totalImagesInMakeCommand, model)
+                    createEntry(event.hook, params, getDeliberateJsonDefaults(), sdHiddenParameters, arrayListOf("deliberate"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 "stable_diffusion" -> {
                     val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
-                    createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, "deliberate", config.hostConstraints.totalImagesInMakeCommand, model)
+                    createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayListOf("deliberate"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 else -> {
                     event.reply_("Unknown model: $model").queue()
                     return@onCommand
                 }
             }
-            queueDispatcher.queue.addToQueue(entry)
+            queueClient.uploadEntry(entry)
         } catch (e: Exception) {
             e.printStackTrace()
             event.sendException(e)

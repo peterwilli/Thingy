@@ -23,7 +23,8 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.apache.commons.lang3.exception.ExceptionUtils
-import queueDispatcher
+
+
 import utils.*
 import java.net.URL
 import java.util.*
@@ -148,7 +149,7 @@ class QueueDispatcher(private val jda: JDA) {
                                     try {
                                         it.hook.editOriginal("Trying again...").setComponents(listOf()).queue()
                                         val tryAgainEntry = entry.copy(progressHook = it.hook)
-                                        queueDispatcher.queue.addToQueue(tryAgainEntry)
+                                        //queueDispatcher.queue.addToQueue(tryAgainEntry)
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                         it.reply_("Error! $e").setEphemeral(true).queue()
@@ -199,7 +200,7 @@ class QueueDispatcher(private val jda: JDA) {
                     }
                     if (!(newImages.isEmpty() || avgPercentCompleted == lastPercentCompleted)) {
                         val progressMsg =
-                            StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted))
+                            StringBuilder(entry.getHumanReadableOverview() + "\n" + asciiProgressBar(avgPercentCompleted.toFloat()))
                         if (timeSinceLastUpdate > 0) {
                             val steps = 1 / (avgPercentCompleted - lastPercentCompleted)
                             val estimatedSeconds =

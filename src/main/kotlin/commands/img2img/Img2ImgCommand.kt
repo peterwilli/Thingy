@@ -50,7 +50,7 @@ fun img2imgCommand(jda: JDA) {
                 event.hook,
                 null
             )
-            event.hook.editOriginal(queueDispatcher.queue.addToQueue(entry)).queue()
+            event.hook.editOriginal(//queueDispatcher.queue.addToQueue(entry)).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.reply_("Error! $e").setEphemeral(true).queue()

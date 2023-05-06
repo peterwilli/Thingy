@@ -6,7 +6,7 @@ import config
 import database.models.ChapterEntry
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.InteractionHook
-import queueDispatcher
+
 
 val upscaleHiddenParameters = arrayOf("image")
 
@@ -31,5 +31,5 @@ suspend fun upscale(
         ChapterEntry.Companion.Visibility.Public,
         "jpg"
     )
-    queueDispatcher.queue.addToQueue(entry)
+    //queueDispatcher.queue.addToQueue(entry)
 }

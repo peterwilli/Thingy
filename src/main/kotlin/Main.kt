@@ -1,3 +1,4 @@
+import client.QueueClient
 import com.sksamuel.hoplite.ConfigLoader
 import commands.art_contest.*
 import commands.art_contest.cancel.cancelCommand
@@ -37,12 +38,13 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import redis.clients.jedis.Jedis
 import utils.JCloudClient
 import kotlin.math.pow
 import kotlin.time.Duration
 
 lateinit var config: Config
-lateinit var queueDispatcher: QueueDispatcher
+lateinit var queueClient: QueueClient
 lateinit var jcloudClient: JCloudClient
 var updateMode = false
 
@@ -67,11 +69,12 @@ suspend fun main(args: Array<String>) {
     builder.setBulkDeleteSplittingEnabled(false)
     builder.setCompression(Compression.ZLIB)
     builder.setActivity(Activity.competing("Your prompts suck!"))
+    val redisClient = Jedis("localhost", 6379)
     coroutineScope {
         val jda = builder.build()
-        queueDispatcher = QueueDispatcher(jda)
+        queueClient = QueueClient(redisClient)
         async {
-            queueDispatcher.startQueueDispatcher()
+            queueClient.checkLoop()
         }
         initCommands(jda)
     }

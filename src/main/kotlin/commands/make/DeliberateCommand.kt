@@ -59,13 +59,13 @@ fun deliberateCommand(jda: JDA) {
                 embedsCallback(jda, event, embeds, params) { _, params, hook ->
                     val entry = createEntry(hook, params)
                     runBlocking {
-                        queueDispatcher.queue.addToQueue(entry)
+                        //queueDispatcher.queue.addToQueue(entry)
                     }
                 }
             }
             else {*/
                 val entry = createEntry(event.hook, params)
-                queueDispatcher.queue.addToQueue(entry)
+                //queueDispatcher.queue.addToQueue(entry)
             //}
         } catch (e: Exception) {
             e.printStackTrace()

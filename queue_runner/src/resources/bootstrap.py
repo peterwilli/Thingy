@@ -1,7 +1,6 @@
 from jina import Document
 import redis
 import time
-from pottery import Redlock
 
 prefix = "{%PREFIX%}"
 
@@ -19,10 +18,13 @@ class ThingyWorker:
             'progress': progress
         })
         if progress == 1:
-            self.redis.fcall('remove_script_in_queue', 1, 'scriptsInQueue', prefix)
+            pipe = self.redis.pipeline()
+            pipe.fcall('remove_n_script_in_queue', 1, 'scriptsInQueue', prefix, 1)
+            pipe.lrem(self.doing_bucket_name, 1, document_id)
+            pipe.execute()
 
     def get_current_bucket(self):
-        print("get_current_bucket")
+        # print("get_current_bucket")
         time.sleep(1)
         result = []
         doc_id = self.redis.fcall('get_and_move_doc', 2, self.bucket_name, self.doing_bucket_name)

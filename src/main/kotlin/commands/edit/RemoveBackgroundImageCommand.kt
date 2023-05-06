@@ -36,7 +36,7 @@ fun removeBackgroundImageCommand(jda: JDA) {
                 )
             }
             val entry = createEntry(event.hook, params)
-            queueDispatcher.queue.addToQueue(entry)
+//            //queueDispatcher.queue.addToQueue(entry)
         } catch (e: Exception) {
             e.printStackTrace()
             event.sendException(e)

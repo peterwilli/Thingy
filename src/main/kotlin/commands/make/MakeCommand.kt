@@ -54,13 +54,13 @@ fun makeCommand(jda: JDA) {
                 embedsCallback(jda, event, embeds, params) { _, params, hook ->
                     runBlocking {
                         val entry = createEntry(hook, params)
-                        queueDispatcher.queue.addToQueue(entry)
+                        //queueDispatcher.queue.addToQueue(entry)
                     }
                 }
             }
             else {
                 val entry = createEntry(event.hook, params)
-                queueDispatcher.queue.addToQueue(entry)
+                //queueDispatcher.queue.addToQueue(entry)
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -17,7 +17,7 @@ import isLettersOrDigits
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import queueDispatcher
+
 import utils.*
 
 fun sdTrainDefaults(): JsonObject {
@@ -61,7 +61,7 @@ fun trainCommand(jda: JDA) {
                     ChapterEntry.Companion.Visibility.Private,
                     "jpg"
                 )
-                queueDispatcher.queue.addToQueue(entry)
+                //queueDispatcher.queue.addToQueue(entry)
             }
             val results = chapterEntryDao.queryBuilder().where().eq("metadata", word.lowercase()).and()
                     .eq("chapterType", ChapterEntry.Companion.Type.TrainedModel.ordinal).query().groupBy {

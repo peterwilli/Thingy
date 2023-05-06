@@ -78,7 +78,7 @@ fun variateCommand(jda: JDA) {
                 btnEvent.hook,
                 usingChapter
             )
-            btnEvent.reply_(queueDispatcher.queue.addToQueue(fqe)).queue()
+            btnEvent.reply_(//queueDispatcher.queue.addToQueue(fqe)).queue()
         }
         event.hook.editMessageToIncludePaginator(quiltSelector).queue()
          */

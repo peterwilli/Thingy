@@ -7,15 +7,19 @@ import com.google.protobuf.Struct
 import com.google.protobuf.util.JsonFormat
 import database.models.ChapterEntry
 import database.models.UserChapter
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.messages.reply_
 import docarray.Docarray
 import docarray.Docarray.DocumentProto
 import docarray.documentProto
 import eq
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.utils.FileUpload
 import randomString
 import redis.clients.jedis.Jedis
-import utils.getResourceAsText
-import utils.merge
+import utils.*
+import java.net.URL
 
 class QueueEntryStatus(
     var doc: DocumentProto,
@@ -34,15 +38,94 @@ class QueueEntry(
     val parameters: JsonArray,
     val defaultParams: JsonObject,
     val hiddenParameters: Array<String>,
-    val progressHook: InteractionHook?,
+    val progressHook: InteractionHook,
     val chapter: UserChapter?,
     val chapterType: ChapterEntry.Companion.Type,
     val chapterVisibility: ChapterEntry.Companion.Visibility,
     val fileFormat: String,
-    val scripts: List<String>,
+    val scripts: ArrayList<String>,
     val shouldSaveChapter: Boolean = true,
-    var currentStatuses: List<QueueEntryStatus>? = null
+    var currentStatuses: List<QueueEntryStatus>? = null,
+    var timeSinceLastUpdate: Long = 0
 ) {
+    private var newMessage: Message? = null
+
+    suspend fun progressUpdate(message: String): Message {
+        newMessage = if (newMessage == null) {
+            val originalMessage = progressHook.retrieveOriginal().await()
+            originalMessage.reply_(message).await()
+        } else {
+            newMessage!!.editMessage(message).await()
+        }
+        return newMessage!!
+    }
+
+    suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {
+        newMessage = if (newMessage == null) {
+            val originalMessage = progressHook.retrieveOriginal().await()
+            originalMessage.reply_(message, files = listOf(FileUpload.fromData(fileBytes, fileName))).await()
+        } else {
+            newMessage!!.editMessage(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
+        }
+        return newMessage!!
+    }
+
+    fun getProgress(): Float {
+        if (currentStatuses == null) {
+            return 0f
+        }
+        val batchSize = parameters.size()
+        var accumulatedProgress = 0f
+        for (status in currentStatuses!!) {
+            accumulatedProgress += if(status.error == null) {
+                status.progress
+            }
+            else {
+                1f
+            }
+        }
+        return (accumulatedProgress / batchSize.toDouble() / scripts.size.toDouble()).toFloat()
+    }
+
+    fun getHumanReadableOverview(withDescription: String? = null): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("**")
+        if (withDescription == null) {
+            stringBuilder.append(description)
+        } else {
+            stringBuilder.append(withDescription)
+        }
+        stringBuilder.append("** | ")
+        for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters(this.hiddenParameters).asMap()) {
+            if (v.isJsonNull) {
+                continue
+            }
+            if (v.toString().length > 1000) {
+                continue
+            }
+            try {
+                val url = URL(v.asString)
+                continue
+            }
+            catch (_: Exception) {
+            }
+            if (defaultParams.has(k)) {
+                if (v == defaultParams.get(k)) {
+                    continue
+                }
+            }
+            stringBuilder.append("`$k`: *${sanitize(v.asString)}* ")
+        }
+        for ((k, v) in parameters[0].asJsonObject.stripHiddenParameters(this.hiddenParameters).asMap()) {
+            try {
+                val url = URL(v.asString)
+                stringBuilder.append("`$k`: $url ")
+            }
+            catch (_: Exception) {
+            }
+        }
+        return stringBuilder.toString()
+    }
 
     fun sync(con: Jedis): Boolean {
         var modified = false
@@ -58,8 +141,11 @@ class QueueEntry(
             val error = con.hget("entry:${currentStatus.doc.id}", "error")
             if (error != null) {
                 currentStatus.error = error
-                modified = true;
+                modified = true
             }
+        }
+        if (modified) {
+            timeSinceLastUpdate = peterDate()
         }
         return modified
     }
@@ -81,7 +167,7 @@ class QueueEntry(
         tx.hset(hashKey.toByteArray(), "doc".toByteArray(), doc.toByteArray())
         tx.hset(hashKey, "scriptID", scriptId)
         tx.lpush("queue:todo:$scriptId", docId)
-        tx.zadd("scriptsInQueue", mapOf(scriptId to 1.0))
+        tx.zincrby("scriptsInQueue", 1.0, scriptId)
         tx.exec()
     }
 
@@ -120,7 +206,7 @@ class QueueEntry(
     }
 
     fun isDone(): Boolean {
-        return currentStatuses != null && currentStatuses!!.any { currentStatus ->
+        return currentStatuses != null && currentStatuses!!.all { currentStatus ->
             println("currentStatus.isDone(this): ${currentStatus.isDone(this)}")
             currentStatus.isDone(this)
         }
