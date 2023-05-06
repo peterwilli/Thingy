@@ -1,12 +1,18 @@
 package client
 
+import commands.make.makeQuiltFromByteArrayList
+import database.models.ChapterEntry
+import docarray.Docarray.DocumentProto
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import net.dv8tion.jda.api.utils.FileUpload
 import redis.clients.jedis.Jedis
 import utils.asciiProgressBar
+import utils.base64UriToByteArray
 import utils.getEta
 import java.util.Collections
+import kotlin.math.floor
 
 
 class QueueClient(private val jedis: Jedis, private val entries: MutableList<QueueEntry> = Collections.synchronizedList(mutableListOf()), private val entriesMutex: Mutex = Mutex()) {
@@ -20,9 +26,11 @@ class QueueClient(private val jedis: Jedis, private val entries: MutableList<Que
         entriesMutex.withLock {
             entries.add(entry)
         }
+        entry.progressHook.editOriginal(entry.getHumanReadableOverview(null)).queue()
+        entry.progressUpdate("Queued")
     }
 
-    suspend fun getProgressText(entry: QueueEntry, eta: Long) {
+    private fun getProgressText(entry: QueueEntry, eta: Long): String {
         val progressMsg =
             StringBuilder(entry.getHumanReadableOverview())
         progressMsg.append("\n" + asciiProgressBar(entry.getProgress()))
@@ -31,20 +39,51 @@ class QueueClient(private val jedis: Jedis, private val entries: MutableList<Que
                 progressMsg.append("\n**Error** with item `${index + 1}`: `${status.error}`")
             }
         }
-        entry.progressUpdate(progressMsg.toString())
+        return progressMsg.toString()
+    }
+
+    fun getAttachements(entry: QueueEntry): Array<FileUpload> {
+        val result = mutableListOf<FileUpload>()
+        val updatedDocs = mutableListOf<DocumentProto>()
+        for (status in entry.currentStatuses!!) {
+            if (status.updatedDoc == null) {
+                continue
+            }
+            updatedDocs.add(status.updatedDoc!!)
+        }
+
+        if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
+            val prog = entry.getProgress()
+            val upload = FileUpload.fromData(makeQuiltFromByteArrayList(updatedDocs.map {
+                it.base64UriToByteArray()
+            }, "jpg"), if (entry.getProgress() == 1f) {
+                "thingy_final.jpg"
+            } else {
+                "thingy_progress_${floor((prog * 100).toDouble())}_pct.jpg"
+            })
+            result.add(upload)
+        }
+        return result.toTypedArray()
+    }
+
+    suspend fun updatePreview(entry: QueueEntry, text: String) {
+        val uploads = getAttachements(entry)
+        entry.progressUpdate(text, uploads)
     }
 
     suspend fun checkLoop() {
         val entriesDone = mutableListOf<QueueEntry>()
+        val entriesUpdated = mutableMapOf<QueueEntry, String>()
         while (true) {
             entriesMutex.withLock {
+                println("entries: ${entries.size}")
                 for(entry in entries) {
                     val timeSinceLastUpdate = entry.timeSinceLastUpdate
                     val lastPercentCompleted = entry.getProgress()
                     val modified = entry.sync(jedis)
                     if(modified) {
                         val eta = getEta(entry.getProgress(), lastPercentCompleted, timeSinceLastUpdate)
-                        getProgressText(entry, eta)
+                        entriesUpdated[entry] = getProgressText(entry, eta)
                     }
                     entry.moveToNextScriptIfAny(jedis)
                     if (entry.isDone()) {
@@ -57,7 +96,10 @@ class QueueClient(private val jedis: Jedis, private val entries: MutableList<Que
                 }
                 entriesDone.clear()
             }
-            println("entries: ${entries.size}")
+            for ((entry, text) in entriesUpdated) {
+                updatePreview(entry, text)
+            }
+            entriesUpdated.clear()
             delay(1000)
         }
     }

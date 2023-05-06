@@ -25,7 +25,8 @@ class QueueEntryStatus(
     var doc: DocumentProto,
     var scriptIndex: Int = 0,
     var progress: Float = 0.0f,
-    var error: String? = null
+    var error: String? = null,
+    var updatedDoc: DocumentProto? = null
 ) {
     fun isDone(parent: QueueEntry): Boolean {
         return (scriptIndex == (parent.scripts.size - 1) && progress == 1.0f) || error != null
@@ -60,12 +61,12 @@ class QueueEntry(
         return newMessage!!
     }
 
-    suspend fun progressUpdate(message: String, fileBytes: ByteArray, fileName: String): Message {
+    suspend fun progressUpdate(message: String, uploads: Array<FileUpload>): Message {
         newMessage = if (newMessage == null) {
             val originalMessage = progressHook.retrieveOriginal().await()
-            originalMessage.reply_(message, files = listOf(FileUpload.fromData(fileBytes, fileName))).await()
+            originalMessage.reply_(message, files = uploads.toList()).await()
         } else {
-            newMessage!!.editMessage(message).setFiles(FileUpload.fromData(fileBytes, fileName)).await()
+            newMessage!!.editMessage(message).setFiles(*uploads).await()
         }
         return newMessage!!
     }
@@ -137,6 +138,10 @@ class QueueEntry(
                     currentStatus.progress = progress.toFloat()
                     modified = true
                 }
+            }
+            val updatedDoc = con.hget("entry:${currentStatus.doc.id}".toByteArray(), "updatedDoc".toByteArray())
+            if (updatedDoc != null) {
+                currentStatus.updatedDoc = DocumentProto.parseFrom(updatedDoc)
             }
             val error = con.hget("entry:${currentStatus.doc.id}", "error")
             if (error != null) {

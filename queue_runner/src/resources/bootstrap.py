@@ -14,7 +14,7 @@ class ThingyWorker:
     def set_progress(self, document_id: str, updated_document: Document, progress: float):
         hash_key = f"entry:{document_id}"
         self.redis.hset(hash_key, mapping={
-            'updatedDoc': updated_document.to_bytes(),
+            'updatedDoc': updated_document.to_bytes(protocol='protobuf'),
             'progress': progress
         })
         if progress == 1:
