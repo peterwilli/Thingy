@@ -13,6 +13,7 @@ import docarray.Docarray
 import docarray.Docarray.DocumentProto
 import docarray.documentProto
 import eq
+import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.utils.FileUpload
@@ -50,6 +51,18 @@ class QueueEntry(
     var timeSinceLastUpdate: Long = 0
 ) {
     private var newMessage: Message? = null
+
+    suspend fun safeGetMessage(): Message {
+        return if (newMessage == null) {
+            progressHook.retrieveOriginal().await()
+        } else {
+            newMessage!!
+        }
+    }
+
+    fun getMember(): Member {
+        return progressHook.interaction.member!!
+    }
 
     suspend fun progressUpdate(message: String): Message {
         newMessage = if (newMessage == null) {

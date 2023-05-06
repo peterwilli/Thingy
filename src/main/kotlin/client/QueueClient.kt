@@ -2,6 +2,7 @@ package client
 
 import commands.make.makeQuiltFromByteArrayList
 import database.models.ChapterEntry
+import dev.minn.jda.ktx.messages.reply_
 import docarray.Docarray.DocumentProto
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -88,6 +89,8 @@ class QueueClient(private val jedis: Jedis, private val entries: MutableList<Que
                     entry.moveToNextScriptIfAny(jedis)
                     if (entry.isDone()) {
                         entriesDone.add(entry)
+                        entry.safeGetMessage().reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
+                            .queue()
                     }
                 }
                 for(entry in entriesDone) {
