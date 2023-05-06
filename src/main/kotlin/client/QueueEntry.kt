@@ -45,7 +45,7 @@ class QueueEntry(
     val chapterType: ChapterEntry.Companion.Type,
     val chapterVisibility: ChapterEntry.Companion.Visibility,
     val fileFormat: String,
-    val scripts: ArrayList<String>,
+    val scripts: Array<String>,
     val shouldSaveChapter: Boolean = true,
     var currentStatuses: List<QueueEntryStatus>? = null,
     var timeSinceLastUpdate: Long = 0

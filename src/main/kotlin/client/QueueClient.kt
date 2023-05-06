@@ -83,6 +83,23 @@ class QueueClient(
             )
             result.add(upload)
         }
+        if (entry.chapterType == ChapterEntry.Companion.Type.Audio) {
+            val prog = entry.getProgress()
+            if (entry.currentStatuses != null) {
+                for (status in entry.currentStatuses!!) {
+                    if (!status.isDone(entry)) {
+                        continue
+                    }
+
+                    val upload = FileUpload.fromData(status.updatedDoc!!.base64UriToByteArray(), if (entry.getProgress() == 1f) {
+                        "thingy_final.mp3"
+                    } else {
+                        "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.mp3"
+                    })
+                    result.add(upload)
+                }
+            }
+        }
         return result.toTypedArray()
     }
 
@@ -150,7 +167,7 @@ class QueueClient(
                 possibleLastChapter.id + 1
             }
 
-            if (entry.shouldSaveChapter) {
+            if (entry.shouldSaveChapter || finishMsg.attachments.size > 0) {
                 val chapter = UserChapter(
                     id = chapterID,
                     chapterType = entry.chapterType.ordinal,

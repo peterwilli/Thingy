@@ -2,9 +2,9 @@ use crate::types::TimeStamp;
 use crate::utils::unix_time::get_unix_time;
 use log::{debug, error};
 use parking_lot::RwLock;
-use std::io::{BufRead, Cursor, Write};
+use std::io::{BufRead, Cursor, Read, Write};
 use std::sync::Arc;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, BufReader};
 use tokio::process::Child;
 use tokio::spawn;
 use tokio::task::spawn_local;
@@ -21,6 +21,28 @@ impl ThingyProcess {
             script_id,
             process,
             timestamp: Arc::new(RwLock::new(get_unix_time())),
+        };
+    }
+
+    async fn process_std_stream<R: AsyncRead + Unpin + Send + 'static>(
+        name: &str,
+        reader: &mut BufReader<R>,
+        line_buf: &mut String,
+        buf: &mut [u8],
+        timestamp_lock: &Arc<RwLock<TimeStamp>>,
+    ) -> bool {
+        let result = reader.read(&mut buf[..]).await;
+        return match result {
+            Ok(len) => {
+                line_buf.push_str(&String::from_utf8_lossy(&buf[..len]));
+                if line_buf.contains("\n") || line_buf.len() > 1024 {
+                    debug!("{}: {}", name, line_buf);
+                    line_buf.clear();
+                }
+                *timestamp_lock.write() = get_unix_time();
+                true
+            }
+            _ => false,
         };
     }
 
@@ -47,30 +69,14 @@ impl ThingyProcess {
 
             loop {
                 tokio::select! {
-                    result = stdout_reader.read(&mut buf_out[..]) => {
-                        match result {
-                            Ok(len) => {
-                                stdout_line.push_str(&String::from_utf8_lossy(&buf_out[..len]));
-                                if stdout_line.contains("\n") || stdout_line.len() > 1024 {
-                                    debug!("stdout: {}", stdout_line);
-                                    stdout_line = String::new();
-                                }
-                                *timestamp_lock.write() = get_unix_time();
-                            },
-                            _ => break
+                    result = Self::process_std_stream("stdout", &mut stdout_reader, &mut stdout_line, &mut buf_out, &timestamp_lock) => {
+                        if !result {
+                            break;
                         }
                     }
-                    result = stderr_reader.read(&mut buf_err[..]) => {
-                        match result {
-                            Ok(len) => {
-                                stderr_line.push_str(&String::from_utf8_lossy(&buf_err[..len]));
-                                if stderr_line.contains("\n") || stderr_line.len() > 1024 {
-                                    debug!("stderr: {}", stderr_line);
-                                    stderr_line = String::new();
-                                }
-                                *timestamp_lock.write() = get_unix_time();
-                            },
-                            _ => break
+                    result = Self::process_std_stream("stderr", &mut stderr_reader, &mut stderr_line, &mut buf_err, &timestamp_lock) => {
+                        if !result {
+                            break;
                         }
                     }
                 }

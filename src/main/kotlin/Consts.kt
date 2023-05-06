@@ -23,6 +23,14 @@ fun getDeepFloydJsonDefaults(): JsonObject {
     return obj
 }
 
+fun getBarkAudioDefaults(): JsonObject {
+    val obj = JsonObject()
+    obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
+    obj.addProperty("_hf_auth_token", config.bot.hfToken)
+    obj.add("embeds", JsonArray(0))
+    return obj
+}
+
 fun getSdJsonDefaults(): JsonObject {
     val obj = JsonObject()
     obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
