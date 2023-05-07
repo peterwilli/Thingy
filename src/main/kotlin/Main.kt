@@ -101,12 +101,12 @@ fun initCommands(jda: JDA) {
     serverStatsCommand(jda)
     removeFromContestCommand(jda)
     submitToContestCommand(jda)
-    voteReactionWatcher(jda)
     trainCommand(jda)
     editImageCommand(jda)
     removeBackgroundImageCommand(jda)
 
     if (config.leaderboardChannelID != null) {
+        voteReactionWatcher(jda)
         leaderboardScheduler(jda, 9)
         testLeaderboardCommand(jda)
     }
@@ -170,6 +170,14 @@ fun initCommands(jda: JDA) {
             }
         )
         return data
+    }
+
+    fun modelSelection(data: SlashCommandData): SlashCommandData {
+        return data.option<String>("type", "What kind of work do you want to see? (default: Images)", required = false) {
+            choice("Images", "images")
+            choice("Audio", "audio")
+            choice("Models", "pretrained_models")
+        }
     }
 
     fun sdSteps(data: SlashCommandData): SlashCommandData {
@@ -311,10 +319,7 @@ fun initCommands(jda: JDA) {
         }
         slash("cancel", "Cancel latest item (by you) in the queue")
         slash("chapters", "Show your previous work!") {
-            option<String>("type", "What kind of work do you want to see? (default: Images)", required = false) {
-                choice("Images", "images")
-                choice("Models", "pretrained_models")
-            }
+            modelSelection(this)
         }
         slash("rollback", "Like your old results better? Use this to bring them back!") {
         }
@@ -323,7 +328,8 @@ fun initCommands(jda: JDA) {
             option<Double>("guidance_scale", "How much guidance of the original image?", required = false)
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
-        slash("share", "Share your favorite image!") {
+        slash("share", "Share your favorite content!") {
+            modelSelection(this)
         }
         slash("profile", "Get someone's (Or your!) stats!") {
             option<User>("user", "Get stats by user (you if not defined)", required = false)

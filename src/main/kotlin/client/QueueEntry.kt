@@ -142,37 +142,25 @@ class QueueEntry(
         return stringBuilder.toString()
     }
 
-    fun sync(con: Jedis): Boolean {
-        var modified = false
+    fun sync(con: Jedis) {
         for(currentStatus in currentStatuses!!) {
             val progress = con.hget("entry:${currentStatus.doc.id}", "progress")
             if (progress != null) {
                 val progressFloat = progress.toFloat()
                 if(!progressFloat.eq(currentStatus.progress)) {
                     currentStatus.progress = progress.toFloat()
-                    modified = true
                 }
             }
             val updatedDoc = con.hget("entry:${currentStatus.doc.id}".toByteArray(), "updatedDoc".toByteArray())
             if (updatedDoc != null) {
-                currentStatus.updatedDoc = DocumentProto.parseFrom(updatedDoc)
+                val newUpdatedDoc = DocumentProto.parseFrom(updatedDoc)
+                if (newUpdatedDoc.id !=  currentStatus.doc.id) {
+                    currentStatus.updatedDoc = newUpdatedDoc
+                }
             }
             val error = con.hget("entry:${currentStatus.doc.id}", "error")
             if (error != null) {
                 currentStatus.error = error
-                modified = true
-            }
-        }
-        if (modified) {
-            timeSinceLastUpdate = peterDate()
-        }
-        return modified
-    }
-
-    fun clean(con: Jedis) {
-        for(currentStatus in currentStatuses!!) {
-            if (currentStatus.isDone(this)) {
-                con.del("entry:${currentStatus.doc.id}")
             }
         }
     }
@@ -212,15 +200,18 @@ class QueueEntry(
             if(currentStatus.progress < 1.0f) {
                 continue
             }
+            val docIDToDelete = currentStatus.doc.id
             if (currentStatus.scriptIndex < scripts.size - 1) {
                 currentStatus.scriptIndex += 1
+                currentStatus.progress = 0f
                 // Get current output doc to merge with the previous input
-                val docBytes = con.hget("entry:${currentStatus.doc!!.id}".toByteArray(), "updatedDoc".toByteArray())
+                val docBytes = con.hget("entry:${currentStatus.doc.id}".toByteArray(), "updatedDoc".toByteArray())
                 val doc = DocumentProto.parseFrom(docBytes)
                 val mergedDoc = currentStatus.doc.merge(doc)
                 currentStatus.doc = mergedDoc
                 addDocToRedis(con, mergedDoc, currentStatus.scriptIndex)
             }
+            con.del("entry:$docIDToDelete")
         }
     }
 

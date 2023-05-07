@@ -11,6 +11,7 @@ import database.models.UserChapter
 import database.userDao
 import dev.minn.jda.ktx.messages.reply_
 import docarray.Docarray.DocumentProto
+import eq
 import gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -18,10 +19,7 @@ import kotlinx.coroutines.sync.withLock
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.utils.FileUpload
 import redis.clients.jedis.Jedis
-import utils.asciiProgressBar
-import utils.base64UriToByteArray
-import utils.getEta
-import utils.stripHiddenParameters
+import utils.*
 import java.net.URL
 import java.util.Collections
 import kotlin.math.floor
@@ -43,13 +41,16 @@ class QueueClient(
             entries.add(entry)
         }
         entry.progressHook.editOriginal(entry.getHumanReadableOverview(null)).queue()
-        entry.progressUpdate("Queued")
+        val simulatedQueuePosition = jedis.incrBy("simulatedQueuePosition", 1)
+        entry.progressUpdate("Queued `#$simulatedQueuePosition`")
     }
 
     private fun getProgressText(entry: QueueEntry, eta: Long): String {
         val progressMsg =
             StringBuilder(entry.getHumanReadableOverview())
         progressMsg.append("\n" + asciiProgressBar(entry.getProgress()))
+        val etaString = etaToString(eta)
+        progressMsg.append(" **ETA:** $etaString")
         for ((index, status) in entry.currentStatuses!!.withIndex()) {
             if (status.error != null) {
                 progressMsg.append("\n**Error** with item `${index + 1}`: `${status.error}`")
@@ -122,16 +123,17 @@ class QueueClient(
         while (true) {
             try {
                 entriesMutex.withLock {
-                    println("entries: ${entries.size}")
                     for (entry in entries) {
                         val timeSinceLastUpdate = entry.timeSinceLastUpdate
                         val lastPercentCompleted = entry.getProgress()
-                        val modified = entry.sync(jedis)
-                        if (modified) {
+                        entry.sync(jedis)
+                        entry.moveToNextScriptIfAny(jedis)
+                        val currentProgress = entry.getProgress()
+                        if (!lastPercentCompleted.eq(currentProgress)) {
                             val eta = getEta(entry.getProgress(), lastPercentCompleted, timeSinceLastUpdate)
                             entriesUpdated[entry] = getProgressText(entry, eta)
+                            entry.timeSinceLastUpdate = peterDate()
                         }
-                        entry.moveToNextScriptIfAny(jedis)
                     }
                 }
                 for ((entry, text) in entriesUpdated) {
@@ -141,9 +143,8 @@ class QueueClient(
                         message.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
                             .queue()
                         maybeSaveChapter(entry, message)
-
                         entries.remove(entry)
-                        entry.clean(jedis)
+                        jedis.incrBy("simulatedQueuePosition", -1)
                     }
                 }
                 entriesUpdated.clear()

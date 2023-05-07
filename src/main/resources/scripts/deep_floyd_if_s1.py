@@ -49,7 +49,6 @@ def get_stage(hf_auth_token):
     )
     return pipe
 
-dummy = Image.new(mode="RGB", size=(64, 64))
 worker = ThingyWorker()
 while True:
     bucket = worker.get_current_bucket()

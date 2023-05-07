@@ -34,13 +34,17 @@ impl ThingyProcess {
         let result = reader.read(&mut buf[..]).await;
         return match result {
             Ok(len) => {
-                line_buf.push_str(&String::from_utf8_lossy(&buf[..len]));
-                if line_buf.contains("\n") || line_buf.len() > 1024 {
-                    debug!("{}: {}", name, line_buf);
-                    line_buf.clear();
+                if len == 0 {
+                    false
+                } else {
+                    line_buf.push_str(&String::from_utf8_lossy(&buf[..len]));
+                    if line_buf.contains("\n") || line_buf.len() > 1024 {
+                        debug!("{}: {}", name, line_buf);
+                        line_buf.clear();
+                    }
+                    *timestamp_lock.write() = get_unix_time();
+                    true
                 }
-                *timestamp_lock.write() = get_unix_time();
-                true
             }
             _ => false,
         };

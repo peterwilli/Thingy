@@ -41,14 +41,16 @@ def get_stage(hf_auth_token):
         "DeepFloyd/IF-I-XL-v1.0",
         text_encoder=None,
         use_auth_token=hf_auth_token,
-        unet=None,
         device_map="auto",
+        torch_dtype=torch.float16,
+        variant="fp16"
     )
 
     safety_modules = {"feature_extractor": stage_1.feature_extractor, "safety_checker": stage_1.safety_checker, "watermarker": stage_1.watermarker}
     stage_3 = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-x4-upscaler", **safety_modules, torch_dtype=torch.float16, use_auth_token=hf_auth_token)
-    stage_3.enable_xformers_memory_efficient_attention()  # remove line if torch.__version__ >= 2.0.0
     stage_3.enable_model_cpu_offload()
+    del stage_1
+    clean_memory()
     return stage_3
 
 dummy = Image.new(mode="RGB", size=(64, 64))
@@ -63,4 +65,4 @@ while True:
         stage = global_object['pipe']
         data = pickle.loads(document.blob)
         image = stage(prompt=data['prompt'], image=data['image'], generator=generator, noise_level=100).images
-        worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(pt_to_pil(image)[0]), 1)
+        worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(image[0]), 1)
