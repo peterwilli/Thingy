@@ -36,12 +36,13 @@ def clean_memory():
     torch.cuda.empty_cache()
 
 def get_stage(hf_auth_token):
+    pretrained_path = get_pretrained_path_safe("DeepFloyd/IF-I-XL-v1.0")
+    print("pretrained_path:", pretrained_path)
     text_encoder = T5EncoderModel.from_pretrained(
-        "DeepFloyd/IF-I-XL-v1.0", subfolder="text_encoder", device_map="auto", torch_dtype=torch.float16, variant="fp16", use_auth_token=hf_auth_token
+        pretrained_path, subfolder="text_encoder", device_map="auto", torch_dtype=torch.float16, variant="fp16", use_auth_token=hf_auth_token
     )
-
     pipe = DiffusionPipeline.from_pretrained(
-        "DeepFloyd/IF-I-XL-v1.0",
+        pretrained_path,
         text_encoder=text_encoder,  # pass the previously instantiated 8bit text encoder
         use_auth_token=hf_auth_token,
         unet=None,

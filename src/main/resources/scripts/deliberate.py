@@ -19,7 +19,7 @@ def calculate_size(base_size, w, h):
         return s_w, s_h
 
 def get_pipe(hf_auth_token):
-    repo_id = "peterwilli/deliberate-2"
+    repo_id = get_pretrained_path_safe("peterwilli/deliberate-2")
     device = "cuda"
     tokenizer = CLIPTokenizer.from_pretrained(
         repo_id,
@@ -78,7 +78,7 @@ while True:
         base_size = 512
         prompt = document.tags['prompt']
         embeds = document.tags['embeds']
-        negative_prompt = document.tags['negative_prompt']
+        negative_prompt = "nsfw, nude, breasts, naked, porn, " + document.tags['negative_prompt']
         ar = document.tags['ar'].split(":")
         width, height = calculate_size(base_size, int(ar[0]), int(ar[1]))
         width = next_divisible(width, 8)

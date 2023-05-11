@@ -217,7 +217,6 @@ class QueueEntry(
 
     fun isDone(): Boolean {
         return currentStatuses != null && currentStatuses!!.all { currentStatus ->
-            println("currentStatus.isDone(this): ${currentStatus.isDone(this)}")
             currentStatus.isDone(this)
         }
     }

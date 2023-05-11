@@ -49,8 +49,10 @@ class QueueClient(
         val progressMsg =
             StringBuilder(entry.getHumanReadableOverview())
         progressMsg.append("\n" + asciiProgressBar(entry.getProgress()))
-        val etaString = etaToString(eta)
-        progressMsg.append(" **ETA:** $etaString")
+        if (!entry.isDone()) {
+            val etaString = etaToString(eta)
+            progressMsg.append(" **ETA:** $etaString")
+        }
         for ((index, status) in entry.currentStatuses!!.withIndex()) {
             if (status.error != null) {
                 progressMsg.append("\n**Error** with item `${index + 1}`: `${status.error}`")
@@ -79,10 +81,10 @@ class QueueClient(
                         !it.uri.isNullOrEmpty()
                     }.map {
                         it.base64UriToByteArray()
-                    }, "jpg"), if (prog == 1f) {
-                        "thingy_final.jpg"
+                    }, entry.fileFormat), if (prog == 1f) {
+                        "thingy_final.${entry.fileFormat}"
                     } else {
-                        "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.jpg"
+                        "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.${entry.fileFormat}"
                     }
                 )
                 result.add(upload)
@@ -143,7 +145,9 @@ class QueueClient(
                         message.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
                             .queue()
                         maybeSaveChapter(entry, message)
-                        entries.remove(entry)
+                        entriesMutex.withLock {
+                            entries.remove(entry)
+                        }
                         jedis.incrBy("simulatedQueuePosition", -1)
                     }
                 }
@@ -178,7 +182,7 @@ class QueueClient(
                 possibleLastChapter.id + 1
             }
 
-            if (entry.shouldSaveChapter || finishMsg.attachments.size > 0) {
+            if (entry.shouldSaveChapter && finishMsg.attachments.size > 0) {
                 val chapter = UserChapter(
                     id = chapterID,
                     chapterType = entry.chapterType.ordinal,

@@ -65,30 +65,7 @@ impl QueueRunner {
                 let doc_ids_doing: Vec<String> =
                     self.con
                         .lrange(format!("queue:doing:{}", proc.script_id), 0, -1)?;
-
-                if !doc_ids_doing.is_empty() {
-                    let mut pipe = redis::pipe();
-                    pipe = pipe
-                        .cmd("FCALL")
-                        .arg("remove_n_script_in_queue")
-                        .arg(1)
-                        .arg("scriptsInQueue")
-                        .arg(&proc.script_id)
-                        .arg(doc_ids_doing.len())
-                        .ignore()
-                        .to_owned();
-                    for doc_id in doc_ids_doing.iter() {
-                        pipe = pipe
-                            .hset(format!("entry:{}", doc_id), "error", "command_timed_out")
-                            .ignore()
-                            .to_owned();
-                        pipe = pipe
-                            .lrem(format!("queue:doing:{}", proc.script_id), 1, doc_id)
-                            .ignore()
-                            .to_owned();
-                    }
-                    let _: () = pipe.query(&mut self.con)?;
-                } else {
+                if doc_ids_doing.is_empty() {
                     let doc_ids_todo: Vec<String> =
                         self.con
                             .lrange(format!("queue:todo:{}", proc.script_id), 0, -1)?;
@@ -115,6 +92,28 @@ impl QueueRunner {
                         }
                         let _: () = pipe.query(&mut self.con)?;
                     }
+                } else {
+                    let mut pipe = redis::pipe();
+                    pipe = pipe
+                        .cmd("FCALL")
+                        .arg("remove_n_script_in_queue")
+                        .arg(1)
+                        .arg("scriptsInQueue")
+                        .arg(&proc.script_id)
+                        .arg(doc_ids_doing.len())
+                        .ignore()
+                        .to_owned();
+                    for doc_id in doc_ids_doing.iter() {
+                        pipe = pipe
+                            .hset(format!("entry:{}", doc_id), "error", "command_timed_out")
+                            .ignore()
+                            .to_owned();
+                        pipe = pipe
+                            .lrem(format!("queue:doing:{}", proc.script_id), 1, doc_id)
+                            .ignore()
+                            .to_owned();
+                    }
+                    let _: () = pipe.query(&mut self.con)?;
                 }
                 self.current_process = None;
             }

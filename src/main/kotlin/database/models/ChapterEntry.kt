@@ -115,8 +115,11 @@ class ChapterEntry {
         val description = if(firstParams.has("prompt")) {
             firstParams.get("prompt").asString
         }
-        else {
+        else if(firstParams.has("instructions")) {
             firstParams.get("instructions").asString
+        }
+        else {
+            "No prompt"
         }
         return description
     }

@@ -4,6 +4,17 @@ import time
 
 prefix = "{%PREFIX%}"
 
+def get_pretrained_path_safe(model):
+    safe_name = model.replace("/", "--")
+    possible_local_model_paths = [
+        os.path.join(os.environ['HOME'], ".cache", "huggingface", "hub", f"models--{safe_name}"),
+        os.path.join(os.environ['HOME'], ".cache", "huggingface", "diffusers", f"models--{safe_name}"),
+    ]
+    for possible_local_model_path in possible_local_model_paths:
+        if os.path.exists(possible_local_model_path):
+            snapshots = os.listdir(os.path.join(possible_local_model_path, "snapshots"))
+            return os.path.join(possible_local_model_path, "snapshots", snapshots[-1])
+    return model
 
 class ThingyWorker:
     def __init__(self):

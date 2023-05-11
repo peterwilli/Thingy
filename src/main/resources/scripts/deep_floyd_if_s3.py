@@ -38,7 +38,7 @@ def clean_memory():
 
 def get_stage(hf_auth_token):
     pipe = IFSuperResolutionPipeline.from_pretrained(
-        "DeepFloyd/IF-II-L-v1.0", text_encoder=None, variant="fp16", torch_dtype=torch.float16, device_map="auto", use_auth_token=hf_auth_token
+        get_pretrained_path_safe("DeepFloyd/IF-II-L-v1.0"), text_encoder=None, variant="fp16", torch_dtype=torch.float16, device_map="auto", use_auth_token=hf_auth_token
     )
     return pipe
 

@@ -5,7 +5,6 @@ import commands.art_contest.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
 import commands.img2img.img2imgCommand
-import commands.make.QueueDispatcher
 import commands.make.makeImageCommand
 import commands.social.profileCommand
 import commands.social.serverStatsCommand
@@ -329,7 +328,6 @@ fun initCommands(jda: JDA) {
             option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("share", "Share your favorite content!") {
-            modelSelection(this)
         }
         slash("profile", "Get someone's (Or your!) stats!") {
             option<User>("user", "Get stats by user (you if not defined)", required = false)

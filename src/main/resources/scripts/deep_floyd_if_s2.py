@@ -13,7 +13,6 @@ import tempfile
 import os
 import base64
 
-
 def calculate_size(base_size, w, h):
     r = max(w, h) / min(w, h)
     s_w = int(math.floor(base_size * r))
@@ -38,11 +37,10 @@ def clean_memory():
 
 def get_stage(hf_auth_token):
     pipe = IFPipeline.from_pretrained(
-        "DeepFloyd/IF-I-XL-v1.0", text_encoder=None, variant="fp16", torch_dtype=torch.float16, device_map="auto", use_auth_token=hf_auth_token
+        get_pretrained_path_safe("DeepFloyd/IF-I-XL-v1.0"), text_encoder=None, variant="fp16", torch_dtype=torch.float16, device_map="auto", use_auth_token=hf_auth_token
     )
     return pipe
 
-dummy = Image.new(mode="RGB", size=(64, 64))
 worker = ThingyWorker()
 while True:
     bucket = worker.get_current_bucket()
@@ -54,6 +52,8 @@ while True:
             global_object['pipe'] = get_stage(hf_token)
         stage = global_object['pipe']
         data = pickle.loads(document.blob)
+        ar = document.tags['ar'].split(":")
+        width, height = calculate_size(64, int(ar[0]), int(ar[1]))
         image = stage(
             prompt_embeds=data['prompt_embeds'],
             negative_prompt_embeds=data['negative_embeds'],

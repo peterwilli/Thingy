@@ -6,6 +6,7 @@ import config
 import database.chapterDao
 import database.models.ChapterEntry
 import database.models.SharedArtCacheEntry
+import database.models.UserChapter
 import database.sharedArtCacheEntryDao
 import database.userDao
 import dev.minn.jda.ktx.coroutines.await
@@ -74,35 +75,24 @@ fun shareCommand(jda: JDA) {
         try {
             event.deferReply(true).queue()
 
-            val model = if(event.getOption("type") == null) {
-                "images"
+            val user = userDao.queryBuilder().selectColumns("id", "currentChapterId").where()
+                .eq("discordUserID", event.user.id).queryForFirst()
+            if (user == null) {
+                event.reply_("User '${event.user.id}' not found! Did you make art yet? $miniManual")
+                    .setEphemeral(true).queue()
+                return@onCommand
             }
-            else {
-                event.getOption("type")!!.asString
+
+            val usingChapter =
+                chapterDao.queryBuilder().selectColumns().where()
+                    .eq("id", user.currentChapterId).and().eq("userID", user.id).queryForFirst()
+            if (usingChapter == null) {
+                event.reply_("Sorry, we couldn't find any chapters! $miniManual")
+                    .setEphemeral(true).queue()
+                return@onCommand
             }
 
-            if (model == "images") {
-                val user = userDao.queryBuilder().selectColumns("id", "currentChapterId").where()
-                    .eq("discordUserID", event.user.id).queryForFirst()
-                if (user == null) {
-                    event.reply_("User '${event.user.id}' not found! Did you make art yet? $miniManual")
-                        .setEphemeral(true).queue()
-                    return@onCommand
-                }
-
-                val usingChapter =
-                    chapterDao.queryBuilder().selectColumns().limit(1).orderBy("creationTimestamp", false)
-                        .where()
-                        .eq("userID", user.id)
-                        .and().eq("chapterType", ChapterEntry.Companion.Type.Image.ordinal)
-                        .queryForFirst()
-
-                if (usingChapter == null) {
-                    event.reply_("Sorry, we couldn't find any chapters! $miniManual")
-                        .setEphemeral(true).queue()
-                    return@onCommand
-                }
-
+            if (usingChapter.chapterType == ChapterEntry.Companion.Type.Image.ordinal) {
                 val latestEntry = usingChapter.getLatestEntry()
                 val image = ImageIO.read(URL(latestEntry.data))
                 val parameters = gson.fromJson(latestEntry.parameters, JsonArray::class.java)
@@ -174,7 +164,7 @@ fun shareCommand(jda: JDA) {
                 event.hook.editMessageToIncludePaginator(quiltSelector).queue()
             }
             else {
-                event.hook.editOriginal("Sorry, sharing $model isn't supported yet!").queue()
+                event.hook.editOriginal("Sorry, sharing ${usingChapter.chapterType} isn't supported yet!").queue()
             }
         } catch (e: Exception) {
             e.printStackTrace()

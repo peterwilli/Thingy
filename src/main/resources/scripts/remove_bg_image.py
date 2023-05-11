@@ -17,4 +17,6 @@ while True:
     for document in bucket:
         input = get_image(document, 'image')
         output = remove(input)
+        image_box = output.getbbox()
+        output = output.crop(image_box)
         worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(output), 1)
