@@ -5,6 +5,8 @@ build/
 config.yml
 *.sqlite
 Dockerfile
+docker-compose.yml
+config.example.yml
 README.md
 .gitignore
 LICENSE

@@ -1,13 +1,11 @@
+#hydrolane->deps:git+https://github.com/suno-ai/bark.git, emoji, pydub
 from bark import SAMPLE_RATE, generate_audio, preload_models
-from IPython.display import Audio
-import torch
 import emoji
 import re
 from jina import Executor, requests, DocumentArray, Document
 import numpy as np
 from pydub import AudioSegment
 import base64
-import io
 
 global_object = {
     'pipe': None

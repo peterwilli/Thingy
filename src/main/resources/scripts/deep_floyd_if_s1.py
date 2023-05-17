@@ -1,16 +1,12 @@
+#hydrolane->deps:diffusers, transformers
 from jina import Executor, requests, DocumentArray, Document
 
 from diffusers import DiffusionPipeline
 from transformers import T5EncoderModel
-from diffusers.utils import pt_to_pil
 import torch
 import math
 import gc
 import pickle
-from PIL import Image
-import tempfile
-import os
-import base64
 
 
 def calculate_size(base_size, w, h):

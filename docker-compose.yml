@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+  bot:
+    image: thingy-test:latest
+    restart: unless-stopped
+    volumes:
+      - ./thingy_data:/opt/thingy/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  hydrolane:
+    # Change this if needed
+    image: peterwilli/hydrolane:cuda11.7-cudnn8-devel
+    environment:
+      REDIS_URL: redis://redis:6379
+      RUST_LOG: debug
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+              
+  redis:
+    image: redis:7-alpine
+    command: 'redis-server --save "" --appendonly no'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]

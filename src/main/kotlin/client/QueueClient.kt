@@ -49,7 +49,7 @@ class QueueClient(
         val progressMsg =
             StringBuilder(entry.getHumanReadableOverview())
         progressMsg.append("\n" + asciiProgressBar(entry.getProgress()))
-        if (!entry.isDone()) {
+        if (!entry.isDone() && eta > 0) {
             val etaString = etaToString(eta)
             progressMsg.append(" **ETA:** $etaString")
         }
@@ -68,7 +68,7 @@ class QueueClient(
             if (status.updatedDoc == null) {
                 continue
             }
-            updatedDocs.add(status.updatedDoc!!)
+            updatedDocs.add(0, status.updatedDoc!!)
         }
         if (updatedDocs.isEmpty()) {
             return arrayOf()
@@ -138,6 +138,13 @@ class QueueClient(
                         }
                     }
                 }
+                entriesMutex.withLock {
+                    for ((entry, _) in entriesUpdated) {
+                        if (entry.isDone()) {
+                            entries.remove(entry)
+                        }
+                    }
+                }
                 for ((entry, text) in entriesUpdated) {
                     updatePreview(entry, text)
                     if (entry.isDone()) {
@@ -145,9 +152,6 @@ class QueueClient(
                         message.reply_("${entry.getMember().asMention}, we finished your entry!\n> *${entry.description}*")
                             .queue()
                         maybeSaveChapter(entry, message)
-                        entriesMutex.withLock {
-                            entries.remove(entry)
-                        }
                         jedis.incrBy("simulatedQueuePosition", -1)
                     }
                 }

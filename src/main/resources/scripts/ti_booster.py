@@ -1,3 +1,4 @@
+#hydrolane->deps:diffusers, transformers, Pillow
 import base64
 import os
 import tempfile
@@ -6,7 +7,6 @@ from PIL import Image, ImageOps
 
 from jina import Executor, requests, DocumentArray, Document
 import subprocess
-import sys
 import re
 import base64
 

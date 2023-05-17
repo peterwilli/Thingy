@@ -1,3 +1,4 @@
+#hydrolane->deps:rembg, Pillow
 from jina import Executor, requests, DocumentArray, Document
 from rembg import remove
 from io import BytesIO

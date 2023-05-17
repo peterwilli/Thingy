@@ -6,9 +6,11 @@ import utils.messageToURL
 
 fun magicPromptCommand(jda: JDA) {
     jda.onCommand("magic_prompt") { event ->
-        event.deferReply().queue()
+        event.reply_("TODO!").setEphemeral(true).queue()
+//        event.deferReply().queue()
+
         try {
-            val client = jcloudClient.currentClient()
+            /*
             val amount = if (event.getOption("amount") == null) {
                 5
             } else {
@@ -34,6 +36,7 @@ fun magicPromptCommand(jda: JDA) {
                 magicMessage.reply_("${event.user.asMention} Your magic prompts are done! We added them as single messages so it's easy to copy paste on phone! They are yours to do with as you wish!")
                     .queue()
             }
+             */
         } catch (e: Exception) {
             e.printStackTrace()
             event.hook.editOriginal("Error! $e").queue()

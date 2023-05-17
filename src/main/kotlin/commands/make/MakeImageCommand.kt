@@ -10,7 +10,6 @@ import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import getDeepFloydJsonDefaults
-import getDeliberateJsonDefaults
 import getKey
 import getSdJsonDefaults
 import imageModels
@@ -57,8 +56,8 @@ fun makeImageCommand(jda: JDA) {
                     createEntry(event.hook, params, getDeepFloydJsonDefaults(), sdHiddenParameters, arrayOf("deep_floyd_if_s1", "deep_floyd_if_s2", "deep_floyd_if_s3", "deep_floyd_if_s4"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 "deliberate" -> {
-                    val params = event.optionsToJson().withDefaults(getDeliberateJsonDefaults())
-                    createEntry(event.hook, params, getDeliberateJsonDefaults(), sdHiddenParameters, arrayOf("deliberate"), config.hostConstraints.totalImagesInMakeCommand, model)
+                    val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
+                    createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayOf("deliberate"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 "stable_diffusion" -> {
                     val params = event.optionsToJson().withDefaults(getSdJsonDefaults())

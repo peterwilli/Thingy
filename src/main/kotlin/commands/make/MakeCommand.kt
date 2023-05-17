@@ -3,6 +3,7 @@ import com.google.gson.JsonObject
 import commands.make.*
 import database.models.ChapterEntry
 import dev.minn.jda.ktx.events.onCommand
+import dev.minn.jda.ktx.messages.reply_
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
@@ -11,6 +12,8 @@ import kotlin.random.Random
 
 fun makeCommand(jda: JDA) {
     jda.onCommand("make") { event ->
+        event.reply_("TODO!").setEphemeral(true).queue()
+        /*
         try {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
@@ -66,5 +69,6 @@ fun makeCommand(jda: JDA) {
             e.printStackTrace()
             event.sendException(e)
         }
+         */
     }
 }

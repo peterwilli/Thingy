@@ -1,3 +1,4 @@
+#hydrolane->deps:diffusers, transformers, Pillow
 from jina import Executor, requests, DocumentArray, Document
 
 import torch

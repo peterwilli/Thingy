@@ -2,12 +2,8 @@ import java.net.URI
 import java.net.URL
 
 data class HostConstraints(
-    val maxSimultaneousMakeRequests: Int,
+    val maxEntriesPerOwner: Int,
     val totalImagesInMakeCommand: Int
-)
-
-data class JCloudKeeper(
-    val url: URL
 )
 
 data class Bot(
@@ -20,10 +16,8 @@ data class Bot(
 data class Config(
     val bot: Bot,
     val databasePath: String,
-    val maxEntriesPerOwner: Int,
     val hostConstraints: HostConstraints,
-    val jcloudKeeper: JCloudKeeper?,
-    val directUrl: URI?,
+    val redisHost: URI = URI.create("redis://127.0.0.1:6379"),
     val imagesFolder: String,
     val shareChannelID: String,
     val artContestChannelID: String?,

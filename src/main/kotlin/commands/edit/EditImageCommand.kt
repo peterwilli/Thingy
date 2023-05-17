@@ -1,6 +1,5 @@
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import commands.make.FairQueueEntry
 import commands.make.standardPermissionList
 import commands.make.validatePermissions
 import database.models.ChapterEntry
@@ -29,6 +28,8 @@ fun getEditImageJsonDefaults(): JsonObject {
 
 fun editImageCommand(jda: JDA) {
     jda.onCommand("edit_image") { event ->
+        event.reply_("Todo!").setEphemeral(true).queue()
+        /*
         try {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
@@ -85,5 +86,6 @@ fun editImageCommand(jda: JDA) {
             e.printStackTrace()
             event.sendException(e)
         }
+         */
     }
 }

@@ -10,10 +10,10 @@ Integrates with DiscoArt, Stable Diffusion and other peculiarities, all rolled u
 - Advanced Profile customization
 - A massive upscaling feature with the ability to upscale up to 3k
 - **Chapters**: Work on your pieces, and switch back to previous works of art!
-  - Every "creation" command (`/stable_diffusion`, `/disco_diffusion`) results in a new chapter
-  - Users can use variation commands (`/upscale`, `/variate`, ~~more to come~~) to alter said chapters as they wish
+  - Every "creation" command (`/make_image`, `/make_audio` results in a new chapter
+  - Use variation commands (`/upscale`, `/variate`, ~~more to come~~) to alter said chapters as they wish
   - Don't like a change? Just do `/rollback`! There's unlimited undo!
-  - Users can instantly swap back to previous chapters with `/chapters`
+  - Instantly swap back to previous chapters with `/chapters`
     
 [Demo video + dev journey](https://www.youtube.com/watch?v=epLF0OXTp-A)
 
@@ -38,9 +38,16 @@ In short: this bot allows you to generate images based on a text prompt, but can
 
 # Run it yourself!
 
-As this bot is open-source, anyone can run it. Depending on the method, you need different specs. The easiest is through Docker and Jina's JCloud
+As this bot is open-source, anyone can run it. Depending on the method, you need different specs. The easiest is through Docker Compose as it will instantly set up everything you need.
 
-## Installing via Docker
+The bot consists of 2 major parts:
+
+- Thingy (the interface where users will interact with)
+- Hydrolane (the queue system and AI loader) (which will actually run the models)
+
+In the tutorial below, we will set up both components so you can get started.
+
+## Installing via Docker Compose
 
 **Note!** As we evolved from a weekend project to a larger-scale bot, things have changed a lot, and I thank you all. Please, if you use this in your own server, do get in touch with me, so we can see what works and what doesn't. Any feedback is really appreciated! Feel free to join [Thingy's birthplace](https://discord.gg/j4wQYhhvVd) or shoot a line in the projects Issues page!
 
@@ -48,25 +55,23 @@ As this bot is open-source, anyone can run it. Depending on the method, you need
 
  - Linux or Windows with Docker installed (Or [download here](https://docs.docker.com/get-docker/))
  - Discord account and bot (more on this later)
+ - A Nvidia GPU (Todo: support AMD, CPU, etc. Let me know if you can help testing!)
 
 **Steps**:
 
- - Create a directory where we will set up our bot
+ - Create a directory where we will set up our bot, and inside this directory, create a directory called `thingy_data`
     - If you ran an older version of the bot, you can drop your `db.sqlite` here. Keep in mind the configuration has changed slightly. Otherwise, you can ignore this.
- - Download [this file](https://raw.githubusercontent.com/peterwilli/Thingy/main/config.example.yml) and name it `config.yml`, put it into the bot directory. 
- - Once done, follow "Setting up the bot" and then go back here
-
- - **The following steps are for running the AI remotely on JCloud! (Free for now!)**
-
-    - We need to start the Docker image:
-    - 
-      - If you're updating, make sure to run `docker pull peterwilli/thingy:latest` first, and back up your database! (We do some migration, and while it's tested, a backup is never a bad idea!)
-
-      - If you're starting fresh, you can use the following command in the bot directory: `docker run -v $(pwd):/opt/thingy/data -d --name=thingy peterwilli/thingy:latest`
-
-    - Once it is running, log in to JCloud by running: `docker exec -it thingy jc login`. You should now get a link that you can copy-paste in your browser to login.
-
-    - Now you should be able to run `/stable_diffusion` and other peculiarities in Discord! The first time it might take a while to run.
+ - Download [config.example.yml](config.example.yml) and name it `config.yml`, put it into the bot directory. 
+ - Once done, follow "Setting up the bot" and then go back here.
+ - Download [docker-compose.yml](docker-compose.yml), if you use a Nvidia GPU then you don't need to change anything. Drop this file in the same directory as where your data directory resides.
+ - You should now have the following list of files (correct your setup to match this tree if necessary):
+   ```
+    ├── docker-compose.yml
+    └── thingy_data
+        └── config.yml
+   ```
+ - You're ready! Run `docker compose up -d` to start the network. Docker automatically manages downtime and user data is stored in the `thingy_data` directory!
+ - Now you should be able to run `/make_image` and other peculiarities in Discord! The first time it might take a while to run due to downloading models.
 
 ## Setting up the bot
 

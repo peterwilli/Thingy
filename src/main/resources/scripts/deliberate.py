@@ -1,3 +1,4 @@
+#hydrolane->deps:diffusers, transformers
 from jina import Executor, requests, DocumentArray, Document
 
 from diffusers import DPMSolverMultistepScheduler

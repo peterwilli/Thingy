@@ -1,8 +1,3 @@
-FROM rust:1.64.0-bullseye as keep_my_jcloud_builder
-RUN cargo install \
-    --git https://github.com/peterwilli/KeepMyJCloud.git \ 
-    --rev 9b25365aa5c110a7f41a1d4f0aff26ab1962114a
-
 FROM gradle:jdk18-jammy as thingy_builder
 WORKDIR /usr/src/app
 COPY . .
@@ -16,17 +11,11 @@ RUN echo "Installing system dependencies" && \
     add-apt-repository 'deb https://apt.corretto.aws stable main' && \
     apt-get update && \
     apt-get install -y java-18-amazon-corretto-jdk && \
-    echo "Installing python dependencies" && \
-    pip3 install jcloud==0.2.2 && \
     apt-get remove -y wget software-properties-common && \
     apt-get autoremove -y && \
     rm -rf corretto.key && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/thingy
-COPY --from=keep_my_jcloud_builder /usr/local/cargo/bin/keep_my_jcloud /usr/local/bin/keep_my_jcloud
+WORKDIR /opt/thingy/data
 COPY --from=thingy_builder /usr/src/app/build/libs/Thingy-*-all.jar /opt/thingy/Thingy.jar
-COPY ./extras/docker_init /usr/local/bin/init
-COPY ./flow_server.yml /opt/thingy
-HEALTHCHECK --interval=30s --timeout=10s CMD curl --fail http://localhost:8000/info || exit 1
-CMD ["init"]
+CMD ["java", "-jar", "/opt/thingy/Thingy.jar"]

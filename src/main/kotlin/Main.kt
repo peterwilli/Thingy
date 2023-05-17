@@ -13,8 +13,6 @@ import commands.social.shareCommand
 import commands.train.downloadTrainingCommand
 import commands.train.trainCommand
 import commands.update.updateCommand
-import commands.upscale.upscaleCommand
-import commands.upscale.upscaleImageCommand
 import commands.variate.variateCommand
 import database.createDefaultDatabaseEntries
 import database.initDatabase
@@ -38,20 +36,18 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.Compression
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import redis.clients.jedis.Jedis
-import utils.JCloudClient
+import java.net.URI
 import kotlin.math.pow
 import kotlin.time.Duration
 
 lateinit var config: Config
 lateinit var queueClient: QueueClient
-lateinit var jcloudClient: JCloudClient
 var updateMode = false
 
 suspend fun main(args: Array<String>) {
     config = ConfigLoader().loadConfigOrThrow(args.getOrElse(0) {
         "./config.yml"
     })
-    jcloudClient = JCloudClient()
     initDatabase()
     try {
         Thingy.getCurrent().runMigration()
@@ -68,7 +64,7 @@ suspend fun main(args: Array<String>) {
     builder.setBulkDeleteSplittingEnabled(false)
     builder.setCompression(Compression.ZLIB)
     builder.setActivity(Activity.competing("Your prompts suck!"))
-    val redisClient = Jedis("localhost", 6379)
+    val redisClient = Jedis(config.redisHost)
     coroutineScope {
         val jda = builder.build()
         queueClient = QueueClient(redisClient)
@@ -81,17 +77,12 @@ suspend fun main(args: Array<String>) {
 
 fun initCommands(jda: JDA) {
     makeCommand(jda)
-    stableDiffusionCommand(jda)
     cancelCommand(jda)
     updateCommand(jda)
     listChaptersCommand(jda)
-    variateCommand(jda)
     shareCommand(jda)
     rollbackChapterCommand(jda)
-    img2imgCommand(jda)
     profileCommand(jda)
-    upscaleCommand(jda)
-    upscaleImageCommand(jda)
     magicPromptCommand(jda)
     makeAudioCommand(jda)
     makeImageCommand(jda)

@@ -24,7 +24,7 @@ fun removeBackgroundImageCommand(jda: JDA) {
                 return QueueEntry("Remove background from image", event.member!!.id,
                     batch,
                     JsonObject(),
-                    sdHiddenParameters,
+                    arrayOf(),
                     hook,
                     null,
                     ChapterEntry.Companion.Type.Image,

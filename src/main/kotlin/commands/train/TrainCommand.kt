@@ -13,6 +13,7 @@ import database.userDao
 import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.editMessage
+import dev.minn.jda.ktx.messages.reply_
 import isLettersOrDigits
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
@@ -33,6 +34,8 @@ val trainHiddenParameters = (0 until 4).map { i ->
 
 fun trainCommand(jda: JDA) {
     jda.onCommand("train") { event ->
+        event.reply_("Todo!").setEphemeral(true).queue()
+        /*
         try {
             if (!validatePermissions(event, standardPermissionList)) {
                 return@onCommand
@@ -109,6 +112,6 @@ fun trainCommand(jda: JDA) {
         } catch (e: Exception) {
             e.printStackTrace()
             event.sendException(e)
-        }
+        }*/
     }
 }

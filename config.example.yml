@@ -1,21 +1,11 @@
 bot:
-  name: "My AI bot!"
+  name: "Thingy"
   token: "my_bot_token_keep_secret"
   hfToken: "token_from_hf"
-  ownerId: "580050773522513920"
-maxEntriesPerOwner: 1
+  ownerId: "my_discord_id"
 hostConstraints:
-  maxSimultaneousMakeRequests: 1
+  maxEntriesPerOwner: 1
   totalImagesInMakeCommand: 4
-timeouts:
-  discoDiffusion:
-    imageNotAppearing: 10
-    imageNotUpdating: 10
-  stableDiffusion:
-    imageNotAppearing: 30
-    imageNotUpdating: 30
-jcloudKeeper:
-  url: "http://localhost:8000"
-databasePath: "/opt/thingy/data/db.sqlite"
-imagesFolder: "/app"
+databasePath: "./db.sqlite"
+imagesFolder: "./images"
 shareChannelID: "my_share_channel_id"
