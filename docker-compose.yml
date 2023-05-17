@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   bot:
-    image: thingy-test:latest
+    image: peterwilli/thingy:latest
     restart: unless-stopped
     volumes:
       - ./thingy_data:/opt/thingy/data
@@ -34,7 +34,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-              
+
   redis:
     image: redis:7-alpine
     command: 'redis-server --save "" --appendonly no'
