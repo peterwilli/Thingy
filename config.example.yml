@@ -9,3 +9,4 @@ hostConstraints:
 databasePath: "./db.sqlite"
 imagesFolder: "./images"
 shareChannelID: "my_share_channel_id"
+redisHost: redis://redis:6379
