@@ -1,4 +1,4 @@
-#hydrolane->deps:diffusers, transformers
+#hydrolane->deps:diffusers, transformers, sentencepiece
 from jina import Executor, requests, DocumentArray, Document
 
 from diffusers import DiffusionPipeline
@@ -7,21 +7,6 @@ import torch
 import math
 import gc
 import pickle
-
-
-def calculate_size(base_size, w, h):
-    r = max(w, h) / min(w, h)
-    s_w = int(math.floor(base_size * r))
-    s_h = int(math.floor(s_w / r))
-    if w < h:
-        return s_h, s_w
-    else:
-        return s_w, s_h
-
-def next_divisible(n, d):
-    divisor = n % d
-    return n - divisor
-
 
 global_object = {
     'pipe': None

@@ -1,5 +1,4 @@
 import java.net.URI
-import java.net.URL
 
 data class HostConstraints(
     val maxEntriesPerOwner: Int,
@@ -18,7 +17,6 @@ data class Config(
     val databasePath: String,
     val hostConstraints: HostConstraints,
     val redisHost: URI = URI.create("redis://127.0.0.1:6379"),
-    val imagesFolder: String,
     val shareChannelID: String,
     val artContestChannelID: String?,
     val leaderboardChannelID: String?,

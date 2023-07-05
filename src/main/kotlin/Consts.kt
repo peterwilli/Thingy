@@ -12,6 +12,10 @@ val imageModels: HashMap<String, String> = hashMapOf(
     "Deliberate" to "deliberate",
     "Deep-Floyd IF" to "deep_floyd_if")
 
+val audioModels: HashMap<String, String> = hashMapOf(
+    "Bark" to "bark",
+    "MusicGen" to "musicgen")
+
 fun getDeepFloydJsonDefaults(): JsonObject {
     val obj = JsonObject()
     obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
@@ -28,6 +32,7 @@ fun getBarkAudioDefaults(): JsonObject {
     val obj = JsonObject()
     obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
     obj.addProperty("_hf_auth_token", config.bot.hfToken)
+    obj.addProperty("duration", 15)
     obj.add("embeds", JsonArray(0))
     return obj
 }

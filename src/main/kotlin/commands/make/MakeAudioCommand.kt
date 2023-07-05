@@ -5,6 +5,7 @@ import commands.make.*
 import database.models.ChapterEntry
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.onCommand
+import dev.minn.jda.ktx.messages.reply_
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.interactions.InteractionHook
 import utils.*
@@ -19,7 +20,7 @@ fun makeAudioCommand(jda: JDA) {
             }
             event.deferReply().await()
             val params = event.optionsToJson().withDefaults(getBarkAudioDefaults())
-            fun createEntry(hook: InteractionHook, params: JsonObject): QueueEntry {
+            fun createEntry(hook: InteractionHook, params: JsonObject, model: String, scripts: Array<String>): QueueEntry {
                 val batch = JsonArray()
                 for (idx in 0 until 4) {
                     val clonedParams = params.deepCopy()
@@ -28,7 +29,7 @@ fun makeAudioCommand(jda: JDA) {
                     batch.add(clonedParams)
                 }
                 return QueueEntry(
-                    "Making audio",
+                    "Making audio (${audioModels.getKey(model)})",
                     event.member!!.id,
                     batch,
                     getBarkAudioDefaults(),
@@ -38,11 +39,23 @@ fun makeAudioCommand(jda: JDA) {
                     ChapterEntry.Companion.Type.Audio,
                     ChapterEntry.Companion.Visibility.Public,
                     "mp3",
-                    arrayOf("bark"),
-                    false
+                    scripts,
+                    true
                 )
             }
-            val entry = createEntry(event.hook, params)
+            val maybeModel = event.getOption("model")
+            val entry = when(val model = maybeModel?.asString ?: "musicgen") {
+                "musicgen" -> {
+                    createEntry(event.hook, params, model, arrayOf("musicgen"))
+                }
+                "bark" -> {
+                    createEntry(event.hook, params, model, arrayOf("bark"))
+                }
+                else -> {
+                    event.reply_("Unknown model: $model").queue()
+                    return@onCommand
+                }
+            }
             queueClient.uploadEntry(entry)
         } catch (e: Exception) {
             e.printStackTrace()

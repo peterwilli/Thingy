@@ -4,7 +4,6 @@ import commands.art_contest.*
 import commands.art_contest.cancel.cancelCommand
 import commands.chapters.listChaptersCommand
 import commands.chapters.rollbackChapterCommand
-import commands.img2img.img2imgCommand
 import commands.make.makeImageCommand
 import commands.social.profileCommand
 import commands.social.serverStatsCommand
@@ -207,6 +206,13 @@ fun initCommands(jda: JDA) {
         }
         slash("make_audio", "Make audio! Anything works! Even emoji!") {
             option<String>("prompt", "Prompt to make i.e 'I will slash you to pieces \uD83D\uDC32!'", required = true)
+            option<Attachment>("source_audio", "Source audio to style transfer!", required = false)
+            option<Int>("duration", "Duration of output audio (in seconds, defaults to 15)", required = false)
+            option<String>("model", "The model to use! (Default: Random)", required = false) {
+                for((k, v) in audioModels) {
+                    choice(k, v)
+                }
+            }
             seed(this)
         }
         slash("upscale", "Upscale your precious creations!") {
@@ -261,32 +267,6 @@ fun initCommands(jda: JDA) {
                 choice("Public", "public")
                 choice("DMs", "dm")
             }
-        }
-        slash("img2img", "Make an existing image into your prompt!") {
-            option<Attachment>("input_image", "Initial image", required = true)
-            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
-            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            option<Double>("strength", "How strong the change needs to be?", required = false)
-            option<Int>("steps", "How much steps from the original image?", required = false) {
-                this.setMaxValue(100)
-                this.setMinValue(1)
-            }
-            sdGuidanceScale(this)
-            seed(this)
-            sdSize(this)
-        }
-        slash("link2img", "Make an existing image into your prompt!") {
-            option<String>("input_image_url", "Link to initial image", required = true)
-            option<String>("prompt", "Prompt to make i.e 'Monkey holding a beer'", required = true)
-            option<String>("ar", "aspect ratio (i.e 16:9)", required = false)
-            seed(this)
-            sdGuidanceScale(this)
-            sdSize(this)
-            option<Int>("strength", "How strong the change needs to be (In %)?", required = false) {
-                this.setMinValue(0)
-                this.setMaxValue(100)
-            }
-            option<Int>("steps", "How much steps from the original image?", required = false)
         }
         slash("magic_prompt", "Need help spicing up your prompt?") {
             option<String>("start", "Beginning of your prompt!", required = true)

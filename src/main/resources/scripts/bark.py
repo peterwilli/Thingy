@@ -21,7 +21,6 @@ def replace_emoji(text):
 
     return result
 
-
 def tts(prompt):
     prompt = emoji.demojize(prompt)
     prompt = replace_emoji(prompt)
