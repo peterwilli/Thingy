@@ -24,7 +24,6 @@ import java.net.URL
 import java.util.Collections
 import kotlin.math.floor
 
-
 class QueueClient(
     private val jedis: Jedis,
     private val entries: MutableList<QueueEntry> = Collections.synchronizedList(mutableListOf()),
@@ -74,7 +73,7 @@ class QueueClient(
             return arrayOf()
         }
         if (entry.chapterType == ChapterEntry.Companion.Type.Image) {
-            if(updatedDocs.any { !it.uri.isNullOrEmpty() }) {
+            if (updatedDocs.any { !it.uri.isNullOrEmpty() }) {
                 val prog = entry.getProgress()
                 val upload = FileUpload.fromData(
                     makeQuiltFromByteArrayList(updatedDocs.filter {
@@ -98,11 +97,13 @@ class QueueClient(
                         continue
                     }
 
-                    val upload = FileUpload.fromData(status.updatedDoc!!.base64UriToByteArray(), if (entry.getProgress() == 1f) {
-                        "thingy_final.mp3"
-                    } else {
-                        "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.mp3"
-                    })
+                    val upload = FileUpload.fromData(
+                        status.updatedDoc!!.base64UriToByteArray(), if (entry.getProgress() == 1f) {
+                            "thingy_final.mp3"
+                        } else {
+                            "thingy_progress_${floor((prog * 100).toDouble()).toUInt()}_pct.mp3"
+                        }
+                    )
                     result.add(upload)
                 }
             }
@@ -114,9 +115,20 @@ class QueueClient(
         val uploads = getAttachements(entry)
         if (uploads.isEmpty()) {
             entry.progressUpdate(text)
-        }
-        else {
+        } else {
             entry.progressUpdate(text, uploads)
+        }
+    }
+
+    suspend fun cancelLastEntryByOwner(owner: String) {
+        entriesMutex.withLock {
+            for (entry in entries.reversed()) {
+                if (entry.owner == owner) {
+                    entry.cancel(jedis)
+                    entries.remove(entry)
+                    break
+                }
+            }
         }
     }
 
@@ -157,8 +169,7 @@ class QueueClient(
                 }
                 entriesUpdated.clear()
                 delay(1000)
-            }
-            catch(e: Exception) {
+            } catch (e: Exception) {
                 println("QueueClient Loop Exception! (Ignored)")
                 e.printStackTrace()
             }

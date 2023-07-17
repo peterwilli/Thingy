@@ -1,7 +1,0 @@
-diffusers==0.11.1
-jina>=3.13
-transformers==4.25.1
-torchvision
-scipy
-accelerate
-git+https://github.com/peterwilli/sd-leap-booster.git@d29b8d3e09dd55d820c4d97c9a1fe6c0654a0e36

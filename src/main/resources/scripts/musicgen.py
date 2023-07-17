@@ -9,6 +9,7 @@ from audiocraft.models import MusicGen
 import re
 import numpy as np
 import emoji
+import random
 import base64
 
 global_object = {
@@ -31,6 +32,7 @@ while True:
     bucket = worker.get_current_bucket()
     for document in bucket:
         generator = torch.manual_seed(int(document.tags['seed']))
+        random.seed(int(document.tags['seed']))
         if global_object['pipe'] is None:
             global_object['pipe'] = get_stage()
         model = global_object['pipe']
@@ -39,7 +41,6 @@ while True:
         prompt = document.tags['prompt']
         prompt = emoji.demojize(prompt)
         prompt = replace_emoji(prompt)
-
 
         audio_values = None
         if 'source_audio' in document.tags:

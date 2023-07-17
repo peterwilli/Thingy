@@ -88,6 +88,7 @@ fun initCommands(jda: JDA) {
     downloadTrainingCommand(jda)
     setBackgroundCommand(jda)
     serverStatsCommand(jda)
+    upscaleImageCommand(jda)
     removeFromContestCommand(jda)
     submitToContestCommand(jda)
     trainCommand(jda)
@@ -207,7 +208,10 @@ fun initCommands(jda: JDA) {
         slash("make_audio", "Make audio! Anything works! Even emoji!") {
             option<String>("prompt", "Prompt to make i.e 'I will slash you to pieces \uD83D\uDC32!'", required = true)
             option<Attachment>("source_audio", "Source audio to style transfer!", required = false)
-            option<Int>("duration", "Duration of output audio (in seconds, defaults to 15)", required = false)
+            option<Int>("duration", "Duration of output audio (in seconds, defaults to 15)", required = false) {
+                this.setMaxValue(30)
+                this.setMinValue(0)
+            }
             option<String>("model", "The model to use! (Default: Random)", required = false) {
                 for((k, v) in audioModels) {
                     choice(k, v)
@@ -218,12 +222,8 @@ fun initCommands(jda: JDA) {
         slash("upscale", "Upscale your precious creations!") {
             sdGuidanceScale(this)
             sdUpscale(this)
-        }
-        slash("upscale_image", "Upscale any image you want (Max 1024x1024 accepted)!") {
-            option<Attachment>("image", "Image to upscale", required = true)
-            option<String>("prompt", "Describe your original image, the better you can describe it, the better the results", required = true)
-            sdGuidanceScale(this)
-            sdUpscale(this)
+            seed(this)
+            option<String>("prompt_override", "Describe your original image, the better you can describe it, the better the results", required = false)
         }
         slash("edit_image", "Want to make changes to an existing image? Here you go!") {
             option<Attachment>("image", "Image to edit", required = true)

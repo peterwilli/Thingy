@@ -165,6 +165,21 @@ class QueueEntry(
         }
     }
 
+    suspend fun cancel(con: Jedis) {
+        val tx = con.multi()
+        tx.incrBy("simulatedQueuePosition", -1)
+        for(currentStatus in currentStatuses!!) {
+            val scriptContents = getResourceAsText("/scripts/${scripts[currentStatus.scriptIndex]}.py")
+            val scriptId = getScriptId(scriptContents.toByteArray())
+            tx.fcall("remove_n_script_in_queue", listOf("scriptsInQueue"), listOf(scriptId, "1"))
+            tx.lrem("queue:todo:$scriptId", 1, currentStatus.doc.id)
+            tx.lrem("queue:doing:$scriptId", 1, currentStatus.doc.id)
+            tx.del("entry:${currentStatus.doc.id}")
+        }
+        tx.exec()
+        this.progressUpdate("Canceled!")
+    }
+
     private fun addDocToRedis(con: Jedis, doc: DocumentProto, scriptIndex: Int) {
         val scriptId = initScript(con, scripts[scriptIndex])
         val tx = con.multi()
@@ -178,12 +193,15 @@ class QueueEntry(
         tx.exec()
     }
 
+    private fun getScriptId(contents: ByteArray): String {
+        val hasher = SMLBLAKE3.newInstance()
+        hasher.update(contents)
+        return hasher.hexdigest(16)
+    }
 
     private fun initScript(con: Jedis, name: String): String {
         val scriptContents = getResourceAsText("/scripts/$name.py")
-        val hasher = SMLBLAKE3.newInstance()
-        hasher.update(scriptContents.toByteArray())
-        val scriptId = hasher.hexdigest(16)
+        val scriptId = getScriptId(scriptContents.toByteArray())
         if(!con.exists(scriptId)) {
             con.hset("scripts", scriptId, scriptContents)
         }
@@ -197,7 +215,7 @@ class QueueEntry(
                 @Suppress("KotlinConstantConditions")
                 addDocToRedis(con, currentStatus.doc, currentStatus.scriptIndex)
             }
-            if(currentStatus.progress < 1.0f) {
+            if(!currentStatus.isDone(this)) {
                 continue
             }
             val docIDToDelete = currentStatus.doc.id

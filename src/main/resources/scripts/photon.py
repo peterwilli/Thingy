@@ -11,16 +11,16 @@ import os
 import base64
 
 def calculate_size(base_size, w, h):
-    r = max(w, h) / min(w, h)
+    r = min(w, h) / max(w, h)
     s_w = int(math.floor(base_size * r))
     s_h = int(math.floor(s_w / r))
-    if w < h:
+    if w > h:
         return s_h, s_w
     else:
         return s_w, s_h
 
 def get_pipe(hf_auth_token):
-    repo_id = get_pretrained_path_safe("peterwilli/deliberate-2")
+    repo_id = get_pretrained_path_safe("peterwilli/photon")
     device = "cuda"
     tokenizer = CLIPTokenizer.from_pretrained(
         repo_id,
@@ -76,7 +76,7 @@ while True:
         if global_object['pipe'] is None:
             global_object['pipe'] = get_pipe(document.tags['_hf_auth_token'])
         pipe = global_object['pipe']
-        base_size = 512
+        base_size = 768
         prompt = document.tags['prompt']
         embeds = document.tags['embeds']
         negative_prompt = "nsfw, nude, breasts, naked, porn, " + document.tags['negative_prompt']
@@ -84,6 +84,10 @@ while True:
         width, height = calculate_size(base_size, int(ar[0]), int(ar[1]))
         width = next_divisible(width, 8)
         height = next_divisible(height, 8)
+        if width < 512:
+            width = 512
+        if height < 512:
+            height = 512
         print(f"width: {width} height: {height}")
 
         with tempfile.TemporaryDirectory() as temp_dir:

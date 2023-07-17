@@ -78,8 +78,8 @@ def next_divisible(n, d):
     divisor = n % d
     return n - divisor
 
-def process_tile(pipe, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image):
-    torch.manual_seed(0)
+def process_tile(pipe, seed, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image):
+    torch.manual_seed(seed)
     crop_rect = (min(image.size[0] - tile_size, x * tile_size),
                  min(image.size[1] - tile_size, y * tile_size),
                  min(image.size[0], (x + 1) * tile_size),
@@ -119,6 +119,7 @@ while True:
         pipe = global_object['pipe']
         prompt = document.tags['prompt']
         noise_level = document.tags['noise_level']
+        seed = int(document.tags['seed'])
         guidance_scale = document.tags['guidance_scale']
         original_image_slice = int(document.tags['original_image_slice'])
         tile_border = int(document.tags['tile_border'])
@@ -132,6 +133,10 @@ while True:
         current_count = 0
         for y in range(tcy):
             for x in range(tcx):
-                process_tile(pipe, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image)
+                process_tile(pipe, seed, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image)
                 current_count += 1
                 worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(final_image), current_count / total_tile_count)
+                if worker.is_canceled(document.id.decode('ascii')):
+                    break
+            if worker.is_canceled(document.id.decode('ascii')):
+                break

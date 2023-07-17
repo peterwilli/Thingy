@@ -1,3 +1,0 @@
-jina>=3.7
-transformers>=4.21
-onnxruntime==1.12.1

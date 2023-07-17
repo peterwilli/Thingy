@@ -11,6 +11,7 @@ import dev.minn.jda.ktx.events.onCommand
 import dev.minn.jda.ktx.messages.reply_
 import getDeepFloydJsonDefaults
 import getKey
+import getPhotonJsonDefaults
 import getSdJsonDefaults
 import imageModels
 import net.dv8tion.jda.api.JDA
@@ -59,6 +60,10 @@ fun makeImageCommand(jda: JDA) {
                     val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
                     createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayOf("deliberate"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
+                "photon" -> {
+                    val params = event.optionsToJson().withDefaults(getPhotonJsonDefaults())
+                    createEntry(event.hook, params, getPhotonJsonDefaults(), sdHiddenParameters, arrayOf("photon"), config.hostConstraints.totalImagesInMakeCommand, model)
+                }
                 "stable_diffusion" -> {
                     val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
                     val selectedScript = if(params.get("size").asInt == 512) {
@@ -68,6 +73,10 @@ fun makeImageCommand(jda: JDA) {
                         "stable_diffusion_768"
                     }
                     createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayOf(selectedScript), config.hostConstraints.totalImagesInMakeCommand, model)
+                }
+                "sd_xl" -> {
+                    val params = event.optionsToJson().withDefaults(getSdJsonDefaults())
+                    createEntry(event.hook, params, getSdJsonDefaults(), sdHiddenParameters, arrayOf("sd_xl"), config.hostConstraints.totalImagesInMakeCommand, model)
                 }
                 else -> {
                     event.reply_("Unknown model: $model").queue()
