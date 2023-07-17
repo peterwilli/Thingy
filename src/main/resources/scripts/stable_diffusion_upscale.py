@@ -3,6 +3,7 @@ from jina import Executor, requests, DocumentArray, Document
 
 import torch
 import math
+import random
 from PIL import Image
 from diffusers import StableDiffusionUpscalePipeline
 from io import BytesIO
@@ -65,8 +66,15 @@ def add_overlap_rect(rect: [int], overlap: int, image_size: [int]):
 
 def squeeze_tile(tile, original_image, original_slice, slice_x):
     result = Image.new('RGB', (tile.size[0] + original_slice, tile.size[1]))
-    result.paste(original_image.resize((tile.size[0], tile.size[1]), Image.BICUBIC).crop((slice_x, 0, slice_x + original_slice, tile.size[1])), (0, 0))
+    width, height = original_image.size
+    ratio = width / height
+    new_height = tile.size[1]
+    new_width = int(ratio * new_height)
+    original_image_rescaled = original_image.resize((new_width, new_height))
+    new_slice_x = (slice_x / original_image.size[0]) * original_image_rescaled.size[0]
+    result.paste(original_image_rescaled.crop((new_slice_x, 0, new_slice_x + original_slice, original_image_rescaled.size[1])), (0, 0))
     result.paste(tile, (original_slice, 0))
+    result.save("tile_test.png")
     return result
 
 def unsqueeze_tile(tile, original_image_slice):
@@ -86,11 +94,7 @@ def process_tile(pipe, seed, prompt, noise_level, guidance_scale, original_image
                  min(image.size[1], (y + 1) * tile_size))
     crop_rect_with_overlap = add_overlap_rect(crop_rect, tile_border, image.size)
     tile = image.crop(crop_rect_with_overlap)
-    translated_slice_x = ((crop_rect[0] + ((crop_rect[2] - crop_rect[0]) / 2)) / image.size[0]) * tile.size[0]
-    translated_slice_x = translated_slice_x - (original_image_slice / 2)
-    translated_slice_x = max(0, translated_slice_x)
-    # translated_slice_x = random.randint(0, image.size[0] - original_image_slice)
-    to_input = squeeze_tile(tile, image, original_image_slice, translated_slice_x)
+    to_input = squeeze_tile(tile, image, original_image_slice, (crop_rect[0] + ((crop_rect[2] - crop_rect[0]) / 2)))
     orig_input_size = to_input.size
     to_input = to_input.resize((tile_size, tile_size), Image.BICUBIC)
     upscaled_tile = pipe(prompt=prompt, image=to_input, guidance_scale=guidance_scale, noise_level=noise_level).images[0]
@@ -120,9 +124,11 @@ while True:
         prompt = document.tags['prompt']
         noise_level = document.tags['noise_level']
         seed = int(document.tags['seed'])
+        random.seed(seed)
         guidance_scale = document.tags['guidance_scale']
         original_image_slice = int(document.tags['original_image_slice'])
         tile_border = int(document.tags['tile_border'])
+        tiling_mode = document.tags['tiling_mode']
         image = Image.open(BytesIO(base64.b64decode(document.tags['image'])))
 
         final_image = Image.new('RGB', (image.size[0] * 4, image.size[1] * 4))
@@ -131,12 +137,21 @@ while True:
         tcy = math.ceil(image.size[1] / tile_size)
         total_tile_count = tcx * tcy
         current_count = 0
-        for y in range(tcy):
-            for x in range(tcx):
-                process_tile(pipe, seed, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image)
-                current_count += 1
-                worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(final_image), current_count / total_tile_count)
-                if worker.is_canceled(document.id.decode('ascii')):
-                    break
+        lxy = None
+
+        if tiling_mode == "linear" or tiling_mode == "random":
+            lxy = []
+            for y in range(tcy):
+                for x in range(tcx):
+                    lxy.append((x, y))
+        if tiling_mode == "random":
+            random.shuffle(lxy)
+
+        for (x, y) in lxy:
+            process_tile(pipe, seed, prompt, noise_level, guidance_scale, original_image_slice, x, y, tile_size, tile_border, image, final_image)
+            current_count += 1
+            worker.set_progress(document.id.decode('ascii'), Document().load_pil_image_to_datauri(final_image), current_count / total_tile_count)
             if worker.is_canceled(document.id.decode('ascii')):
                 break
+        if worker.is_canceled(document.id.decode('ascii')):
+            break

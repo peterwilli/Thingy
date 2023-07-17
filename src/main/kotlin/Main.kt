@@ -137,7 +137,7 @@ fun initCommands(jda: JDA) {
             "How much guidance from the full image?",
             required = false,
             builder = {
-                this.setMaxValue(32)
+                this.setMaxValue(64)
                 this.setMinValue(0)
             }
         )
@@ -150,6 +150,10 @@ fun initCommands(jda: JDA) {
                 this.setMinValue(0)
             }
         )
+        data.option<String>("tiling_mode", "Where to start upscaling? (default: Linear)", required = false) {
+            choice("Linear", "linear")
+            choice("Random", "random")
+        }
         data.option<Double>(
             "noise_level",
             "More noise means less of the original image is left and more details are \"imagined\"",

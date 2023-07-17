@@ -35,8 +35,9 @@ fun getSDUpscaleJsonDefaults(): JsonObject {
     obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
     obj.addProperty("_hf_auth_token", config.bot.hfToken)
     obj.addProperty("noise_level", 100)
-    obj.addProperty("tile_border", 64)
-    obj.addProperty("guidance_scale", 5)
+    obj.addProperty("tile_border", 32)
+    obj.addProperty("tiling_mode", "linear")
+    obj.addProperty("guidance_scale", 6)
     obj.addProperty("original_image_slice", 32)
     return obj
 }
