@@ -61,6 +61,7 @@ fun upscaleImageCommand(jda: JDA) {
                     params.addProperty("prompt", prompt)
                 } else {
                     params.addProperty("prompt", maybeOverride.asString)
+                    params.remove("prompt_override")
                 }
                 batch.add(params)
                 val entry = QueueEntry(

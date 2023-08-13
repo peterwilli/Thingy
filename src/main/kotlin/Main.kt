@@ -124,6 +124,7 @@ fun initCommands(jda: JDA) {
 
     fun sdSize(data: SlashCommandData): SlashCommandData {
         data.option<Int>("size", "Image square size (Default: Normal)", required = false) {
+            // TODO: Make generic
             choice("Small", 256)
             choice("Normal", 512)
             choice("Big", 768)
@@ -181,7 +182,7 @@ fun initCommands(jda: JDA) {
             required = false
         ) {
             this.setMinValue(1)
-            this.setMaxValue(100)
+            this.setMaxValue(200)
         }
     }
 
@@ -208,6 +209,10 @@ fun initCommands(jda: JDA) {
             sdGuidanceScale(this)
             sdSteps(this)
             seed(this)
+            for(i in 0 until 4) {
+                option<Attachment>("fuse_image_${i + 1}", "Image ${i + 1} to fuse with prompt", required = false)
+            }
+            option<String>("fuse_weights", "Weight of the fusions (image, prompt, etc.) Default: equal weight", required = false)
         }
         slash("make_audio", "Make audio! Anything works! Even emoji!") {
             option<String>("prompt", "Prompt to make i.e 'I will slash you to pieces \uD83D\uDC32!'", required = true)

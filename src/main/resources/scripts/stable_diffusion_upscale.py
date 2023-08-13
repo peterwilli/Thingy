@@ -74,7 +74,6 @@ def squeeze_tile(tile, original_image, original_slice, slice_x):
     new_slice_x = (slice_x / original_image.size[0]) * original_image_rescaled.size[0]
     result.paste(original_image_rescaled.crop((new_slice_x, 0, new_slice_x + original_slice, original_image_rescaled.size[1])), (0, 0))
     result.paste(tile, (original_slice, 0))
-    result.save("tile_test.png")
     return result
 
 def unsqueeze_tile(tile, original_image_slice):
@@ -94,9 +93,12 @@ def process_tile(pipe, seed, prompt, noise_level, guidance_scale, original_image
                  min(image.size[1], (y + 1) * tile_size))
     crop_rect_with_overlap = add_overlap_rect(crop_rect, tile_border, image.size)
     tile = image.crop(crop_rect_with_overlap)
-    to_input = squeeze_tile(tile, image, original_image_slice, (crop_rect[0] + ((crop_rect[2] - crop_rect[0]) / 2)))
+    slice_x = (crop_rect[0] + ((crop_rect[2] - crop_rect[0]) / 2)) - (original_image_slice / 2)
+    slice_x = min(slice_x, image.size[0] - original_image_slice)
+    slice_x = max(slice_x, 0)
+    to_input = squeeze_tile(tile, image, original_image_slice, slice_x)
     orig_input_size = to_input.size
-    to_input = to_input.resize((tile_size, tile_size), Image.BICUBIC)
+    # to_input = to_input.resize((tile_size, tile_size), Image.BICUBIC)
     upscaled_tile = pipe(prompt=prompt, image=to_input, guidance_scale=guidance_scale, noise_level=noise_level).images[0]
     upscaled_tile = upscaled_tile.resize((orig_input_size[0] * 4, orig_input_size[1] * 4), Image.BICUBIC)
     #upscaled_tile  = tile.resize((tile.size[0] * 4, tile.size[1] * 4), Image.BICUBIC)

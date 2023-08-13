@@ -215,7 +215,7 @@ class QueueEntry(
                 @Suppress("KotlinConstantConditions")
                 addDocToRedis(con, currentStatus.doc, currentStatus.scriptIndex)
             }
-            if(!currentStatus.isDone(this)) {
+            if(currentStatus.progress < 1.0f) {
                 continue
             }
             val docIDToDelete = currentStatus.doc.id

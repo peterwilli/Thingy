@@ -111,7 +111,7 @@ class QueueClient(
         return result.toTypedArray()
     }
 
-    suspend fun updatePreview(entry: QueueEntry, text: String) {
+    private suspend fun updatePreview(entry: QueueEntry, text: String) {
         val uploads = getAttachements(entry)
         if (uploads.isEmpty()) {
             entry.progressUpdate(text)

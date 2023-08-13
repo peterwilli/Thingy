@@ -9,6 +9,7 @@ val gson = Gson()
 const val defaultNegative = "out of frame, lowres, text, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature,"
 val imageModels: HashMap<String, String> = hashMapOf(
     "Stable Diffusion" to "stable_diffusion",
+    "Kadinsky" to "kadinsky",
     "SDXL" to "sd_xl",
     "Deliberate" to "deliberate",
     "Photon (realistic photos)" to "photon",
@@ -30,15 +31,30 @@ fun getDeepFloydJsonDefaults(): JsonObject {
     return obj
 }
 
+fun getKadinskyMakeImageJsonDefaults(): JsonObject {
+    val obj = JsonObject()
+    obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
+    obj.addProperty("ar", "1:1")
+    obj.addProperty("_hf_auth_token", config.bot.hfToken)
+    obj.addProperty("noise_level", 100)
+    obj.addProperty("guidance_scale", 1)
+    obj.addProperty("size", 512)
+    obj.addProperty("steps", 50)
+    obj.addProperty("negative_prompt", defaultNegative)
+    return obj
+}
+
+val kadinskyHiddenParameters = arrayOf("embeds", "model", "task")
+
 fun getSDUpscaleJsonDefaults(): JsonObject {
     val obj = JsonObject()
     obj.addProperty("seed", Random.nextInt(0, 2.toDouble().pow(32).toInt()))
     obj.addProperty("_hf_auth_token", config.bot.hfToken)
     obj.addProperty("noise_level", 100)
-    obj.addProperty("tile_border", 32)
+    obj.addProperty("tile_border", 16)
     obj.addProperty("tiling_mode", "linear")
-    obj.addProperty("guidance_scale", 6)
-    obj.addProperty("original_image_slice", 32)
+    obj.addProperty("guidance_scale", 9)
+    obj.addProperty("original_image_slice", 16)
     return obj
 }
 

@@ -5,7 +5,7 @@ from diffusers import DPMSolverMultistepScheduler
 from diffusers import StableDiffusionPipeline
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
 import torch
-import math
+import mathg
 import tempfile
 import os
 import base64
